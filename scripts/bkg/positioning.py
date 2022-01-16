@@ -59,8 +59,8 @@ mean, cov = loc.plot()
 cont_finder = ContinuousFtp(met=met_event)
 cont_finder.get_poshist('tmp')
 # open a poshist file
-poshist = PosHist.open("tmp/"+os.listdir("tmp")[0])
-os.remove("tmp/"+os.listdir("tmp")[0])
+poshist = PosHist.open("tmp/" + os.listdir("../tmp")[0])
+os.remove("tmp/" + os.listdir("../tmp")[0])
 # initialize plot
 skyplot = SkyPlot()
 # plot the orientation of the detectors and Earth blockage at our time of interest

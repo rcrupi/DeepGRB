@@ -140,8 +140,8 @@ for _, row in deep_tri.iterrows():
             cont_finder = ContinuousFtp(met=met_event)
             cont_finder.get_poshist('tmp')
             # open a poshist file
-            poshist = PosHist.open("tmp/"+os.listdir("tmp")[0])
-            os.remove("tmp/"+os.listdir("tmp")[0])
+            poshist = PosHist.open("tmp/" + os.listdir("../tmp")[0])
+            os.remove("tmp/" + os.listdir("../tmp")[0])
             # initialize plot
             skyplot = SkyPlot()
             # plot the orientation of the detectors and Earth blockage at our time of interest
@@ -153,7 +153,7 @@ for _, row in deep_tri.iterrows():
             break
         except Exception as e:
             print(e)
-            [os.remove("tmp/" + file) for file in os.listdir("tmp")]
+            [os.remove("tmp/" + file) for file in os.listdir("../tmp")]
             pass
 
 pass
