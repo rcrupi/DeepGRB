@@ -69,4 +69,5 @@ def download_spec(start_month, end_month, bool_overwrite=False):
             except Exception as e:
                 logging.error(e)
                 logging.error('Error for file: ' + row['id'][0:6])
+    logging.info("End download.")
     return df_days_count

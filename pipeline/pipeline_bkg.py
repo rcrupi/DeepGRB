@@ -12,7 +12,7 @@ erange = {'n': [(28, 50), (50, 300), (300, 500)],
 df_days = download_spec("01-2014", "04-2014")
 
 # 2 Elaborate CSPEC and Poshist
-build_table(df_days, erange)
+build_table(df_days, erange, bool_parallel=True)
 
 # 3 Train NN
 # fit_nn()

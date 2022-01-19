@@ -1,6 +1,7 @@
 # import utils
 import os
 import logging
+from joblib import Parallel, delayed
 # GBM data tools
 from gbm.data import Ctime, Cspec
 from gbm.binning.binned import rebin_by_time
@@ -12,14 +13,16 @@ import pandas as pd
 from connections.utils.config import PATH_TO_SAVE, FOLD_CSPEC_POS, FOLD_BKG
 
 
-def build_table(df_days, erange, bool_overwrite=False):
+def build_table(df_days, erange, bool_overwrite=False, bool_parallel=False):
     """
     :param df_days: pandas DataFrame, table of the days downloaded.
     :param erange: dict, dictionary of list of energy range for NaI and Bi detectors.
         E.g. {'n': [(28, 50), (50, 300), (300, 500)], 'b': [(756, 5025), (5025, 50000)]}
     :param bool_overwrite: bool, if True overwrite the tables (csv files).
+    :param bool_parallel: choose if use all CPU for computing the lightcurve (rebinning phase is long).
     :return:
     """
+    logging.info("Begin build table (csv files).")
     for _, row in df_days.iterrows():
         try:
             # Sort list file to have cspec + poshist in FOLD_CSPEC_POS
@@ -35,9 +38,31 @@ def build_table(df_days, erange, bool_overwrite=False):
                 if len(list_pha) < 14:
                     logging.warning('Not enough detectors (.pha file) in day: ' + row['id'][0:6])
                     continue
-                for file_tmp in list_pha:
-                    # Transform counts data
-                    dic_data = fun_lightcurve(dic_data, file_tmp, erange)
+
+                if bool_parallel:
+                    # Define the generator for Parallel
+                    def fun_lightcurve_param(file_tmp):
+                        print('Processing file: ' + file_tmp)
+                        res = fun_lightcurve(dic_data={}, file_tmp=file_tmp, erange=erange)
+                        print('End processing file: ' + file_tmp)
+                        return res
+                    # Parallelise
+                    results = Parallel(n_jobs=-1, verbose=1)(delayed(fun_lightcurve_param)(file_tmp)
+                                                             for file_tmp in list_pha)
+                    # Build dic_data inserting each detector_range values and met timestamp
+                    for res_dec_i in results:
+                        name_dets_i = [i for i in list(res_dec_i.keys()) if i != 'met']
+                        # Add detector_rage in dic_data
+                        for det_tmp in name_dets_i:
+                            dic_data[det_tmp] = res_dec_i[det_tmp]
+                        # Add met timestamp if not present
+                        if 'met' not in list(dic_data.keys()):
+                            dic_data['met'] = res_dec_i['met']
+                else:
+                    for file_tmp in list_pha:
+                        # Transform counts data
+                        dic_data = fun_lightcurve(dic_data, file_tmp, erange)
+
                 # Add poshist variables
                 file_pos = [i for i in list_file if 'poshist' in i and row['id'][0:6] in i]
                 if len(file_pos) > 0:
