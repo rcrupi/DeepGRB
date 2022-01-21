@@ -15,7 +15,7 @@ from connections.utils.config import PATH_TO_SAVE, FOLD_CSPEC_POS, FOLD_BKG
 
 def build_table(df_days, erange, bool_overwrite=False, bool_parallel=False):
     """
-    :param df_days: pandas DataFrame, table of the days downloaded.
+    :param df_days: pandas DataFrame, table of the days downloaded in FOLD_BKG folder.
     :param erange: dict, dictionary of list of energy range for NaI and Bi detectors.
         E.g. {'n': [(28, 50), (50, 300), (300, 500)], 'b': [(756, 5025), (5025, 50000)]}
     :param bool_overwrite: bool, if True overwrite the tables (csv files).
@@ -46,7 +46,7 @@ def build_table(df_days, erange, bool_overwrite=False, bool_parallel=False):
                         res = fun_lightcurve(dic_data={}, file_tmp=file_tmp, erange=erange)
                         print('End processing file: ' + file_tmp)
                         return res
-                    # Parallelise
+                    # Parallelize
                     results = Parallel(n_jobs=-1, verbose=1)(delayed(fun_lightcurve_param)(file_tmp)
                                                              for file_tmp in list_pha)
                     # Build dic_data inserting each detector_range values and met timestamp
@@ -83,6 +83,7 @@ def build_table(df_days, erange, bool_overwrite=False, bool_parallel=False):
         except Exception as e:
             logging.error(e)
             logging.error('Error for file: ' + row['id'][0:6])
+    logging.info("End preprocess csv files.")
 
 
 def fun_lightcurve(dic_data, file_tmp, erange):
