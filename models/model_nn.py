@@ -269,21 +269,20 @@ class ModelNN:
         gc.collect()
         # Predict y for all dataset TODO too slow
         pred_x_tot = self.nn_r.predict(self.scaler.transform(self.df_data.loc[:, self.col_selected].astype('float32')))
-        # if len(pred_x.shape)==2:
-        #   pred_x = pred_x.reshape(1,-1)[0]
-        y_tot = self.df_data.loc[:, self.col_range].astype('float32')
         gc.collect()
 
         # # # Generate a dataset for trigger algorithm
         # Original bkg + ssa + met
-        df_ori = self.df_data.loc[:, self.col_range].astype('float32')
-        df_ori['met'] = self.df_data['met']
+        df_ori = self.df_data.loc[:, self.col_range].astype('float32').reset_index(drop=True)
+        df_ori['met'] = self.df_data['met'].values
         df_ori['timestamp'] = ts
         # Prediction of the bkg
-        y_pred = pd.DataFrame(pred_x_tot, columns=y_tot.columns)
+        y_pred = pd.DataFrame(pred_x_tot, columns=self.col_range)
         y_pred['met'] = self.df_data['met'].values
+        y_pred['timestamp'] = ts
 
         if time_to_del > 0:
+            logging.info("Delete data near to SSA.")
             # Index where there is a time gap (more than 500 is considered SSA)
             index_saa = np.where((df_ori[['met']].diff() > 500).values)[0]
             # range time to delete. E.g. time_to_del*4 seconds
@@ -301,15 +300,25 @@ class ModelNN:
         y_pred.reset_index(drop=True, inplace=True)
 
         # Save the data
+        logging.info("Save foreground and background in csv files.")
         df_ori.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv',
                       index=False)
         y_pred.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv',
                       index=False)
-        pass
 
     def plot(self, time_r=range(0, 10000), det_rng='n1_r1'):
+        # Plot a particular zone and det_rng
         df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv')
         y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv')
-        plt.plot(df_ori.loc[time_r, 'timestamp'], df_ori.loc[time_r, det_rng], '.')
-        plt.plot(df_ori.loc[time_r, 'timestamp'], y_pred.loc[time_r, det_rng], '.')
-        plt.show()
+        plt.figure()
+        plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')
+        plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], '.')
+        # Plot y_pred vs y_true
+        fig = plt.figure()
+        fig.set_size_inches(24, 12)
+        plt.plot(df_ori.loc[time_r, self.col_range], y_pred.loc[time_r, self.col_range], '.', alpha=0.2)
+        plt.legend(self.col_range)
+        plt.xlim([0, 600])
+        plt.ylim([0, 600])
+        plt.xlabel('True signal')
+        plt.ylabel('Predicted signal')
