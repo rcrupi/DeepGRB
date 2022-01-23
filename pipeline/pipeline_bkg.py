@@ -2,30 +2,31 @@
 from models.download_bkg import download_spec
 from models.preprocess import build_table
 from models.model_nn import ModelNN
+from models.trigger import run_trigger
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 
 # Define range of energy
 erange = {'n': [(28, 50), (50, 300), (300, 500)],
           'b': [(756, 5025), (5025, 50000)]}
-start_month = "04-2019"
-end_month = "05-2019"
+start_month = "01-2019"
+end_month = "06-2019"
 
 # 1 Download CSPEC and Poshist
-#df_days = download_spec(start_month, end_month)
+df_days = download_spec(start_month, end_month)
 
-# 2 Elaborate CSPEC and Poshist
-#build_table(df_days, erange, bool_parallel=True)
+# 2 Elaborate CSPEC and Poshist -> to csv
+build_table(df_days, erange, bool_parallel=True)
 
 # 3 Train NN
 nn = ModelNN(start_month, end_month)
 nn.prepare(bool_del_trig=True)
-nn.train(bool_train=False, loss_robust=False, units=400, epochs=128, lr=0.001, bs=2000)
+nn.train(bool_train=True, bool_hyper=False, loss_type='median', units=2048, epochs=64, lr=0.0005, bs=2048)
 nn.predict()
-# nn.plot(time_r=range(0, 10000), det_rng='n1_r1')
+nn.plot(time_r=range(0, 10000), det_rng='n1_r1')
 
 # 4 Run trigger akg
-# run_trigger()
+run_trigger(start_month, end_month)
 
 # 5 Localise events
 # localize()

@@ -10,7 +10,6 @@ import pandas as pd
 from sqlalchemy import create_engine
 import gc
 from astropy.time import Time
-# from datetime import datetime
 # Preprocess
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -18,11 +17,13 @@ from sklearn.metrics import median_absolute_error as MAE
 from sklearn.preprocessing import StandardScaler
 # Tensorflow, Keras
 import tensorflow as tf
+import keras_tuner as kt
 from tensorflow.keras.layers import Dense, Dropout
-# from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.models import load_model
-import tensorflow.keras.losses as losses
+# Custom losses
+from models.utils.losses import loss_median, loss_max
 
 
 class ModelNN:
@@ -115,14 +116,41 @@ class ModelNN:
         self.df_data = df_data
         self.index_date = index_date
 
-    def train(self, bool_train=True, loss_robust=False, units=4000, epochs=512, lr=0.001, bs=2000, model_pretrain=None):
+    def build_model_hype(self, hp):
+        nn_input = tf.keras.Input(shape=(len(self.col_selected),))
+        hp_units = hp.Choice('units', values=[32, 256, 512, 1024, 2048, 4096])
+        dropout = hp.Choice('dropout', values=[0.01, 0.05, 0.1, 0.2, 0.4])
+        # First layers
+        model_1 = Dense(hp_units, activation='relu')(nn_input)
+        model_1 = Dropout(dropout)(model_1)
+        # Second layer
+        nn_r = Dense(hp_units, activation='relu')(model_1)
+        nn_r = Dropout(dropout)(nn_r)
+        # Third layer
+        nn_r = Dense(int(hp_units / 2), activation='relu')(nn_r)
+        # Fourth (last) layer output
+        outputs = Dense(len(self.col_range), activation='relu')(nn_r)
+        nn_r = tf.keras.Model(inputs=[nn_input], outputs=outputs)
+        # Optimizer
+        lr = hp.Choice('learning_rate', values=[0.01, 0.007, 0.004, 0.003, 0.002, 0.001, 0.0005, 0.0001])
+        beta_1 = hp.Choice('beta_1', values=[0.5, 0.7, 0.8, 0.9, 0.99])
+        beta_2 = hp.Choice('beta_2', values=[0.5, 0.7, 0.8, 0.9, 0.99])
+        opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=beta_1, beta_2=beta_2, epsilon=1e-07)
+        loss = 'mae'
+        # Compile nn model
+        nn_r.compile(loss=loss, loss_weights=1, optimizer=opt)
+        return nn_r
+
+    def train(self, bool_train=True, bool_hyper=False, loss_type='mean', units=4000, epochs=512, lr=0.001, bs=2000, model_pretrain=None):
         """
         Train a neural network to estimate counts of detectors.
         In FOLD_NN is saved: the NN model, train and validation performance during epochs,
          performance per each detector_range counts.
         :param bool_train: boolean, if True the nn is trained otherwise it is loaded in FOLD_NN folder
             (same months but minimum loss).
-        :param loss_robust: boolean, if False the loss is the average of MAEs, if True is the max of MAEs.
+        :param bool_hyper: boolean, train with keras_tuner. Find best hyperparameters but very slow.
+        :param loss_type: str, if 'mean' the loss is the average of MeanAEs, if 'max' is the max of MeanAEs, if 'median'
+            the loss is Median Absolute Error
         :param units: number of nodes in the first and second layer, the third is halved.
         :param epochs: number of epochs of the NN.
         :param lr: learning rate of the NN during training.
@@ -155,71 +183,89 @@ class ModelNN:
             nn_input = tf.keras.Input(shape=(X_train.shape[1],))
             # First layers
             model_1 = Dense(units, activation='relu')(nn_input)
-            model_1 = Dropout(0.2)(model_1)
+            model_1 = Dropout(0.1)(model_1)
             # Second layer
             nn_r = Dense(units, activation='relu')(model_1)
-            nn_r = Dropout(0.2)(nn_r)
+            nn_r = Dropout(0.1)(nn_r)
             # Third layer
             nn_r = Dense(int(units / 2), activation='relu')(nn_r)
+            nn_r = Dropout(0.1)(nn_r)
             # Fourth (last) layer output
             outputs = Dense(len(self.col_range), activation='relu')(nn_r)
             nn_r = tf.keras.Model(inputs=[nn_input], outputs=outputs)
             # Optimizer
-            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.7, beta_2=0.99, epsilon=1e-07)
+            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.8, beta_2=0.8, epsilon=1e-07)
+            # opt = tf.keras.optimizers.RMSprop( learning_rate=0.002, rho=0.6, momentum=0.0, epsilon=1e-07)
 
-            if loss_robust:
+            if loss_type == 'max':
+                logging.info('Loss chosen: Max Mean Absolute Error.')
                 # Define Loss as max_i(det_ran_error)
-                loss_mae_none = losses.MeanAbsoluteError(reduction=losses.Reduction.NONE)
+                loss = loss_max
+            elif loss_type == 'median':
+                logging.info('Loss chosen: Median Absolute Error.')
+                # Define Loss as average of Median Absolute Error for each detector_range
+                loss = loss_median
 
-                def loss_mae(y_true, y_predict):
-                    """
-                    Take the maximum of the MAE detectors.
-                    :param y_true: y target
-                    :param y_predict: y predicted by the NN
-                    :return: max_i(MAE_i)
-                    """
-                    a = tf.math.reduce_max(loss_mae_none(y_true, y_predict))  # axis=0
-                    return a
+            elif loss_type == 'mean':
+                # Define Loss as average of Mean Absolute Error for each detector_range
+                logging.info('Loss chosen: Mean Absolute Error.')
+                loss = 'mae'
             else:
-                # Define Loss as average of MAE for each detector_range
-                loss_mae = 'mae'
+                # Define Loss as average of Mean Squared Error for each detector_range
+                logging.info('Loss chosen: Mean Squared Error.')
+                loss = 'mse'
 
             # Load pretrain model if specified
             if model_pretrain is not None:
                 logging.info("Pretrained model: " + model_pretrain)
                 try:
-                    nn_r = load_model(PATH_TO_SAVE + FOLD_NN + '/' + model_pretrain)
+                    nn_r = load_model(PATH_TO_SAVE + FOLD_NN + '/' + model_pretrain, compile=False)
                 except Exception as e:
                     logging.error(e)
                     logging.warning("Can't import model " + model_pretrain + ". Train a NN from scratch.")
 
             # Compile nn model
-            nn_r.compile(loss=loss_mae, loss_weights=1, optimizer=opt)
+            nn_r.compile(loss=loss, loss_weights=1, optimizer=opt)
 
-            # Fitting the model
-            # es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, min_delta=0.01, patience=32)
-            mc = ModelCheckpoint(DB_PATH + 'm_check', monitor='val_loss', mode='min', verbose=0, save_best_only=True)
+            if not bool_hyper:
+                # Fitting the model
+                es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=16)
+                mc = ModelCheckpoint(DB_PATH + 'm_check', monitor='val_loss', mode='min', verbose=0, save_best_only=True)
 
-            logging.info("Fitting the model.")
-            # callbacks=[es, mc]
-            history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs, validation_split=0.3, callbacks=[mc])
+                logging.info("Fitting the model.")
+                # callbacks=[es, mc]
+                history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs, validation_split=0.3, callbacks=[es])
+            else:
+                tuner = kt.Hyperband(self.build_model_hype,
+                                     objective='val_loss',
+                                     max_epochs=640,
+                                     factor=3,
+                                     directory='my_dir',
+                                     project_name='intro_to_kt')
+                stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=64)
+                tuner.search(X_train, y_train, epochs=50, validation_split=0.3, batch_size=bs, callbacks=[stop_early])
+
+                # Get the optimal hyperparameters
+                best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+                nn_r = tuner.hypermodel.build(best_hps)
+                history = nn_r.fit(X_train, y_train, epochs=50, validation_split=0.3)
+
             # Insert loss result in model name
             loss_test = round(nn_r.evaluate(X_test, y_test), 2)
             name_model = 'model_' + self.start_month + '_' + self.end_month + '_' + str(loss_test)
-            logging.info("Saving model with name: " + name_model)
-            nn_r.save(PATH_TO_SAVE + FOLD_NN + "/" + name_model + '.h5')
-            self.nn_r = nn_r
 
             # Predict the model
             logging.info("NN predict on train and test set.")
             pred_train = nn_r.predict(X_train)
             pred_test = nn_r.predict(X_test)
 
-            # MAE Computation
+            # Median Absolute Error Computation
             mae = MAE(y_train, pred_train)
             logging.info("MAE train : % f" % (mae))
             mae = MAE(y_test, pred_test)
             logging.info("MAE test : % f" % (mae))
+            diff_mean = (y_test - pred_test).median().mean()
+            logging.info("diff test - pred : % f" % (diff_mean))
 
             # Compute MAE per each detector and range
             idx = 0
@@ -227,33 +273,50 @@ class ModelNN:
             for i in self.col_range:
                 mae_tr = MAE(y_train.iloc[:, idx], pred_train[:, idx])
                 mae_te = MAE(y_test.iloc[:, idx], pred_test[:, idx])
+                diff_i = (y_test.iloc[:, idx] - pred_test[:, idx]).median()
                 text_tr = "MAE train of " + i + " : %0.3f" % (mae_tr)
                 text_te = "MAE test of " + i + " : %0.3f" % (mae_te)
-                logging.info(text_tr + '    ' + text_te)
-                text_mae += text_tr + '    ' + text_te + '\n'
+                test_diff_i = "diff test - pred " + i + " : %0.3f" % (diff_i)
+                logging.info(text_tr + '    ' + text_te + '    ' + test_diff_i)
+                text_mae += text_tr + '    ' + text_te + '    ' + test_diff_i + '\n'
                 idx = idx + 1
-            # open text file and write mae performance
-            text_file = open(PATH_TO_SAVE + FOLD_NN + "/" + name_model + '.txt', "w")
-            text_file.write(text_mae)
-            text_file.close()
 
             # plot training history
             plt.plot(history.history['loss'][4:], label='train')
             plt.plot(history.history['val_loss'][4:], label='test')
             plt.legend()
+
+            logging.info("Saving model with name: " + name_model)
+            nn_r.save(PATH_TO_SAVE + FOLD_NN + "/" + name_model + '.h5')
+            self.nn_r = nn_r
+            # Save figure of performance
             plt.savefig(PATH_TO_SAVE + FOLD_NN + "/" + name_model + '.png')
+            # open text file and write mae performance
+            text_file = open(PATH_TO_SAVE + FOLD_NN + "/" + name_model + '.txt', "w")
+            text_file.write(text_mae)
+            text_file.close()
 
         # If NN already trained load the one with the same months and minimum loss
         else:
-            onlyfiles = [f for f in listdir(PATH_TO_SAVE + FOLD_NN) if
-                         isfile(join(PATH_TO_SAVE + FOLD_NN, f)) and '.h5' in f and
-                         self.start_month in f and self.end_month in f]
-            if len(onlyfiles) == 0:
-                logging.error("Model not found. Try to train the model.")
-                raise
-            # Sort to take the best 'loss' model
-            index_min_loss = int(np.argmin([float(i.split('_')[-1].split('.h5')[0]) for i in onlyfiles]))
-            self.nn_r = load_model(PATH_TO_SAVE + FOLD_NN + '/' + onlyfiles[index_min_loss])
+            if model_pretrain is not None:
+                try:
+                    logging.info("Try to load " + model_pretrain)
+                    self.nn_r = load_model(PATH_TO_SAVE + FOLD_NN + '/' + model_pretrain, compile=False)
+                except Exception as e:
+                    logging.warning(e)
+                    logging.warning("Can't load model " + model_pretrain)
+            else:
+                onlyfiles = [f for f in listdir(PATH_TO_SAVE + FOLD_NN) if
+                             isfile(join(PATH_TO_SAVE + FOLD_NN, f)) and '.h5' in f and
+                             self.start_month in f and self.end_month in f]
+                if len(onlyfiles) == 0:
+                    logging.error("Model not found. Try to train the model.")
+                    raise
+                # Sort to take the best 'loss' model
+                index_min_loss = int(np.argmin([float(i.split('_')[-1].split('.h5')[0]) for i in onlyfiles]))
+                logging.info("Try to load " + onlyfiles[index_min_loss])
+                self.nn_r = load_model(PATH_TO_SAVE + FOLD_NN + '/' + onlyfiles[index_min_loss], compile=False)
+                pass
 
     def predict(self, time_to_del: int = 150):
         """
@@ -310,6 +373,10 @@ class ModelNN:
         # Plot a particular zone and det_rng
         df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv')
         y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv')
+
+        plt.plot(df_ori.loc[:, det_rng], y_pred.loc[:, det_rng], '.', alpha=0.2)
+        plt.plot([0, 2000], [0, 2000], '-')
+
         plt.figure()
         plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')
         plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], '.')
@@ -317,6 +384,7 @@ class ModelNN:
         fig = plt.figure()
         fig.set_size_inches(24, 12)
         plt.plot(df_ori.loc[time_r, self.col_range], y_pred.loc[time_r, self.col_range], '.', alpha=0.2)
+        plt.plot([0, 600], [0, 600], '-')
         plt.legend(self.col_range)
         plt.xlim([0, 600])
         plt.ylim([0, 600])
