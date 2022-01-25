@@ -28,8 +28,8 @@ def download_spec(start_month, end_month, bool_overwrite=False):
     date_tmp = date_start
     # Add each day to download in df_days until end_month is reached
     while date_end > date_tmp:
-        year = date_start.year
-        month = date_start.month
+        year = date_tmp.year
+        month = date_tmp.month
         # days in the particular year and month
         num_days = calendar.monthrange(year, month)[1]
         # days is in "%y%m%d" format, tStart in '%Y-%m-%dT%H:%M:%S.00' and it is needed for download. 12:00 am default.
