@@ -16,16 +16,17 @@ end_month = "06-2019"
 df_days = download_spec(start_month, end_month)
 
 # 2 Elaborate CSPEC and Poshist -> to csv
-build_table(df_days, erange, bool_parallel=True)
+build_table(df_days, erange, bool_parallel=True, n_jobs=20)
 
 # 3 Train NN
 nn = ModelNN(start_month, end_month)
 nn.prepare(bool_del_trig=True)
 nn.train(bool_train=True, bool_hyper=False, loss_type='median', units=2048, epochs=64, lr=0.0005, bs=2048)
 nn.predict()
-nn.plot(time_r=range(0, 10000), det_rng='n1_r1')
+nn.plot(time_r=range(0, 1000), det_rng='n1_r1')
+nn.explain(time_r=range(0, 10))
 
-# 4 Run trigger akg
+# 4 Run trigger (bkg, frg)
 run_trigger(start_month, end_month)
 
 # 5 Localise events

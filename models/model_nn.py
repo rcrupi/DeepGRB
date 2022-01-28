@@ -24,6 +24,8 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.models import load_model
 # Custom losses
 from models.utils.losses import loss_median, loss_max
+# Explainability
+import shap
 
 
 class ModelNN:
@@ -229,7 +231,7 @@ class ModelNN:
 
             if not bool_hyper:
                 # Fitting the model
-                es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=16)
+                es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32, restore_best_weights=True)
                 mc = ModelCheckpoint(DB_PATH + 'm_check', monitor='val_loss', mode='min', verbose=0, save_best_only=True)
 
                 logging.info("Fitting the model.")
@@ -390,3 +392,37 @@ class ModelNN:
         plt.ylim([0, 600])
         plt.xlabel('True signal')
         plt.ylabel('Predicted signal')
+
+    def explain(self, time_r=range(0, 10), det_rng=None):
+        """
+        Explanation for instances in time range 'time_r'.
+        :param time_r: index timestamp.
+        :param det_rng: detector and range to explain.
+        :return: None
+            Plot summary_plot more than one instances.
+            Plot waterfall is one instance.
+        """
+        # Define dataset of background and explanation
+        X_back = shap.sample(self.df_data.loc[:, self.col_selected].astype('float32'), nsamples=42, random_state=42)
+        X_back_std =  pd.DataFrame(self.scaler.transform(X_back),  columns=self.col_selected)
+        X_expl = self.df_data.loc[time_r, self.col_selected].astype('float32')
+        X_expl_std = pd.DataFrame(self.scaler.transform(X_expl), columns=self.col_selected)
+        # Explainer shap
+        e = shap.KernelExplainer(self.nn_r, X_back_std)
+        shap_values = e.shap_values(X_expl_std, n_sample=20)
+        # Gradient based
+        # e = shap.GradientExplainer(self.nn_r, X_back_std)
+        # shap_values = e.shap_values(X_expl_std.values)
+        if len(time_r) > 1:
+            plt.figure()
+            shap.summary_plot(shap_values, X_expl_std)
+        else:
+            if det_rng is not None:
+                idx = np.where(np.array(self.col_range) == det_rng)[0][0]
+                plt.figure()
+                shap.plots._waterfall.waterfall_legacy(e.expected_value[idx], shap_values[idx][0],
+                                                       feature_names=self.col_selected)
+            else:
+                logging.warning("No Detector and range specified.")
+                plt.figure()
+                shap.summary_plot(shap_values, X_expl_std)

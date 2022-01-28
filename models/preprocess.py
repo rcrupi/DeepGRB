@@ -13,13 +13,14 @@ import pandas as pd
 from connections.utils.config import PATH_TO_SAVE, FOLD_CSPEC_POS, FOLD_BKG
 
 
-def build_table(df_days, erange, bool_overwrite=False, bool_parallel=False):
+def build_table(df_days, erange, bool_overwrite=False, bool_parallel=False, n_jobs=-1):
     """
     :param df_days: pandas DataFrame, table of the days downloaded in FOLD_BKG folder.
     :param erange: dict, dictionary of list of energy range for NaI and Bi detectors.
         E.g. {'n': [(28, 50), (50, 300), (300, 500)], 'b': [(756, 5025), (5025, 50000)]}
     :param bool_overwrite: bool, if True overwrite the tables (csv files).
     :param bool_parallel: choose if use all CPU for computing the lightcurve (rebinning phase is long).
+    :param n_jobs: number of jobs to create, default -1 (use all CPUs).
     :return:
     """
     logging.info("Begin build table (csv files).")
@@ -47,7 +48,7 @@ def build_table(df_days, erange, bool_overwrite=False, bool_parallel=False):
                         print('End processing file: ' + file_tmp)
                         return res
                     # Parallelize
-                    results = Parallel(n_jobs=-1, verbose=1)(delayed(fun_lightcurve_param)(file_tmp)
+                    results = Parallel(n_jobs=n_jobs, verbose=1)(delayed(fun_lightcurve_param)(file_tmp)
                                                              for file_tmp in list_pha)
                     # Build dic_data inserting each detector_range values and met timestamp
                     for res_dec_i in results:
