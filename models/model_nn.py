@@ -376,6 +376,7 @@ class ModelNN:
         df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv')
         y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv')
 
+        plt.figure()
         plt.plot(df_ori.loc[:, det_rng], y_pred.loc[:, det_rng], '.', alpha=0.2)
         plt.plot([0, 2000], [0, 2000], '-')
 
