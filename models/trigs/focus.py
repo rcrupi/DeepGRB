@@ -1,41 +1,112 @@
-'''
-a compact, functional implementation of FOCuS normal.
-requires python 3.8.
-'''
+import numpy as np
+from math import sqrt, log
 
 
-def update(q, x_t):
-    return (q[0] - 1, q[1] + 2 * x_t)
+class Curve:
+    '''
+    From the original python implementation of
+    FOCuS Poisson by Kester Ward (2021). All rights reserved.
+    '''
 
-def dominates(q, p):
-    return not ((q[1] < p[1]) or (q[1] / q[0] > p[1] / p[0]))
+    def __init__(self, k_T, lambda_1, t=0):
+        self.a = k_T
+        self.b = -lambda_1
+        self.t = t
 
-def ymax(q):
-    return - q[1] ** 2 / (4 * q[0])
+    def __repr__(self):
+        return "({:d}, {:.2f}, {:d})".format(self.a, self.b, self.t)
 
-def qtocp(q):
-    return (q[0] and ymax(q) or 0, q[0])
+    def evaluate(self, mu):
+        return max(self.a * log(mu) + self.b * (mu - 1), 0)
 
-# def focus_rstep(qs, x_t, q):
-#     if qs and not dominates(q, p := update(qs[0], x_t)):
-#         return [p] + focus_rstep(qs[1:], x_t, p)
-#     return [(0, 0.)]
+    def update(self, k_T, lambda_1):
+        return Curve(self.a + k_T, -self.b + lambda_1, self.t - 1)
 
-def focus_rstep(cs, x_t, lambda_t, c):
-    if cs:
-        k = update(cs[0], x_t, lambda_t)
-        if not dominates(c, k):
-            return [k] + focus_rstep(cs[1:], x_t, lambda_t, k)
-        return [(0, 0., 0)]
+    def ymax(self):
+        return self.evaluate(self.xmax())
 
-def focus(X, threshold):
-    qs = [(0, 0.)]
+    def xmax(self):
+        return -self.a / self.b
 
-    for t, x_t in enumerate(X):
-        qs = focus_rstep(qs, x_t, (1, 0.))
-        global_max, time_offset = max(map(qtocp, qs))
+    def is_negative(self):
+        # returns true if slope at mu=1 is negative (i.e. no evidence for positive change)
+        return (self.a + self.b) <= 0
 
-        if global_max > threshold:
-            return global_max, t + time_offset + 1, t
+    def dominates(self, other_curve):
+        return (self.a + self.b >= other_curve.a + other_curve.b) and (self.a * other_curve.b <= other_curve.a * self.b)
 
-    return 0., t + 1, t
+
+def focus_step(curve_list, k_T, lambda_1):
+    '''
+    From the original python implementation of
+    FOCuS Poisson by Kester Ward (2021). All rights reserved.
+    '''
+    if not curve_list:  # list is empty
+        if k_T <= lambda_1:
+            return [], 0., 0
+        else:
+            updated_c = Curve(k_T, lambda_1, t=-1)
+            return [updated_c], updated_c.ymax(), updated_c.t
+
+    else:  # list not empty: go through and prune
+
+        updated_c = curve_list[0].update(k_T, lambda_1)  # check leftmost quadratic separately
+        if updated_c.is_negative():  # our leftmost quadratic is negative i.e. we have no quadratics
+            return [], 0., 0,
+        else:
+            new_curve_list = [updated_c]
+            global_max = updated_c.ymax()
+            time_offset = updated_c.t
+
+            for c in curve_list[1:] + [Curve(0, 0)]:  # add on new quadratic to end of list
+                updated_c = c.update(k_T, lambda_1)
+                if new_curve_list[-1].dominates(updated_c):
+                    break
+                else:
+                    new_curve_list.append(updated_c)
+                    ymax = updated_c.ymax()
+                    if ymax > global_max:  # we have a new candidate for global maximum
+                        global_max = ymax
+                        time_offset = updated_c.t
+
+    return new_curve_list, global_max, time_offset
+
+
+def set(mu_min=1, t_max: int = 0):
+    '''
+    :param mu_min: float > 1. kills faint cp
+    :param t_max: int > 1. kills old cp
+    :return: a function
+    '''
+
+    def run(xs, bs):
+        '''
+        params
+        :param xs: counts generator or sequence object
+        :param bs: background generator or sequence object
+        :return: a list
+        '''
+
+        out = []
+        curve_list = []
+
+        for T, (x_t, lambda_t) in enumerate(zip(xs, bs)):
+            if not np.isnan(lambda_t):
+                # mu_min and t_max curves cut
+                if curve_list and ((ab_crit and curve_list[0].a <= ab_crit * curve_list[0].b) or
+                                   (t_max and curve_list[0].t < t_max)):
+                    curve_list = curve_list[1:]
+                curve_list, global_max, _ = focus_step(curve_list, x_t, lambda_t)
+                out.append(sqrt(2*global_max))
+            else:
+                # expects np.nan when SAA turn-off
+                curve_list = [] # reset changepoints
+                out.append(np.nan)
+        return out
+
+    assert mu_min >= 1.
+    assert t_max >= 0
+    ab_crit = (lambda mu_min: (1 - mu_min) / log(mu_min) if mu_min > 1 else None)(mu_min)
+    t_max = -t_max
+
+    return run

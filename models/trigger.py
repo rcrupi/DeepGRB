@@ -1,53 +1,52 @@
 # import utils
-from connections.utils.config import PATH_TO_SAVE, FOLD_PRED
+from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_TRIG, FOLD_PLOT
+from utils.keys import get_keys
+from models.segments import fetch_triggers, compile_catalogue, tplot
 # import standard packages
-import matplotlib.pyplot as plt
 import pandas as pd
-# import trigger algorithm
-import ruptures as rpt
-from models.trigs.cusum import detect_cusum
-from models.trigs.paramtrig import set_gbm
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
-def run_trigger(start_month, end_month, type_trig='paramtrig'):
+def run_trigger(start_month, end_month, trigger, threshold, min_dets_num, max_dets_num):
+    """
+    manages trigger algorithms and stores results
+    :param start_month: string, format mm-yyyy
+    :param end_month: string, format mm-yyyy
+    :param trigger: function
+    :param threshold: float, in standard deviation units
+    :param min_dets_num: int, min number of simultaneous trig dets
+    :param max_dets_num: int, max number of simultaneous trig dets
+    :return:
+    """
 
     # Load dataset of foreground and background
-    df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv')
-    y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + start_month + '_' + end_month + '.csv')
-    col_range = [i for i in y_pred.columns if i != 'timestamp' and i != 'met']
-    # Calculate the residuals
-    df_res = (df_ori[col_range] - y_pred[col_range]).astype('float32')
-    df_res = df_res.dropna(axis=0)
-    # df_res = df_res[df_res > 0].fillna(0)
-    # breakpoints
-    # TODO select trigger start and end for breakpoints
+    fermi_data = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv')
+    nn_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + start_month + '_' + end_month + '.csv')
 
-    i = 10000
-    df_tmp = df_res.iloc[i:(i+10000), [0, 1, 2]]
+    # Get det/range keys
+    keys = get_keys()
 
-    if type_trig == 'paramtrig':
-        trigger = set_gbm(threshold=5.5, bg_len=4, fg_len=1,
-                          hs=[1, 2, 2],
-                          gs=[0, 0, 1])
-        res = {}
-        for col in df_tmp.columns:
-            res[col] = trigger(df_tmp[col])
+    # Launch trigger
+    focus_res = pd.DataFrame({key: trigger(fermi_data[key], nn_pred[key]) for key in keys})
+    # TODO: [GD] csv name should report trigger parameters
+    # Save data to csv
+    focus_res.to_csv(PATH_TO_SAVE + FOLD_TRIG + '/trig_' + start_month + '_' + end_month + '.csv',
+                     index=False, float_format='%.2f')
 
-    elif type_trig == 'cusum':
-        # detection Cusum
-        df_tmp = df_tmp.rolling(32).sum()
-        df_tmp = df_tmp.fillna(df_tmp.mean())
-        ta, tai, taf, amp = detect_cusum(df_tmp.iloc[:, 1], threshold=20, drift=1., ending=True, show=True)
-    elif type_trig == 'window':
-        # detection Window ruptures
-        sigma = 5.3
+    # Get trigger events collection
+    trig_collection = fetch_triggers(fermi_data, nn_pred, focus_res, threshold, min_dets_num, max_dets_num)
+    print("found {} triggers".format(len(trig_collection)))
 
-        n = df_tmp.shape[0]
-        # https://centre-borelli.github.io/ruptures-docs/user-guide/detection/window/
-        algo = rpt.Window(model="l2", width=40, min_size=2, jump=5).fit(df_tmp.values)
-        result = algo.predict(epsilon=3 * n * sigma**2)
+    # Dispose of results as needed
+    catalogue = pd.DataFrame(compile_catalogue(trig_collection, threshold))
+    catalogue.to_csv(PATH_TO_SAVE + FOLD_TRIG +
+                     "/" + 'catalog_' + start_month + '_' + end_month + '.csv')
+    with sns.plotting_context("talk"):
+        for i, t in enumerate(trig_collection):
+            fig, _ = tplot(t, threshold, figsize=(14, 12))
+            fig.savefig(PATH_TO_SAVE + FOLD_PLOT +
+                        '/' + 'event_' + start_month + '_' + end_month + '_{:0>4}.png'.format(i))
+            plt.close(fig)
 
-        # display
-        bkps = result  # TODO put the real change points of trigger events
-        rpt.display(df_tmp.values, bkps, result)
-        plt.show()
+    return trig_collection
