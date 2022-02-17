@@ -1,7 +1,7 @@
 # import utils
 from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_TRIG, FOLD_PLOT
 from utils.keys import get_keys
-from models.segments import fetch_triggers, compile_catalogue, tplot
+from models.trigs.segments import fetch_triggers, compile_catalogue, tplot
 # import standard packages
 import pandas as pd
 import matplotlib.pyplot as plt

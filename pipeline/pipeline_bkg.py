@@ -4,6 +4,7 @@ from models.preprocess import build_table
 from models.model_nn import ModelNN
 from models.trigger import run_trigger
 from models.trigs import focus
+from models.utils.GBMutils import add_trig_gbm_to_frg
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -28,6 +29,7 @@ nn.plot(time_r=range(0, 1000), det_rng='n1_r1')
 nn.explain(time_r=range(0, 10))
 
 # 4 Run trigger (bkg, frg)
+add_trig_gbm_to_frg(start_month, end_month)
 trigger_algorithm = focus.set(mu_min=1.05, t_max=50)
 trigger_results = run_trigger(start_month, end_month, trigger_algorithm,
                               threshold=5., min_dets_num=2, max_dets_num=12)
