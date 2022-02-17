@@ -31,8 +31,8 @@ def add_trig_gbm_to_frg(start_month, end_month, inter_time=4.096):
                           (gbm_tri['met_time'] <= df_data['met'].max()), :]
     index_tmp = 1
     for _, row in gbm_tri.iterrows():
-        if (index_tmp - 1) % 1000 == 0:
-            print('index reached: ', index_tmp)
+        if (index_tmp - 1) % 100 == 0:
+            logging.info('triggers added: ', index_tmp)
         # Search met time event
         # |----|---(-|----|--)--|----|
         # The start event "(" and end ")" are moved by inter_time
@@ -42,6 +42,7 @@ def add_trig_gbm_to_frg(start_month, end_month, inter_time=4.096):
         df_data.loc[(df_data['met'] >= row['met_time'] - inter_time) &
                     (df_data['met'] <= row['met_end_time'] + inter_time), 'event'] = row['name']
         index_tmp += 1
+    logging.info('Overwriting file ' + 'frg_' + start_month + '_' + end_month + '.csv')
     df_data.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv')
 
 
