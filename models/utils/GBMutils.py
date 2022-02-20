@@ -32,7 +32,7 @@ def add_trig_gbm_to_frg(start_month, end_month, inter_time=4.096):
     index_tmp = 1
     for _, row in gbm_tri.iterrows():
         if (index_tmp - 1) % 100 == 0:
-            logging.info('triggers added: ', index_tmp)
+            logging.info('triggers added: ' + str(index_tmp))
         # Search met time event
         # |----|---(-|----|--)--|----|
         # The start event "(" and end ")" are moved by inter_time
