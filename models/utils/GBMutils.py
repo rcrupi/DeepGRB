@@ -43,7 +43,7 @@ def add_trig_gbm_to_frg(start_month, end_month, inter_time=4.096):
                     (df_data['met'] <= row['met_end_time'] + inter_time), 'event'] = row['name']
         index_tmp += 1
     logging.info('Overwriting file ' + 'frg_' + start_month + '_' + end_month + '.csv')
-    df_data.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv')
+    df_data.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv', index=False)
 
 
 def update_gbm_db():
