@@ -323,7 +323,7 @@ class ModelNN:
     def predict(self, time_to_del: int = 150):
         """
         Predict the bkg for all dataset, save frg and bkg in FOLD_PRED.
-        :param time_to_del: boolean, if True delete time_to_del * 4s before and after SSA.
+        :param time_to_del: int, if True delete time_to_del * 4s before and after SSA.
         :return: None
             df_ori -> original counts for each det_rng + met time
             y_pred -> predict counts for each det_rng + met time
