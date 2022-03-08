@@ -11,7 +11,7 @@ from gbm.plot import Lightcurve
 from gbm.finder import BurstCatalog
 import pickle
 
-tte_path = '/beegfs/rcrupi/zzz_other/tte/'
+tte_path = '/beegfs/rcrupi/zzz_other/tte_pkl/' # tte
 list_tte = os.listdir(tte_path)
 bool_pkl = False
 if bool_pkl:
@@ -71,11 +71,17 @@ if bool_pkl:
 
     ds_train = np.array(ds_train)
 
-    with open(tte_path+'ds_train.pickle', 'wb') as f:
-        pickle.dump(ds_train, f)
+    for i in range(0, ds_train.shape[0]):
+        with open(tte_path + 'ds_train' + str(i) + '.pickle', 'wb') as f:
+            pickle.dump(ds_train[i, :, :], f)
+    # with open(tte_path+'ds_train.pickle', 'wb') as f:
+    #     pickle.dump(ds_train, f)
 else:
-    with open(tte_path+'ds_train.pickle') as f:
-        ds_train = pickle.load(f)
+    ds_train = []
+    for i in os.listdir(tte_path):
+        with open(tte_path+i, 'rb') as f:
+            ds_train.append(pickle.load(f))
+    ds_train = np.array(ds_train)
 
 pass
 

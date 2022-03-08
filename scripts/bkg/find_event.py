@@ -10,8 +10,8 @@ frg = pd.read_csv('/beegfs/rcrupi/pred/frg_09-2009_12-2009.csv')
 # bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_01-2015_03-2015.csv')
 # frg = pd.read_csv('/beegfs/rcrupi/pred/frg_01-2015_03-2015.csv')
 
-start_time = pd.to_datetime('2009-10-24 07:25:00')
-end_time = pd.to_datetime('2009-10-24 10:45:00')
+start_time = pd.to_datetime('2009-10-24 07:55:00')
+end_time = pd.to_datetime('2009-10-24 10:15:00')
 # start_time = pd.to_datetime('2015-01-26 00:00:01')
 # end_time = pd.to_datetime('2015-01-26 23:59:59')
 # Filter event time
