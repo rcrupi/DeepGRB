@@ -8,6 +8,8 @@ from matplotlib.lines import Line2D
 
 from utils.keys import get_keys
 
+NULL_EVENT = ['0', 0] # TODO: modify in ['none'] after event column frg fix
+
 
 class Segment:
     def __init__(self, start, end, fermi, nn, focus):
@@ -24,6 +26,7 @@ class Segment:
         self.fermi = fermi.loc[self.start:self.end][:]
         self.nn = nn.loc[self.start:self.end][:]
         self.focus = focus.loc[self.start:self.end][:]
+        self.trigs = self.fermi['event']
 
     def get_mets(self):
         """
@@ -36,6 +39,10 @@ class Segment:
         :return: tuple, start and end seg timestamps
         """
         return self.fermi.timestamp.iloc[0][:-7], self.fermi.timestamp.iloc[-1][:-7]
+
+    def get_catalog_triggers(self):
+        # put all unique trigger ids in a set and intersect with null
+        return set(self.trigs.unique()) - set(NULL_EVENT)
 
     def export(self, save_path):
         """
@@ -92,6 +99,17 @@ class Segment:
 
                 ax[range_label].step(mets, fermi_data, color=colors_dic[d[1]], where='pre', label=d[:2])
                 ax[range_label].plot(mets, nn_data, color=colors_dic[d[1]])
+
+        for trig in p_seg.get_catalog_triggers():
+            if trig not in NULL_EVENT:
+                mask = (p_seg.trigs == trig)
+                start, end = p_seg.fermi[mask].met.values[0] , p_seg.fermi[mask].met.values[-1]
+
+                for i in range(3):
+                    ax[i].axvspan(start, end, color = 'black', alpha = 0.1)
+                    if i == 2:
+                        ymin, ymax = ax[i].get_ylim()
+                        ax[i].text(start,ymin + (ymax - ymin)*0.5/10,trig, fontsize = 12)
 
         for i in range(3):
             ax[i].set_ylabel('range {}'.format(str(i)))
