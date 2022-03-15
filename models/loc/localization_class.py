@@ -57,7 +57,9 @@ class localization():
     def fit(self, iters=1000):
         list_pos = pd.DataFrame()
         for i in range(0, self.dim):
-            list_pos = list_pos.append(self._fit_core(self.list_ra[i], self.list_dec[i], self.counts[i], iters=iters), ignore_index=True)
+            list_pos = list_pos.append(
+                self._fit_core(self.list_ra[i], self.list_dec[i], self.counts[i], iters=iters),
+                ignore_index=True)
         self.res = list_pos.loc[:, ['ra', 'dec', 'res_counts']].median().values
         self.list_pos = list_pos.loc[:, ['ra', 'dec']].values
         return {'ra': self.res[0] / np.pi * 180, 'dec': self.res[1] / np.pi * 180, 'res_counts': self.res[2]}

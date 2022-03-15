@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from models.localization import localization
+from models.loc.localization_class import localization
 from sqlalchemy import create_engine
 # Fermi SkyPlot
 from gbm.data import HealPix

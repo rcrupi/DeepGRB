@@ -83,7 +83,50 @@ else:
             ds_train.append(pickle.load(f))
     ds_train = np.array(ds_train)
 
+print('end')
 pass
+
+import tensorflow as tf
+from tensorflow.keras import layers
+
+input_img = tf.keras.Input(shape=(8000, 128, 1))
+
+x = layers.Conv2D(16, (3, 3), activation='relu', padding='same')(input_img)
+x = layers.MaxPooling2D((2, 2), padding='same')(x)
+x = layers.Conv2D(8, (5, 5), activation='relu', padding='same')(x)
+x = layers.MaxPooling2D((2, 2), padding='same')(x)
+x = layers.Conv2D(8, (7, 7), activation='relu', padding='same')(x)
+encoded = layers.MaxPooling2D((2, 2), padding='same')(x)
+
+# at this point the representation is (4, 4, 8) i.e. 128-dimensional
+
+x = layers.Conv2D(8, (7, 7), activation='relu', padding='same')(encoded)
+x = layers.UpSampling2D((2, 2))(x)
+x = layers.Conv2D(8, (5, 5), activation='relu', padding='same')(x)
+x = layers.UpSampling2D((2, 2))(x)
+x = layers.Conv2D(16, (3, 3), activation='relu', padding='same')(x)
+x = layers.UpSampling2D((2, 2))(x)
+decoded = layers.Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
+
+autoencoder = tf.keras.Model(input_img, decoded)
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+
+# Preprocessing
+# max_ds_train = ds_train.max()
+x_train = ds_train[:1000].astype('float32') / 4000
+x_test = ds_train[1000:].astype('float32') / 4000
+
+x_train = np.reshape(x_train, (len(x_train), 8000, 128, 1))
+x_test = np.reshape(x_test, (len(x_test), 8000, 128, 1))
+
+from keras.callbacks import TensorBoard
+
+autoencoder.fit(x_train, x_train,
+                epochs=50,
+                batch_size=4, # 128
+                shuffle=True,
+                validation_data=(x_test, x_test),
+                callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
 
 
 
