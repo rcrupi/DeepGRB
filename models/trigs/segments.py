@@ -8,7 +8,7 @@ from matplotlib.lines import Line2D
 
 from utils.keys import get_keys
 
-NULL_EVENT = ['0', 0] # TODO: modify in ['none'] after event column frg fix
+NULL_EVENT = ['none']
 
 
 class Segment:

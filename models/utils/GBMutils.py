@@ -18,7 +18,7 @@ def add_trig_gbm_to_frg(start_month, end_month, inter_time=4.096):
     # Read foreground file
     df_data = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv')
     # Add column event, 0 if no event, the name of the event otherwise
-    df_data['event'] = 0
+    df_data['event'] = 'none'
     # Load trigger events
     logging.info("Reading events already present in GBM calalogue.")
     # Take index of the time where triggers were identified
@@ -44,7 +44,7 @@ def add_trig_gbm_to_frg(start_month, end_month, inter_time=4.096):
         index_tmp += 1
     logging.info('Overwriting file ' + 'frg_' + start_month + '_' + end_month + '.csv')
     df_data.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv', index=False)
-
+    logging.info("End writing file.")
 
 def update_gbm_db():
     pass
