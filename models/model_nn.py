@@ -13,7 +13,7 @@ from astropy.time import Time
 # Preprocess
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import median_absolute_error as MAE
+from sklearn.metrics import mean_absolute_error as MAE # median_absolute_error as MAE
 from sklearn.preprocessing import StandardScaler
 # Tensorflow, Keras
 import tensorflow as tf
@@ -96,7 +96,6 @@ class ModelNN:
         logging.info("Filtering data when Fermi is in SAA.")
         df_data = df_data.loc[df_data['saa'] == 0, self.col_met + self.col_range + self.col_sat_pos +
                               self.col_det_pos].reset_index(drop=True)
-        # TODO Filter zero counts
         logging.info(df_data.head())
         if bool_del_trig:
             logging.info("Deleting events already present in GBM calalogue in Train Set.")
@@ -114,6 +113,10 @@ class ModelNN:
                 index_tmp += 1
         else:
             index_date = df_data.index
+
+        # Filter zero counts in frg
+        index_date = (df_data[self.col_range] > 0).any(axis=1) & index_date
+
         logging.info("End prepare data")
         self.df_data = df_data
         self.index_date = index_date
@@ -193,7 +196,11 @@ class ModelNN:
             nn_r = Dense(int(units / 2), activation='relu')(nn_r)
             nn_r = Dropout(0.1)(nn_r)
             # Fourth (last) layer output
-            outputs = Dense(len(self.col_range), activation='relu')(nn_r)
+            outputs = Dense(len(self.col_range), activation='relu',
+                            # kernel_regularizer=tf.keras.regularizers.l2(l2=1e-1),
+                            # bias_regularizer=tf.keras.regularizers.l2(1e-1),
+                            # activity_regularizer=tf.keras.regularizers.l2(1e-5)
+                            )(nn_r)
             nn_r = tf.keras.Model(inputs=[nn_input], outputs=outputs)
             # Optimizer
             opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.8, beta_2=0.8, epsilon=1e-07)
@@ -212,6 +219,9 @@ class ModelNN:
                 # Define Loss as average of Mean Absolute Error for each detector_range
                 logging.info('Loss chosen: Mean Absolute Error.')
                 loss = 'mae'
+                loss = tf.keras.losses.MeanAbsoluteError()
+            elif loss_type == 'huber':
+                loss = tf.keras.losses.Huber(delta=1)
             else:
                 # Define Loss as average of Mean Squared Error for each detector_range
                 logging.info('Loss chosen: Mean Squared Error.')
@@ -361,6 +371,11 @@ class ModelNN:
             df_ori.loc[set_index, self.col_range] = np.nan
             y_pred.loc[set_index] = np.nan
 
+        # Set zero counts (in frg) to np.nan
+        for col in self.col_range:
+            df_ori.loc[df_ori[col] == 0, col] = np.nan
+            y_pred.loc[df_ori[col] == 0, col] = np.nan
+
         df_ori.reset_index(drop=True, inplace=True)
         y_pred.reset_index(drop=True, inplace=True)
 
@@ -376,13 +391,40 @@ class ModelNN:
         df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv')
         y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv')
 
-        plt.figure()
-        plt.plot(df_ori.loc[:, det_rng], y_pred.loc[:, det_rng], '.', alpha=0.2)
-        plt.plot([0, 2000], [0, 2000], '-')
+        # # Plot y_true and y_pred
+        # plt.figure()
+        # plt.plot(df_ori.loc[:, det_rng], y_pred.loc[:, det_rng], '.', alpha=0.2)
+        # plt.plot([0, 2000], [0, 2000], '-')
 
-        plt.figure()
-        plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')
-        plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], '.')
+        # Plot frg, bkg and residual for det_rng
+        fig, axs = plt.subplots(2, 1, sharex=True)
+        # Remove horizontal space between axes
+        fig.subplots_adjust(hspace=0)
+        fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
+
+        # Plot each graph, and manually set the y tick values
+        axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], 'k-.')
+        axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], 'r-')
+
+        # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
+        # axs[0].set_ylim(-1, 1)
+        axs[0].set_title('frg and bkg')
+        axs[0].set_xlabel('met')
+        axs[0].set_ylabel('Count Rate')
+
+        axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
+                    df_ori.loc[time_r, det_rng] - y_pred.loc[time_r, det_rng], 'k-.')
+        axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
+                    df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
+        # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
+        # axs[1].set_ylim(0, 1)
+        axs[1].set_xlabel('met')
+        axs[1].set_ylabel('Residuals')
+
+        # TODO to delete
+        # plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')
+        # plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], '.')
+
         # Plot y_pred vs y_true
         fig = plt.figure()
         fig.set_size_inches(24, 12)
