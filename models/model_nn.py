@@ -115,7 +115,7 @@ class ModelNN:
             index_date = df_data.index
 
         # Filter zero counts in frg
-        index_date = (df_data[self.col_range] > 0).any(axis=1) & index_date
+        index_date = (df_data[self.col_range] > 0).all(axis=1) & index_date
 
         logging.info("End prepare data")
         self.df_data = df_data
@@ -215,11 +215,11 @@ class ModelNN:
                 # Define Loss as average of Median Absolute Error for each detector_range
                 loss = loss_median
 
-            elif loss_type == 'mean':
+            elif loss_type == 'mean' or loss_type == 'mae':
                 # Define Loss as average of Mean Absolute Error for each detector_range
                 logging.info('Loss chosen: Mean Absolute Error.')
                 loss = 'mae'
-                loss = tf.keras.losses.MeanAbsoluteError()
+                # loss = tf.keras.losses.MeanAbsoluteError()
             elif loss_type == 'huber':
                 loss = tf.keras.losses.Huber(delta=1)
             else:
@@ -373,8 +373,11 @@ class ModelNN:
 
         # Set zero counts (in frg) to np.nan
         for col in self.col_range:
-            df_ori.loc[df_ori[col] == 0, col] = np.nan
-            y_pred.loc[df_ori[col] == 0, col] = np.nan
+            df_ori.loc[(df_ori[col] == 0), col] = np.nan  # | (y_pred[col] == 0)
+            y_pred.loc[(df_ori[col] == 0), col] = np.nan  # | (y_pred[col] == 0)
+        # Check if some prediction are 0
+        if (y_pred.loc[:, self.col_range] == 0).any().any():
+            logging.error("A prediction count rate is 0. Check the input data.")
 
         df_ori.reset_index(drop=True, inplace=True)
         y_pred.reset_index(drop=True, inplace=True)
