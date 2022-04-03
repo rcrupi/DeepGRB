@@ -16,8 +16,10 @@ def loss_median(y_t, f):
     y_pred = ops.convert_to_tensor_v2_with_dispatch(f)
     y_true = math_ops.cast(y_t, y_pred.dtype)
     err = (y_true - y_pred)
+    # err = (math_ops.pow(y_true, 1.5) - math_ops.pow(y_pred, 1.5))
     # return K.mean(K.maximum(q * err, (q - 1) * err), axis=-1)
-    return K.mean(math_ops.maximum(q * err, (q - 1) * err), axis=-1)
+    return K.mean(math_ops.maximum(q * err, (q - 1) * err), axis=-1) # + \
+          # math_ops.sqrt(K.mean(math_ops.squared_difference(y_pred, y_true), axis=-1))
 
 
 def loss_max(y_true, y_predict):

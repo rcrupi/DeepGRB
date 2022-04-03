@@ -3,6 +3,7 @@ from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, DB_PATH,
 import logging
 # Standard packages
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 from os import listdir
 from os.path import isfile, join
@@ -13,7 +14,7 @@ from astropy.time import Time
 # Preprocess
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error as MAE # median_absolute_error as MAE
+from sklearn.metrics import mean_absolute_error as MAE, median_absolute_error as MeAE
 from sklearn.preprocessing import StandardScaler
 # Tensorflow, Keras
 import tensorflow as tf
@@ -86,22 +87,27 @@ class ModelNN:
         df_data = pd.DataFrame()
         # Load each csv files
         logging.info("Loading csv files.")
+        yymm = ''
         for csv_tmp in list_csv:
-            # logging.info("Loading: " + csv_tmp)
+            if csv_tmp[0:4] != yymm:
+                logging.info("Loading: " + csv_tmp)
+                yymm = csv_tmp[0:4]
             df_tmp = pd.read_csv(PATH_TO_SAVE + FOLD_BKG + '/' + csv_tmp)
+            # import datetime
+            # df_tmp['day'] = datetime.datetime(int('20'+csv_tmp[0:2]), int(csv_tmp[2:4]), int(csv_tmp[4:6])).timetuple().tm_yday
             df_data = df_data.append(df_tmp, ignore_index=True)
         del df_tmp
 
         # Filter data within saa
         logging.info("Filtering data when Fermi is in SAA.")
         df_data = df_data.loc[df_data['saa'] == 0, self.col_met + self.col_range + self.col_sat_pos +
-                              self.col_det_pos].reset_index(drop=True)
+                              self.col_det_pos].reset_index(drop=True)  # + ['day']
         logging.info(df_data.head())
         if bool_del_trig:
             logging.info("Deleting events already present in GBM calalogue in Train Set.")
             # Take index of the time where triggers were identified
             engine = create_engine('sqlite:////' + DB_PATH + 'GBMdatabase.db')
-            # TODO update this table
+            # TODO update this table. Updated up to 2021-01
             gbm_tri = pd.read_sql_table('GBM_TRI', con=engine)
             index_date = df_data['met'] >= 0
             index_tmp = 1
@@ -120,6 +126,8 @@ class ModelNN:
         logging.info("End prepare data")
         self.df_data = df_data
         self.index_date = index_date
+
+        self.col_selected = self.col_selected  # + ['day']
 
     def build_model_hype(self, hp):
         nn_input = tf.keras.Input(shape=(len(self.col_selected),))
@@ -146,7 +154,8 @@ class ModelNN:
         nn_r.compile(loss=loss, loss_weights=1, optimizer=opt)
         return nn_r
 
-    def train(self, bool_train=True, bool_hyper=False, loss_type='mean', units=4000, epochs=512, lr=0.001, bs=2000, model_pretrain=None):
+    def train(self, bool_train=True, bool_hyper=False, loss_type='mean', units=4000, epochs=512, lr=0.001, bs=2000,
+              model_pretrain=None, do=0.05, modelcheck=True):
         """
         Train a neural network to estimate counts of detectors.
         In FOLD_NN is saved: the NN model, train and validation performance during epochs,
@@ -161,6 +170,8 @@ class ModelNN:
         :param lr: learning rate of the NN during training.
         :param bs: batch size of the NN during training.
         :param model_pretrain: string, if founded the pretrained model is loaded e re-trained.
+        :param do: parameters for the dropout between layers.
+        :param modelcheck: if True in the fitting model, the best one in the validation set is selected.
         :return: None
             self.scaler -> Standard scaler object for input X.
             self.nn_r -> The model Neural Network that is a regressor from X to y.
@@ -188,13 +199,13 @@ class ModelNN:
             nn_input = tf.keras.Input(shape=(X_train.shape[1],))
             # First layers
             model_1 = Dense(units, activation='relu')(nn_input)
-            model_1 = Dropout(0.1)(model_1)
+            model_1 = Dropout(do)(model_1)
             # Second layer
             nn_r = Dense(units, activation='relu')(model_1)
-            nn_r = Dropout(0.1)(nn_r)
+            nn_r = Dropout(do)(nn_r)
             # Third layer
             nn_r = Dense(int(units / 2), activation='relu')(nn_r)
-            nn_r = Dropout(0.1)(nn_r)
+            nn_r = Dropout(do)(nn_r)
             # Fourth (last) layer output
             outputs = Dense(len(self.col_range), activation='relu',
                             # kernel_regularizer=tf.keras.regularizers.l2(l2=1e-1),
@@ -241,12 +252,22 @@ class ModelNN:
 
             if not bool_hyper:
                 # Fitting the model
-                es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32, restore_best_weights=True)
-                mc = ModelCheckpoint(DB_PATH + 'm_check', monitor='val_loss', mode='min', verbose=0, save_best_only=True)
+                if modelcheck:
+                    es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32)
+                    mc = ModelCheckpoint(DB_PATH + 'm_check', monitor='val_loss', mode='min',
+                                         verbose=0, save_best_only=True)
+                else:
+                    es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32,
+                                       restore_best_weights=True)
 
                 logging.info("Fitting the model.")
                 # callbacks=[es, mc]
-                history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs, validation_split=0.3, callbacks=[es])
+                if modelcheck:
+                    history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
+                                       validation_split=0.3, callbacks=[es, mc])
+                else:
+                    history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
+                                       validation_split=0.3, callbacks=[es])
             else:
                 tuner = kt.Hyperband(self.build_model_hype,
                                      objective='val_loss',
@@ -285,12 +306,20 @@ class ModelNN:
             for i in self.col_range:
                 mae_tr = MAE(y_train.iloc[:, idx], pred_train[:, idx])
                 mae_te = MAE(y_test.iloc[:, idx], pred_test[:, idx])
-                diff_i = (y_test.iloc[:, idx] - pred_test[:, idx]).median()
+                diff_i = (y_test.iloc[:, idx] - pred_test[:, idx]).mean()
+                meae_tr = MeAE(y_train.iloc[:, idx], pred_train[:, idx])
+                meae_te = MeAE(y_test.iloc[:, idx], pred_test[:, idx])
+                diff_i_m = (y_test.iloc[:, idx] - pred_test[:, idx]).median()
                 text_tr = "MAE train of " + i + " : %0.3f" % (mae_tr)
                 text_te = "MAE test of " + i + " : %0.3f" % (mae_te)
                 test_diff_i = "diff test - pred " + i + " : %0.3f" % (diff_i)
-                logging.info(text_tr + '    ' + text_te + '    ' + test_diff_i)
-                text_mae += text_tr + '    ' + text_te + '    ' + test_diff_i + '\n'
+                text_tr_m = "MeAE train of " + i + " : %0.3f" % (meae_tr)
+                text_te_m = "MeAE test of " + i + " : %0.3f" % (meae_te)
+                test_diff_i_m = "med diff test - pred " + i + " : %0.3f" % (diff_i_m)
+                logging.info(text_tr + '    ' + text_te + '    ' + test_diff_i + '    ' +\
+                             text_tr_m + '    ' + text_te_m + '    ' + test_diff_i_m)
+                text_mae += text_tr + '    ' + text_te + '    ' + test_diff_i + '    ' + \
+                            text_tr_m + '    ' + text_te_m + '    ' + test_diff_i_m + '\n'
                 idx = idx + 1
 
             # plot training history
@@ -378,6 +407,7 @@ class ModelNN:
         # Check if some prediction are 0
         if (y_pred.loc[:, self.col_range] == 0).any().any():
             logging.error("A prediction count rate is 0. Check the input data.")
+            logging.error(str((y_pred.loc[:, self.col_range] == 0).sum()))
 
         df_ori.reset_index(drop=True, inplace=True)
         y_pred.reset_index(drop=True, inplace=True)
@@ -389,7 +419,14 @@ class ModelNN:
         y_pred.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv',
                       index=False)
 
-    def plot(self, time_r=range(0, 10000), det_rng='n1_r1'):
+    def plot(self, time_r=range(0, 10000), global_bin=None, det_rng='n1_r1'):
+        """
+        Methods to plot frb, bkg and residuals.
+        :param time_r: index of dataframe to plot the bkg and frg
+        :param global_bin: int, global_bin. E.g. if global_bin=1000 the time bin of the signals is 1000*4.096s
+        :param det_rng: detector to select in the plot
+        :return: None
+        """
         # Plot a particular zone and det_rng
         df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv')
         y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv')
@@ -399,45 +436,57 @@ class ModelNN:
         # plt.plot(df_ori.loc[:, det_rng], y_pred.loc[:, det_rng], '.', alpha=0.2)
         # plt.plot([0, 2000], [0, 2000], '-')
 
+        if global_bin is not None:
+            # Downsample the signals averaging by global_bin slots
+            df_ori_downsample = df_ori.groupby(df_ori.index//1000).sum()
+            df_ori_downsample['timestamp'] = df_ori['timestamp'].groupby(df_ori.index//1000).first()
+            y_pred_downsample = y_pred.groupby(y_pred.index//1000).sum()
+            y_pred_downsample['timestamp'] = y_pred['timestamp'].groupby(y_pred.index//1000).first()
+            df_ori = df_ori_downsample
+            y_pred = y_pred_downsample
+            time_r = df_ori.index
+
         # Plot frg, bkg and residual for det_rng
-        fig, axs = plt.subplots(2, 1, sharex=True)
-        # Remove horizontal space between axes
-        fig.subplots_adjust(hspace=0)
-        fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
+        with sns.plotting_context("talk"):
+            fig, axs = plt.subplots(2, 1, sharex=True)
+            # Remove horizontal space between axes
+            fig.subplots_adjust(hspace=0)
+            fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
 
-        # Plot each graph, and manually set the y tick values
-        axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], 'k-.')
-        axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], 'r-')
+            # Plot each graph, and manually set the y tick values
+            axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], 'k-.')
+            axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], 'r-')
 
-        # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
-        # axs[0].set_ylim(-1, 1)
-        axs[0].set_title('frg and bkg')
-        axs[0].set_xlabel('met')
-        axs[0].set_ylabel('Count Rate')
+            # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
+            # axs[0].set_ylim(-1, 1)
+            axs[0].set_title('frg and bkg')
+            axs[0].set_xlabel('met')
+            axs[0].set_ylabel('Count Rate')
 
-        axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
-                    df_ori.loc[time_r, det_rng] - y_pred.loc[time_r, det_rng], 'k-.')
-        axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
-                    df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
-        # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
-        # axs[1].set_ylim(0, 1)
-        axs[1].set_xlabel('met')
-        axs[1].set_ylabel('Residuals')
+            axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
+                        df_ori.loc[time_r, det_rng] - y_pred.loc[time_r, det_rng], 'k-.')
+            axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
+                        df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
+            # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
+            # axs[1].set_ylim(0, 1)
+            axs[1].set_xlabel('met')
+            axs[1].set_ylabel('Residuals')
 
         # TODO to delete
         # plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')
         # plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], '.')
 
         # Plot y_pred vs y_true
-        fig = plt.figure()
-        fig.set_size_inches(24, 12)
-        plt.plot(df_ori.loc[time_r, self.col_range], y_pred.loc[time_r, self.col_range], '.', alpha=0.2)
-        plt.plot([0, 600], [0, 600], '-')
+        with sns.plotting_context("talk"):
+            fig = plt.figure()
+            fig.set_size_inches(24, 12)
+            plt.plot(df_ori.loc[time_r, self.col_range], y_pred.loc[time_r, self.col_range], '.', alpha=0.2)
+            plt.plot([0, 600], [0, 600], '-')
+            plt.xlim([0, 600])
+            plt.ylim([0, 600])
+            plt.xlabel('True signal')
+            plt.ylabel('Predicted signal')
         plt.legend(self.col_range)
-        plt.xlim([0, 600])
-        plt.ylim([0, 600])
-        plt.xlabel('True signal')
-        plt.ylabel('Predicted signal')
 
     def explain(self, time_r=range(0, 10), det_rng=None):
         """
