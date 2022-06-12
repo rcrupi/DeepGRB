@@ -419,11 +419,12 @@ class ModelNN:
         y_pred.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv',
                       index=False)
 
-    def plot(self, time_r=range(0, 10000), global_bin=None, det_rng='n1_r1'):
+    def plot(self, time_r=range(0, 10000), orbit_bin=None, det_rng='n1_r1'):
         """
         Methods to plot frb, bkg and residuals.
         :param time_r: index of dataframe to plot the bkg and frg
-        :param global_bin: int, global_bin. E.g. if global_bin=1000 the time bin of the signals is 1000*4.096s
+        :param orbit_bin: int. The number of orbit to bin the lightcurve e.g. if global_bin=10 the time bin of the
+                signals is 96*10*60s
         :param det_rng: detector to select in the plot
         :return: None
         """
@@ -436,19 +437,28 @@ class ModelNN:
         # plt.plot(df_ori.loc[:, det_rng], y_pred.loc[:, det_rng], '.', alpha=0.2)
         # plt.plot([0, 2000], [0, 2000], '-')
 
-        if global_bin is not None:
-            # Downsample the signals averaging by global_bin slots
-            df_ori_downsample = df_ori.groupby(df_ori.index//1000).sum()
-            df_ori_downsample['timestamp'] = df_ori['timestamp'].groupby(df_ori.index//1000).first()
-            y_pred_downsample = y_pred.groupby(y_pred.index//1000).sum()
-            y_pred_downsample['timestamp'] = y_pred['timestamp'].groupby(y_pred.index//1000).first()
+        if orbit_bin is not None:
+            # # Drop na for average counts
+            # df_ori = df_ori.dropna(axis=0)
+            # y_pred = y_pred.dropna(axis=0)
+            # Downsample the signals averaging by orbit_bin orbit slots. 96.5*60s are the seconds of orbit.
+            df_ori_downsample = df_ori.groupby(df_ori.met // (96*orbit_bin*60)).mean()
+            df_ori_downsample['timestamp'] = df_ori['timestamp'].groupby(df_ori.met // (96*orbit_bin*60)).first()
+            y_pred_downsample = y_pred.groupby(df_ori.met // (96*orbit_bin*60)).mean()
+            y_pred_downsample['timestamp'] = df_ori_downsample['timestamp']
+
+            # df_ori_downsample = df_ori.groupby(df_ori.index//1000).sum()
+            # df_ori_downsample['timestamp'] = df_ori['timestamp'].groupby(df_ori.index//1000).first()
+            # y_pred_downsample = y_pred.groupby(y_pred.index//1000).sum()
+            # y_pred_downsample['timestamp'] = y_pred['timestamp'].groupby(y_pred.index//1000).first()
+
             df_ori = df_ori_downsample
             y_pred = y_pred_downsample
             time_r = df_ori.index
 
         # Plot frg, bkg and residual for det_rng
         with sns.plotting_context("talk"):
-            fig, axs = plt.subplots(2, 1, sharex=True)
+            fig, axs = plt.subplots(2, 1, sharex=True, figsize=(40, 60))
             # Remove horizontal space between axes
             fig.subplots_adjust(hspace=0)
             fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
@@ -459,8 +469,8 @@ class ModelNN:
 
             # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
             # axs[0].set_ylim(-1, 1)
-            axs[0].set_title('frg and bkg')
-            axs[0].set_xlabel('met')
+            axs[0].set_title('foreground and background')
+            axs[0].set_xlabel('time')
             axs[0].set_ylabel('Count Rate')
 
             axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
@@ -469,7 +479,7 @@ class ModelNN:
                         df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
             # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
             # axs[1].set_ylim(0, 1)
-            axs[1].set_xlabel('met')
+            axs[1].set_xlabel('time')
             axs[1].set_ylabel('Residuals')
 
         # TODO to delete

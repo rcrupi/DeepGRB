@@ -11,8 +11,8 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logg
 # Define range of energy
 erange = {'n': [(28, 50), (50, 300), (300, 500)],
           'b': [(756, 5025), (5025, 50000)]}
-start_month = "01-2020"
-end_month = "07-2020"
+start_month = "01-2019"
+end_month = "06-2019"
 
 # 1 Download CSPEC and Poshist
 df_days = download_spec(start_month, end_month)
@@ -25,7 +25,7 @@ nn = ModelNN(start_month, end_month)
 nn.prepare(bool_del_trig=False)
 nn.train(bool_train=True, bool_hyper=False, loss_type='mean', units=2048, epochs=64, lr=0.0005, bs=2048, do=0.05)
 nn.predict(time_to_del=0)  # set to 150 by default
-nn.plot(time_r=range(0, 20000), global_bin=1000, det_rng='n5_r0')
+nn.plot(time_r=range(10000, 200000),  orbit_bin=1, det_rng='n6_r1')
 nn.explain(time_r=range(0, 10))
 
 # 4 Run trigger (bkg, frg)
