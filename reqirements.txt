@@ -1,5 +1,5 @@
 keras==2.4.3
-#gbm-data-tools # to be installed manually
+#gbm-data-tools==1.1.1 # to be installed manually
 matplotlib==3.2.1
 seaborn==0.11.1
 numpy==1.19.5
