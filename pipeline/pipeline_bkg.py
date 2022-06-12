@@ -22,10 +22,10 @@ build_table(df_days, erange, bool_parallel=True, n_jobs=20)
 
 # 3 Train NN
 nn = ModelNN(start_month, end_month)
-nn.prepare(bool_del_trig=True)
-nn.train(bool_train=True, bool_hyper=False, loss_type='median', units=2048, epochs=64, lr=0.0005, bs=2048)
-nn.predict()
-nn.plot(time_r=range(0, 1000), det_rng='n1_r1')
+nn.prepare(bool_del_trig=False)
+nn.train(bool_train=True, bool_hyper=False, loss_type='mean', units=2048, epochs=64, lr=0.0005, bs=2048, do=0.05)
+nn.predict(time_to_del=0)  # set to 150 by default
+nn.plot(time_r=range(10000, 200000),  orbit_bin=1, det_rng='n6_r1')
 nn.explain(time_r=range(0, 10))
 
 # 4 Run trigger (bkg, frg)
