@@ -141,3 +141,6 @@ cython_debug/
 ./data/plots
 ./data/pred
 ./data/trig
+
+# PyCharm
+.idea/
