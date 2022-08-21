@@ -12,7 +12,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logg
 erange = {'n': [(28, 50), (50, 300), (300, 500)],
           'b': [(756, 5025), (5025, 50000)]}
 start_month = "01-2019"
-end_month = "06-2019"
+end_month = "07-2019"
 
 # 1 Download CSPEC and Poshist
 df_days = download_spec(start_month, end_month)
@@ -22,9 +22,9 @@ build_table(df_days, erange, bool_parallel=True, n_jobs=20)
 
 # 3 Train NN
 nn = ModelNN(start_month, end_month)
-nn.prepare(bool_del_trig=False)
-nn.train(bool_train=True, bool_hyper=False, loss_type='mean', units=2048, epochs=64, lr=0.0005, bs=2048, do=0.05)
-nn.predict(time_to_del=0)  # set to 150 by default
+nn.prepare(bool_del_trig=True)
+nn.train(bool_train=False, bool_hyper=False, loss_type='mean', units=2048, epochs=64, lr=0.0005, bs=2048, do=0.05, model_pretrain='model_01-2019_07-2019_5.33_SENZA.h5')
+nn.predict(time_to_del=150)  # set to 150 by default
 nn.plot(time_r=range(10000, 200000),  orbit_bin=1, det_rng='n6_r1')
 nn.explain(time_r=range(0, 10))
 

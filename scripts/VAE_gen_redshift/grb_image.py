@@ -100,7 +100,12 @@ if bool_pkl:
     #     pickle.dump(ds_train, f)
 else:
     ds_train = []
-    for i in tqdm(os.listdir(tte_pkl_path)): #[0:2000]:  # TODO change to get all!!!
+    bln_all = False
+    if bln_all:
+        lst_tte_pkl_files = os.listdir(tte_pkl_path)
+    else:
+        lst_tte_pkl_files = os.listdir(tte_pkl_path)[0:2000]
+    for i in tqdm(lst_tte_pkl_files):  # TODO change to get all!!!
         with open(tte_pkl_path+i, 'rb') as f:
             ds_train.append(pickle.load(f))
     ds_train = np.array(ds_train)
@@ -181,8 +186,8 @@ n_e_channel = 128
 
 ds_train[:, :, 126:] = 0
 
-x_train = ds_train[:9000, :, 0:n_e_channel].astype('float32') / 4000  # TODO change filter
-x_test = ds_train[9000:, :, 0:n_e_channel].astype('float32') / 4000  # TODO change filter
+x_train = ds_train[:9000, :, 0:n_e_channel].astype('float32') # / 4000  # TODO change filter
+x_test = ds_train[9000:, :, 0:n_e_channel].astype('float32') # / 4000  # TODO change filter
 
 x_train = np.reshape(x_train, (len(x_train), 8000, n_e_channel, 1))
 x_test = np.reshape(x_test, (len(x_test), 8000, n_e_channel, 1))
@@ -307,7 +312,7 @@ if bln_plain:
 # # # VAE
 original_dim = 8000
 intermediate_dim = 1000
-latent_dim = 128
+latent_dim = 2
 
 inputs = tf.keras.Input(shape=(original_dim,))
 h = layers.Dense(intermediate_dim, activation='relu')(inputs)
@@ -363,6 +368,14 @@ vae.compile(optimizer=opt)
 # We train our VAE on MNIST digits:
 # x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
 # x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
+# Data Agumentation
+from scipy.ndimage.interpolation import shift
+np.random.seed(42)
+max_shift = 4000
+for i in range(0, x_train_l.shape[0]):
+    x_train_tmp_shift = shift(x_train_l[i, :], np.random.randint(max_shift), mode='nearest')
+    x_train_l = np.append(x_train_l, [x_train_tmp_shift], axis=0)
+
 bln_save = True
 if bln_save:
     history = vae.fit(x_train_l, x_train_l,
