@@ -1,5 +1,8 @@
 # DeepGRB
 
+<img src="https://user-images.githubusercontent.com/93478548/189541951-83a118d4-0a6f-41f3-bc57-cbf0ab7623c2.png" width="750">
+
+
 DeepGRB is a framework for serching astronomical events. Is composed by a background estimator, performed with a Neural Network, and on top applied an efficent trigger algorthm called FOCuS.
 
 pipeline_bkg.py is the main script in which you can set the period of interest and:
