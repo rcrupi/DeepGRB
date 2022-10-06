@@ -1,5 +1,5 @@
 # import utils
-from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, DB_PATH, FOLD_NN
+from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_BURST_DB, FOLD_NN
 import logging
 # Standard packages
 import matplotlib.pyplot as plt
@@ -106,7 +106,7 @@ class ModelNN:
         if bool_del_trig:
             logging.info("Deleting events already present in GBM calalogue in Train Set.")
             # Take index of the time where triggers were identified
-            engine = create_engine('sqlite:////' + DB_PATH + 'GBMdatabase.db')
+            engine = create_engine('sqlite:////' + GBM_BURST_DB + 'gbm_burst_catalog.db')
             # TODO update this table. Updated up to 2021-01
             gbm_tri = pd.read_sql_table('GBM_TRI', con=engine)
             index_date = df_data['met'] >= 0
@@ -254,7 +254,7 @@ class ModelNN:
                 # Fitting the model
                 if modelcheck:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32)
-                    mc = ModelCheckpoint(DB_PATH + 'm_check', monitor='val_loss', mode='min',
+                    mc = ModelCheckpoint(GBM_BURST_DB + 'm_check', monitor='val_loss', mode='min',
                                          verbose=0, save_best_only=True)
                 else:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32,
