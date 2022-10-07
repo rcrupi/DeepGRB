@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.lines import Line2D
 from connections.utils.config import PATH_TO_SAVE, FOLD_TRIG, FOLD_RES, FOLD_PRED, GBM_BURST_DB, GBM_TRIG_DB
+from utils.keys import get_keys, filter_keys
 from ast import literal_eval
 from bisect import bisect_left, bisect_right
 from itertools import groupby
@@ -15,6 +16,7 @@ from pathlib import Path
 
 MIN_DET_NUMBER = 2
 MAX_DET_NUMBER = 12
+
 
 def init(start_month, end_month):
     global fermi
@@ -35,24 +37,77 @@ def init(start_month, end_month):
 
 def analyze(start_month, end_month, threshold):
     init(start_month, end_month)
-    period_folder = 'frg_' + start_month + '_' + end_month + "/"
-    result_folder = Path(FOLD_RES) / period_folder
-    result_folder.mkdir(parents=True, exist_ok=True)
+    folder_name = 'frg_' + start_month + '_' + end_month + "/"
+    results_folder = Path(FOLD_RES) / folder_name
+    plots_folder = Path(FOLD_RES) / folder_name / "plots/"
+    plots_folder.mkdir(parents=True, exist_ok=True)
 
     events = fetch_triggers(threshold, MIN_DET_NUMBER, MAX_DET_NUMBER)
     print("found {} events".format(len(events)))
-
     detected, undetected, missing = check_against_gbmcatalogs(threshold)
-    fig = greenred_plot(detected, undetected, missing)
     print('detected {} events in GBM trig catalog;\nundetected: {};\nmissing: {}'
           .format(len(detected), len(undetected), len(missing)))
-    fig.savefig(result_folder / "greenredplot.png")
-
+    events_table = triggers_table(events)
+    events_table.to_csv(results_folder / 'trigs_table.csv', index=False)
+    save_greenred_plot(detected, undetected, missing, plots_folder)
+    save_events_plots(events, threshold, plots_folder)
     return True
 
 
+def save_events_plots(events, threshold, folder):
+    # TODO: parallelize this
+    for n, event in enumerate(events):
+        mask = event.focus[event.focus > threshold].any()
+        triggered_dets = list(mask[mask == True].keys())
+        untriggered_dets = list(set(get_keys()) ^ set(triggered_dets))
 
-def greenred_plot(detected, undetected, missing):
+        ranges = list(set([int(t[-1]) for t in triggered_dets]))
+
+        with sns.plotting_context("talk"):
+            fig, ax = event.plot(triggered_dets, figsize=(14, 12), enlarge=100)
+            for i in ranges:
+                ax[i].axvspan(fermi.met.iloc[event.start - 1], fermi.met.iloc[event.end], color='r', alpha=0.1)
+                ax[i].set_ylim(bottom=0, top =None)
+            fig.suptitle('{} ({},{}) '.format(event.fermi.timestamp.iloc[0][:-7], event.start, event.end), x=0.34)
+            fig.savefig(folder/'out{}.png'.format(n))
+            plt.close()
+
+        with sns.plotting_context("talk"):
+            fig, ax = event.plot(untriggered_dets, figsize=(14, 12), enlarge=100)
+            fig.suptitle('{} ({},{}) '.format(event.fermi.timestamp.iloc[0][:-7], event.start, event.end), x=0.34)
+            plt.savefig(folder/'out{}_untriggered.png'.format(n))
+            plt.close()
+    return True
+
+
+def triggers_table(events):
+    def stringify(lst):
+        return ' '.join(str(e) for e in lst)
+
+    trig_ids = [i for i in range(len(events))]
+    start_ids = [s.start for s in events]
+    start_mets = [s.fermi['met'][s.start] for s in events]
+    start_times = [s.fermi['timestamp'][s.start] for s in events]
+    end_ids = [s.end for s in events]
+    end_mets = [s.fermi['met'][s.end] for s in events]
+    end_times = [s.fermi['timestamp'][s.end] for s in events]
+    trig_dets = [stringify(list(s.focus[s.focus > 5.5].any()[s.focus[s.focus > 5.5].any() == True].keys()))
+                 for s in events]
+    catalog_trigs = [stringify(s.get_catalog_triggers()) for s in events]
+    trig_dic = {'trig_ids': trig_ids,
+                'start_index': start_ids,
+                'start_met': start_mets,
+                'start_times': start_times,
+                'end_index': end_ids,
+                'end_met': end_mets,
+                'end_times': end_times,
+                'catalog_triggers': catalog_trigs,
+                'trig_dets': trig_dets}
+    out = pd.DataFrame(trig_dic)
+    return out
+
+
+def save_greenred_plot(detected, undetected, missing, folder):
     detected_names, detected_t90s, detected_fluences = list(zip(*detected))
     undetected_names, undetected_t90s, undetected_fluences = list(zip(*undetected))
     missing_names, missing_t90s, missing_fluences = list(zip(*missing))
@@ -70,6 +125,7 @@ def greenred_plot(detected, undetected, missing):
         ax.set_xlabel('$T_{90}$')
         ax.set_ylabel('Fluence')
         ax.legend()
+    fig.savefig(folder / "greenred.png")
     return fig
 
 def check_against_gbmcatalogs(threshold):
@@ -196,35 +252,6 @@ def _trigs_make():
             mask = (out_dic['met'] > trig_start_time) & (out_dic['met'] < trig_end_time)
             out_dic['id'][mask] = name
     return pd.DataFrame(out_dic)
-
-
-def get_keys(ns=('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b'), rs=('0', '1', '2')):
-    '''
-    build lists like ['n1_r0', 'n3_r0']
-    :param ns:
-    :param rs:
-    :return:
-    '''
-    out = ['n' + str(i) + '_r' + j for i in ns for j in rs]
-    return out
-
-
-def filter_keys(l, ns, js=None):
-    '''
-    a filter for keylists
-    :param l:
-    :param ns:
-    :param js:
-    :return:
-    '''
-    if js is None:
-        js = ['0', '1', '2']
-    index_labels = set([i[1] for i in l])
-    range_labels = set([i[-1] for i in l])
-
-    out_index = index_labels.intersection(ns)
-    out_range = range_labels.intersection(js)
-    return sorted(get_keys(out_index, out_range))
 
 
 def fetch_triggers(threshold, min_dets_num=2, max_dets_num=8):
