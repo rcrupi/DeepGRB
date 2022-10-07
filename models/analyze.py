@@ -46,7 +46,7 @@ def analyze(start_month, end_month, threshold):
     fig = greenred_plot(detected, undetected, missing)
     print('detected {} events in GBM trig catalog;\nundetected: {};\nmissing: {}'
           .format(len(detected), len(undetected), len(missing)))
-    fig.savefig(result_folder / "greenplot.png")
+    fig.savefig(result_folder / "greenredplot.png")
 
     return True
 

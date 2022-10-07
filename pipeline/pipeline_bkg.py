@@ -33,7 +33,7 @@ end_month = "06-2019"
 #add_trig_gbm_to_frg(start_month, end_month)
 #trigger_algorithm = focus.set(mu_min=1.1, t_max=50)
 #run_trigger(start_month, end_month, trigger_algorithm)
-analyze(start_month, end_month, threshold=3.)
+analyze(start_month, end_month, threshold=4.)
 
 # 5 Localise events
 # localize()
