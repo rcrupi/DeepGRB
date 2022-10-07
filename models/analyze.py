@@ -74,6 +74,8 @@ def save_events_plots(events, threshold, folder):
 
         with sns.plotting_context("talk"):
             fig, ax = event.plot(untriggered_dets, figsize=(14, 12), enlarge=100)
+            for i in range(3):
+                ax[i].set_ylim(bottom=0, top =None)
             fig.suptitle('{} ({},{}) '.format(event.fermi.timestamp.iloc[0][:-7], event.start, event.end), x=0.34)
             plt.savefig(folder/'out{}_untriggered.png'.format(n))
             plt.close()
