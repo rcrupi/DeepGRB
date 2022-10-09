@@ -1,7 +1,3 @@
-'''
-Credits Giuseppe Dilillo.
-'''
-
 from functools import reduce
 from math import log, sqrt
 

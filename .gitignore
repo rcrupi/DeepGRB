@@ -144,3 +144,7 @@ cython_debug/
 
 # PyCharm
 .idea/
+/data/bkg/
+/data/pred/
+/data/trig/
+/results/

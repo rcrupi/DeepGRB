@@ -36,8 +36,8 @@ deep_tri = pd.read_sql_table('DEEP_TRI', con=engine)
 
 deep_tri = deep_tri.loc[deep_tri[['ra', 'dec', 'ra_std', 'dec_std']].isna().any(axis=1)]
 # Dataset xxx_101225.csv xxx_2014.csv xxx_19_01-06.csv
-df_frg = pd.read_csv(PATH_PRED + 'frg_19_01-06.csv')
-df_bkg = pd.read_csv(PATH_PRED + 'bkg_19_01-06.csv')
+df_frg = pd.read_csv(PATH_PRED + 'frg_03-2019_06-2019.csv')
+df_bkg = pd.read_csv(PATH_PRED + 'bkg_03-2019_06-2019.csv')
 df_bkg['met'] = df_frg['met'].values
 col_det = ['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'na', 'nb']
 
