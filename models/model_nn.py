@@ -419,7 +419,7 @@ class ModelNN:
         y_pred.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv',
                       index=False)
 
-    def plot(self, time_r=range(0, 10000), orbit_bin=None, det_rng='n1_r1'):
+    def plot(self, time_r=range(0, 10000), time_iso=None, orbit_bin=None, det_rng='n1_r1'):
         """
         Methods to plot frb, bkg and residuals.
         :param time_r: index of dataframe to plot the bkg and frg
@@ -431,6 +431,15 @@ class ModelNN:
         # Plot a particular zone and det_rng
         df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv')
         y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv')
+
+        if time_iso is not None:
+            from gbm.time import Met
+            time_met = Met(0).from_iso(time_iso).met
+            time_met_start = time_met + time_r[0]
+            time_met_end = time_met + time_r[1]
+
+            time_r = df_ori.index[((df_ori.met >= time_met_start) & (df_ori.met <= time_met_end))]
+
 
         # # Plot y_true and y_pred
         # plt.figure()

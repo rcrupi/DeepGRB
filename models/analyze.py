@@ -142,7 +142,13 @@ def check_against_gbmcatalogs(threshold):
 
     for i, row in trigger_catalog.iterrows():
         if row['name'][:3] == 'GRB':
-            t = GBMtrigger(row['name'])
+            try:
+                t = GBMtrigger(row['name'])
+            except Exception as e:
+                print(e)
+                print("Possible trig or burst catalog not updated. "
+                      "Use from connections.fermi_data_tools import df_trigger_catalog.")
+                continue
             try:
                 if t.did_focus_trigger(threshold = threshold):
                     detected.append(info(t))
@@ -154,7 +160,8 @@ def check_against_gbmcatalogs(threshold):
 
 
 def crop_catalog(start, end):
-    trigger_catalog = pd.read_csv(GBM_TRIG_DB).sort_values('met_time')
+    path_trig_cat = str(GBM_TRIG_DB)
+    trigger_catalog = pd.read_csv(path_trig_cat).sort_values('met_time')
 
     START_MET = fermi.met.values[0]
     END_MET = fermi.met.values[-1]
@@ -175,7 +182,7 @@ def _create_connection():
     Raise:
         n/a
     """
-    conn = sqlite3.connect(GBM_BURST_DB)
+    conn = sqlite3.connect(str(GBM_BURST_DB))
     return conn
 
 
@@ -195,28 +202,31 @@ def _grb_retrieve_fromdb(grb_id, verbose=False):
     Raises:
         n/a
     """
-    conn = _create_connection()
-    cur = conn.cursor()
-    triglist_unfetch = cur.execute("SELECT id,"
-                                   " T90, "
-                                   "T90_err, "
-                                   "tStart, "
-                                   "tStop, "
-                                   "tTrigger, "
-                                   "trig_det, "
-                                   "fluence, "
-                                   "fluence_err, "
-                                   "fluenceb, "
-                                   "fluenceb_err, "
-                                   "pflx_int, "
-                                   "pflx, "
-                                   "pflx_err, "
-                                   "pflxb, "
-                                   "pflxb_err, "
-                                   "lobckint, "
-                                   "hibckint "
-                                   "FROM GBM_GRB WHERE id =?", (grb_id,)).fetchall()[0]
-    return triglist_unfetch, 0
+    try:
+        conn = _create_connection()
+        cur = conn.cursor()
+        triglist_unfetch = cur.execute("SELECT id,"
+                                       " T90, "
+                                       "T90_err, "
+                                       "tStart, "
+                                       "tStop, "
+                                       "tTrigger, "
+                                       "trig_det, "
+                                       "fluence "
+                                       # "fluence_err, "
+                                       # "fluenceb, "
+                                       # "fluenceb_err, "
+                                       # "pflx_int, "
+                                       # "pflx, "
+                                       # "pflx_err, "
+                                       # "pflxb, "
+                                       # "pflxb_err, "
+                                       # "lobckint, "
+                                       # "hibckint "
+                                       "FROM GBM_GRB WHERE id =?", (grb_id,)).fetchall()[0]
+        return triglist_unfetch, 0
+    except Exception as e:
+        print(e)
 
 
 def query_db_about(grb_id):
@@ -225,11 +235,16 @@ def query_db_about(grb_id):
     :param grb_id:
     :return:
     '''
-    metadata = _grb_retrieve_fromdb(grb_id)[0]
-    strings = ('id', 't90', 't90_err', 'tStart', 'tStop', 'tTrig', 'trigDet', 'fluence', 'fluence_err',
-               'fluenceb', 'fluenceb_err', 'pflx_int', 'pflx', 'pflx_err', 'pflxb', 'pflxb_err', 'lobckint', 'hibckint')
-    out = {key: val for (key, val) in list(zip(strings, metadata))}
-    return out
+    try:
+        metadata = _grb_retrieve_fromdb(grb_id)[0]
+        strings = ('id', 't90', 't90_err', 'tStart', 'tStop', 'tTrig', 'trigDet', 'fluence'
+                   # , 'fluence_err',
+                   # 'fluenceb', 'fluenceb_err', 'pflx_int', 'pflx', 'pflx_err', 'pflxb', 'pflxb_err', 'lobckint', 'hibckint'
+                   )
+        out = {key: val for (key, val) in list(zip(strings, metadata))}
+        return out
+    except Exception as e:
+        print(e)
 
 
 def _trigs_make():
@@ -404,8 +419,16 @@ class Segment(GenericDisplay):
             fig.legend(lines, labels, framealpha=1., ncol=ceil(len(labels) / 4),
                        loc='upper right', bbox_to_anchor=(1.01, 1.005),
                        fancybox=True, shadow=True)
-        fig.supylabel('count rate')
-        fig.supxlabel('time [MET]')
+        try:
+            fig.supylabel('count rate')
+            fig.supxlabel('time [MET]')
+        except Exception as e:
+            print(e)
+            print("Update matplotlib to 3.4 and Python to 3.7.")
+        # fig.text(0.5, 0.04, 'ciao1', ha='center')
+        # fig.text(0.04, 0.5, 'ciao2', va='center', rotation='vertical')
+        # plt.xlabel('count rate')
+        # plt.ylabel('time [MET]')
         return fig, ax
 
 
@@ -465,13 +488,19 @@ class GBMtrigger(Segment):
         :return:
         '''
         if self.name[:3] == 'GRB':
-            trigger_time = self.get_metadata()['tTrig']
-            mask = ((self.fermi.met < trigger_time + 4.096) & (
-                        self.fermi.met > trigger_time - 4.096))  # check if nans at grbs trig time
-            if not self.focus[mask].any(axis=1).values[0]:
-                raise ValueError('Missing Data.')
+            try:
+                trigger_time = self.get_metadata()['tTrig']
+                mask = ((self.fermi.met < trigger_time + 4.096) & (
+                            self.fermi.met > trigger_time - 4.096))  # check if nans at grbs trig time
+                if not self.focus[mask].any(axis=1).values[0]:
+                    raise ValueError('Missing Data.')
+            except Exception as e:
+                print(e)
+                print("Possible trig or burst catalog not updated. "
+                      "Use from connections.fermi_data_tools import df_trigger_catalog.")
 
         if args:
+            # non entra mai qua... TODO
             return Segment.did_focus_trigger(self, *args, **kwargs)
         else:
             dets = self.triggered_detectors()

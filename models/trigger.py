@@ -23,6 +23,13 @@ def run_trigger(start_month, end_month, trigger):
     fermi_data = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv')
     nn_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + start_month + '_' + end_month + '.csv')
 
+    # Clean zeros in the datasets
+    index_zeros = (fermi_data == 0).any(axis=1) | (nn_pred == 0).any(axis=1)
+    if index_zeros.sum() > 0:
+        print("Warning, 0 in foreground or background. They are set to None.")
+        fermi_data.loc[index_zeros, nn_pred.columns] = None
+        nn_pred.loc[index_zeros, nn_pred.columns] = None
+
     # Get det/range keys
     keys = get_keys()
 
