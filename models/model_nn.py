@@ -495,7 +495,6 @@ class ModelNN:
             plt.xticks(rotation=0)
             axs[1].set_ylabel('Residuals')
             # fig.subplots_adjust(top=0.88)
-        fig.savefig("/home/rcrupi/Downloads/GRB190501_"+det_rng[0:2]+".png")
 
         # TODO to delete
         # plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')
