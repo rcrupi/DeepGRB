@@ -35,7 +35,7 @@ def init(start_month, end_month):
     trigs = _trigs_make()
 
 
-def analyze(start_month, end_month, threshold):
+def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flux'):
     init(start_month, end_month)
     folder_name = 'frg_' + start_month + '_' + end_month + "/"
     results_folder = Path(FOLD_RES) / folder_name
@@ -44,12 +44,12 @@ def analyze(start_month, end_month, threshold):
 
     events = fetch_triggers(threshold, MIN_DET_NUMBER, MAX_DET_NUMBER)
     print("found {} events".format(len(events)))
-    detected, undetected, missing = check_against_gbmcatalogs(threshold)
+    detected, undetected, missing = check_against_gbmcatalogs(threshold, type_time, type_counts)
     print('detected {} events in GBM trig catalog;\nundetected: {};\nmissing: {}'
           .format(len(detected), len(undetected), len(missing)))
     events_table = triggers_table(events)
     events_table.to_csv(results_folder / 'trigs_table.csv', index=False)
-    save_greenred_plot(detected, undetected, missing, plots_folder)
+    save_greenred_plot(detected, undetected, missing, plots_folder, type_time, type_counts)
     save_events_plots(events, threshold, plots_folder)
     return True
 
@@ -109,7 +109,7 @@ def triggers_table(events):
     return out
 
 
-def save_greenred_plot(detected, undetected, missing, folder):
+def save_greenred_plot(detected, undetected, missing, folder, type_time=None, type_count=None):
     detected_names, detected_t90s, detected_fluences = list(zip(*detected))
     undetected_names, undetected_t90s, undetected_fluences = list(zip(*undetected))
     missing_names, missing_t90s, missing_fluences = list(zip(*missing))
@@ -124,20 +124,36 @@ def save_greenred_plot(detected, undetected, missing, folder):
         ax.axvspan(0.01, 4, color='grey', alpha=0.05)
         ax.semilogy()
         ax.semilogx()
-        ax.set_xlabel('$T_{90}$')
-        ax.set_ylabel('Fluence')
+        if type_time == 't90':
+            ax.set_xlabel('$T_{90}$')
+        elif type_time == 't50':
+            ax.set_xlabel('$T_{50}$')
+        else:
+            print("Warning, time axis (x) not specified")
+        if type_count == 'fluence':
+            ax.set_ylabel('Fluence')
+        elif type_count == 'flux':
+            ax.set_ylabel('Flux')
+        else:
+            print("Warning, counts axis (y) not specified")
         ax.legend()
-    fig.savefig(folder / "greenred.png")
+        fig.savefig(folder / "greenred.png")
     return fig
 
-def check_against_gbmcatalogs(threshold):
+def check_against_gbmcatalogs(threshold, type_time='t90', type_counts='flux'):
+    """
+    :param threshold:
+    :param type_time: t90 or t50
+    :param type_counts: fluence or flux
+    :return:
+    """
     detected = []
     undetected = []
     missing = []
 
     def info(t):
-        t90 = t.get_metadata()['t90']
-        fluence = t.get_metadata()['fluence']
+        t90 = t.get_metadata()[type_time]
+        fluence = t.get_metadata()[type_counts]
         return (t.name, t90, fluence)
 
     for i, row in trigger_catalog.iterrows():
@@ -208,11 +224,14 @@ def _grb_retrieve_fromdb(grb_id, verbose=False):
         triglist_unfetch = cur.execute("SELECT id,"
                                        " T90, "
                                        "T90_err, "
+                                       " T50, "
+                                       "T50_err, "
                                        "tStart, "
                                        "tStop, "
                                        "tTrigger, "
                                        "trig_det, "
-                                       "fluence "
+                                       "fluence, "
+                                       "flux "
                                        # "fluence_err, "
                                        # "fluenceb, "
                                        # "fluenceb_err, "
@@ -237,7 +256,7 @@ def query_db_about(grb_id):
     '''
     try:
         metadata = _grb_retrieve_fromdb(grb_id)[0]
-        strings = ('id', 't90', 't90_err', 'tStart', 'tStop', 'tTrig', 'trigDet', 'fluence'
+        strings = ('id', 't90', 't90_err', 't50', 't50_err', 'tStart', 'tStop', 'tTrig', 'trigDet', 'fluence', 'flux'
                    # , 'fluence_err',
                    # 'fluenceb', 'fluenceb_err', 'pflx_int', 'pflx', 'pflx_err', 'pflxb', 'pflxb_err', 'lobckint', 'hibckint'
                    )

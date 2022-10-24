@@ -1,8 +1,9 @@
 # import utils
-from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_BURST_DB, FOLD_NN
+from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_BURST_DB, FOLD_NN, db_path
 import logging
 # Standard packages
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
 import seaborn as sns
 import os
 from os import listdir
@@ -254,7 +255,7 @@ class ModelNN:
                 # Fitting the model
                 if modelcheck:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32)
-                    mc = ModelCheckpoint(GBM_BURST_DB + 'm_check', monitor='val_loss', mode='min',
+                    mc = ModelCheckpoint(db_path + '/m_check', monitor='val_loss', mode='min',
                                          verbose=0, save_best_only=True)
                 else:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32,
@@ -467,7 +468,7 @@ class ModelNN:
 
         # Plot frg, bkg and residual for det_rng
         with sns.plotting_context("talk"):
-            fig, axs = plt.subplots(2, 1, sharex=True, figsize=(40, 60))
+            fig, axs = plt.subplots(2, 1, sharex=True, figsize=(20, 12))  # , tight_layout=True)
             # Remove horizontal space between axes
             fig.subplots_adjust(hspace=0)
             fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
@@ -479,7 +480,7 @@ class ModelNN:
             # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
             # axs[0].set_ylim(-1, 1)
             axs[0].set_title('foreground and background')
-            axs[0].set_xlabel('time')
+            #axs[0].set_xlabel('time')
             axs[0].set_ylabel('Count Rate')
 
             axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
@@ -488,8 +489,13 @@ class ModelNN:
                         df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
             # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
             # axs[1].set_ylim(0, 1)
-            axs[1].set_xlabel('time')
+            axs[1].set_xlabel('time (YYYY-MM-DD hh:mm:ss)')
+            xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S')
+            axs[1].xaxis.set_major_formatter(xfmt)
+            plt.xticks(rotation=0)
             axs[1].set_ylabel('Residuals')
+            # fig.subplots_adjust(top=0.88)
+        fig.savefig("/home/rcrupi/Downloads/GRB190501_"+det_rng[0:2]+".png")
 
         # TODO to delete
         # plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')

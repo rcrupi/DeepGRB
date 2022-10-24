@@ -78,13 +78,18 @@ def df_burst_catalog(db_path=GBM_BURST_DB):
         lambda x: map_det_num_burst(np.where(np.array(list(x)) == '1'))).astype(str)
     df_grb['T90'] = df_grb['t90']
     df_grb['T90_err'] = df_grb['t90_error']
+    df_grb['T50'] = df_grb['t50']
+    df_grb['T50_err'] = df_grb['t50_error']
     df_grb['tStart'] = df_grb['tTrigger'] + df_grb['t90_start']
     df_grb['tStop'] = df_grb['tStart'] + df_grb['T90']
+    df_grb['flux'] = df_grb['fluence']/df_grb['T90']
+    df_grb['fluxb'] = df_grb['flux_batse_1024']
     df_grb['fluence_err'] = df_grb['fluence_error']
     df_grb['fluenceb'] = df_grb['fluence_batse']
     df_grb['fluenceb_err'] = df_grb['fluence_batse_error']
     # Select necessary columns
-    df_grb = df_grb[['id', 'T90', 'T90_err', 'tStart', 'tStop', 'tTrigger', 'trig_det', 'fluence']]
+    df_grb = df_grb[['id', 'T90', 'T90_err', 'T50', 'T50_err', 'tStart', 'tStop', 'tTrigger', 'trig_det', 'fluence',
+                     'flux']]
 
     # Save GRB table
     df_grb.to_sql('GBM_GRB', sqlite3.connect(str(db_path)), if_exists='replace')
