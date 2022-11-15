@@ -18,6 +18,9 @@ FOLD_PLOT = "plots"
 db_path = os.path.dirname(__file__)
 PATH_GRB_TABLE = PATH_TO_SAVE + "grb_classification/df_grb.csv"
 # TODO: change above to use pathlib
-FOLD_RES = Path(db_path).parent.parent / 'results/'
+if user == 'rcrupi':
+    FOLD_RES = PATH_TO_SAVE + '/results/'
+else:
+    FOLD_RES = Path(db_path).parent.parent / 'results/'
 GBM_BURST_DB = Path(db_path).parent.parent / 'data/gbm_burst_catalog.db'
 GBM_TRIG_DB = Path(db_path).parent.parent / 'data/gbm_trig_catalog.csv'

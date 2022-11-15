@@ -1,8 +1,9 @@
 # import utils
-from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_BURST_DB, FOLD_NN
+from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_BURST_DB, FOLD_NN, db_path
 import logging
 # Standard packages
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
 import seaborn as sns
 import os
 from os import listdir
@@ -254,7 +255,7 @@ class ModelNN:
                 # Fitting the model
                 if modelcheck:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32)
-                    mc = ModelCheckpoint(GBM_BURST_DB + 'm_check', monitor='val_loss', mode='min',
+                    mc = ModelCheckpoint(db_path + '/m_check', monitor='val_loss', mode='min',
                                          verbose=0, save_best_only=True)
                 else:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32,
@@ -419,7 +420,7 @@ class ModelNN:
         y_pred.to_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv',
                       index=False)
 
-    def plot(self, time_r=range(0, 10000), orbit_bin=None, det_rng='n1_r1'):
+    def plot(self, time_r=range(0, 10000), time_iso=None, orbit_bin=None, det_rng='n1_r1'):
         """
         Methods to plot frb, bkg and residuals.
         :param time_r: index of dataframe to plot the bkg and frg
@@ -431,6 +432,15 @@ class ModelNN:
         # Plot a particular zone and det_rng
         df_ori = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + self.start_month + '_' + self.end_month + '.csv')
         y_pred = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + self.start_month + '_' + self.end_month + '.csv')
+
+        if time_iso is not None:
+            from gbm.time import Met
+            time_met = Met(0).from_iso(time_iso).met
+            time_met_start = time_met + time_r[0]
+            time_met_end = time_met + time_r[1]
+
+            time_r = df_ori.index[((df_ori.met >= time_met_start) & (df_ori.met <= time_met_end))]
+
 
         # # Plot y_true and y_pred
         # plt.figure()
@@ -458,7 +468,7 @@ class ModelNN:
 
         # Plot frg, bkg and residual for det_rng
         with sns.plotting_context("talk"):
-            fig, axs = plt.subplots(2, 1, sharex=True, figsize=(40, 60))
+            fig, axs = plt.subplots(2, 1, sharex=True, figsize=(20, 12))  # , tight_layout=True)
             # Remove horizontal space between axes
             fig.subplots_adjust(hspace=0)
             fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
@@ -470,7 +480,7 @@ class ModelNN:
             # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
             # axs[0].set_ylim(-1, 1)
             axs[0].set_title('foreground and background')
-            axs[0].set_xlabel('time')
+            #axs[0].set_xlabel('time')
             axs[0].set_ylabel('Count Rate')
 
             axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
@@ -479,8 +489,12 @@ class ModelNN:
                         df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
             # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
             # axs[1].set_ylim(0, 1)
-            axs[1].set_xlabel('time')
+            axs[1].set_xlabel('time (YYYY-MM-DD hh:mm:ss)')
+            xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S')
+            axs[1].xaxis.set_major_formatter(xfmt)
+            plt.xticks(rotation=0)
             axs[1].set_ylabel('Residuals')
+            # fig.subplots_adjust(top=0.88)
 
         # TODO to delete
         # plt.plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], '.')
