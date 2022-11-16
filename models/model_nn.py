@@ -255,7 +255,7 @@ class ModelNN:
                 # Fitting the model
                 if modelcheck:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32)
-                    mc = ModelCheckpoint(db_path + '/m_check', monitor='val_loss', mode='min',
+                    mc = ModelCheckpoint(db_path + '/m_check/saved_model.ckpt', monitor='val_loss', mode='min',
                                          verbose=0, save_best_only=True)
                 else:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32,
@@ -266,6 +266,7 @@ class ModelNN:
                 if modelcheck:
                     history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
                                        validation_split=0.3, callbacks=[es, mc])
+                    nn_r = load_model(db_path + '/m_check/saved_model.ckpt')
                 else:
                     history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
                                        validation_split=0.3, callbacks=[es])
