@@ -47,7 +47,7 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
     detected, undetected, missing = check_against_gbmcatalogs(threshold, type_time, type_counts)
     print('detected {} events in GBM trig catalog;\nundetected: {};\nmissing: {}'
           .format(len(detected), len(undetected), len(missing)))
-    events_table = triggers_table(events)
+    events_table = triggers_table(events, threshold)
     events_table.to_csv(results_folder / 'trigs_table.csv', index=False)
     save_greenred_plot(detected, undetected, missing, plots_folder, type_time, type_counts)
     save_events_plots(events, threshold, plots_folder)
@@ -82,7 +82,7 @@ def save_events_plots(events, threshold, folder):
     return True
 
 
-def triggers_table(events):
+def triggers_table(events, threshold):
     def stringify(lst):
         return ' '.join(str(e) for e in lst)
 
@@ -93,7 +93,7 @@ def triggers_table(events):
     end_ids = [s.end for s in events]
     end_mets = [s.fermi['met'][s.end] for s in events]
     end_times = [s.fermi['timestamp'][s.end] for s in events]
-    trig_dets = [stringify(list(s.focus[s.focus > 5.5].any()[s.focus[s.focus > 5.5].any() == True].keys()))
+    trig_dets = [stringify(list(s.focus[s.focus > threshold].any()[s.focus[s.focus > threshold].any() == True].keys()))
                  for s in events]
     catalog_trigs = [stringify(s.get_catalog_triggers()) for s in events]
     trig_dic = {'trig_ids': trig_ids,
@@ -162,7 +162,7 @@ def check_against_gbmcatalogs(threshold, type_time='t90', type_counts='flux'):
                 t = GBMtrigger(row['name'])
             except Exception as e:
                 print(e)
-                print("Possible trig or burst catalog not updated. "
+                print("check_against_gbmcatalogs: Possible trig or burst catalog not updated. "
                       "Use from connections.fermi_data_tools import df_trigger_catalog.")
                 continue
             try:
@@ -345,7 +345,7 @@ class Segment(GenericDisplay):
         self.trigs = trigs.loc[self.start:self.end][:]
 
     def get_catalog_triggers(self):
-        return set(self.trigs.id) - set('none')
+        return set(self.trigs.id) - set(['none'])
 
     def enlarge(self, n):
         return Segment(self.start - n, self.end + n)
@@ -515,7 +515,8 @@ class GBMtrigger(Segment):
                     raise ValueError('Missing Data.')
             except Exception as e:
                 print(e)
-                print("Possible trig or burst catalog not updated. "
+                print("did_focus_trigger: Possible trig or burst catalog not updated. "
+                      + self.name +
                       "Use from connections.fermi_data_tools import df_trigger_catalog.")
 
         if args:
