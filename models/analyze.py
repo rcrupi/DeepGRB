@@ -14,6 +14,10 @@ from math import ceil
 import sqlite3
 from pathlib import Path
 
+pd.options.display.max_rows = 100
+pd.options.display.max_columns = 100
+pd.options.display.width = 1000
+
 MIN_DET_NUMBER = 2
 MAX_DET_NUMBER = 12
 
@@ -49,9 +53,51 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
           .format(len(detected), len(undetected), len(missing)))
     events_table = triggers_table(events, threshold)
     events_table.to_csv(results_folder / 'trigs_table.csv', index=False)
+    events_table_red = reduce_table(events_table.copy(), t_filt=300)
+    events_table_red.to_csv(results_folder / 'events_table.csv', index=False)
     save_greenred_plot(detected, undetected, missing, plots_folder, type_time, type_counts)
     save_events_plots(events, threshold, plots_folder)
     return True
+
+
+def reduce_table(events_table, t_filt=300, bln_gbm=True):
+    events_table_red = pd.DataFrame(columns=events_table.columns)
+    for i in range(1, events_table.shape[0]):
+        if events_table.loc[i, 'start_met'] - events_table.loc[i-1, 'start_met'] >= t_filt:
+            if events_table.loc[i-1, 'catalog_triggers'] != '' and bln_gbm:
+                if events_table.loc[i-1, 'catalog_triggers'] == events_table.loc[i, 'catalog_triggers']:
+                    events_table.loc[i, 'start_met'] = events_table.loc[i - 1, 'start_met']
+                    events_table.loc[i, 'start_index'] = events_table.loc[i - 1, 'start_index']
+                    events_table.loc[i, 'start_times'] = events_table.loc[i - 1, 'start_times']
+                    events_table.loc[i, 'trig_ids'] = events_table.loc[i - 1, 'trig_ids']
+                    events_table.loc[i, 'trig_dets'] = ' '.join(np.sort(list(
+                        set(events_table.loc[i - 1, 'trig_dets'].split(' ')).union(
+                            set(events_table.loc[i, 'trig_dets'].split(' '))))
+                    ))
+                else:
+                    events_table_red = events_table_red.append(events_table.iloc[i - 1], ignore_index=True)
+            else:
+                events_table_red = events_table_red.append(events_table.loc[i - 1], ignore_index=True)
+        else:
+            if events_table.loc[i-1, 'catalog_triggers'] != '' and bln_gbm:
+                if events_table.loc[i-1, 'catalog_triggers'] == events_table.loc[i, 'catalog_triggers']:
+                    pass
+                else:
+                    events_table_red = events_table_red.append(events_table.iloc[i - 1], ignore_index=True)
+                    continue
+            events_table.loc[i, 'start_met'] = events_table.loc[i - 1, 'start_met']
+            events_table.loc[i, 'start_index'] = events_table.loc[i - 1, 'start_index']
+            events_table.loc[i, 'start_times'] = events_table.loc[i - 1, 'start_times']
+            events_table.loc[i, 'trig_ids'] = events_table.loc[i - 1, 'trig_ids']
+            events_table.loc[i, 'trig_dets'] = ' '.join(np.sort(list(
+                set(events_table.loc[i - 1, 'trig_dets'].split(' ')).union(
+                    set(events_table.loc[i, 'trig_dets'].split(' '))))
+            ))
+            if not bln_gbm:
+                events_table.iloc[i].catalog_triggers = ''.join([events_table.iloc[i].catalog_triggers,
+                                                                 events_table.iloc[i-1].catalog_triggers])
+    events_table_red = events_table_red.append(events_table.iloc[events_table.shape[0] - 1], ignore_index=True)
+    return events_table_red
 
 
 def save_events_plots(events, threshold, folder):
