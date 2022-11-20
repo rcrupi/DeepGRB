@@ -153,6 +153,8 @@ def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
                                                                  events_table.iloc[i-1].catalog_triggers])
     # Add the remaining trigger as event
     events_table_red = events_table_red.append(events_table.iloc[events_table.shape[0] - 1], ignore_index=True)
+    events_table_red = events_table_red.reset_index()
+    events_table_red = events_table_red.rename(columns={'index': 'event_ids'})
 
     # Update and delete segment events if the start time is not present
     lst_idx_ev_del = np.where(~pd.Series([e.start for e in events]).isin(events_table_red.start_index))[0]
