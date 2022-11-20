@@ -53,19 +53,67 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
           .format(len(detected), len(undetected), len(missing)))
     events_table = triggers_table(events, threshold)
     events_table.to_csv(results_folder / 'trigs_table.csv', index=False)
-    events_table_red = reduce_table(events_table.copy(), t_filt=300)
+    events_table_red, events = reduce_table(events_table.copy(), events, t_filt=300)
     events_table_red.to_csv(results_folder / 'events_table.csv', index=False)
+    stat_table = statistics_table(events_table_red)
+    stat_table.to_csv(results_folder / 'stat_table.csv', index=True)
     save_greenred_plot(detected, undetected, missing, plots_folder, type_time, type_counts)
     save_events_plots(events, threshold, plots_folder)
     return True
 
 
-def reduce_table(events_table, t_filt=300, bln_gbm=True):
+def statistics_table(trig_table):
+    """
+    Make a table with statistics regarding the percentage of detectors and ranges are triggered per event.
+    :param trig_table: the table of events. Need 'trigs_det' column.
+    :return: A table of percentage for each detector and range per: all events, solar flares and GRB.
+    """
+    # Define range columns of the output dataset.
+    dct_perc = {'r0': {}, 'r1': {}, 'r2': {}, 'perc_rng': {}}
+    # Loop for type of event
+    for event_stat in ['all', 'GRB', 'SFLARE']:
+        if event_stat == 'all':
+            trig_table_tmp = trig_table
+            n = trig_table_tmp.shape[0]
+        else:
+            trig_table_tmp = trig_table.loc[trig_table.catalog_triggers.str.contains(event_stat), :]
+            n = trig_table_tmp.shape[0]
+            if n == 0:
+                continue
+        # Loop for energy range
+        for rng in ['r0', 'r1', 'r2']:
+            # Percentage of events that range rng triggered
+            dct_perc[rng]['perc_det'+'_'+event_stat] = np.round(
+                sum([1. for i in trig_table_tmp.loc[:, 'trig_dets'] if '_' + rng in str(i)]) / n, 3)
+            for det in ['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'na', 'nb']:
+                # Percentage of events that detector det was triggered
+                dct_perc['perc_rng'][det+'_'+event_stat] = np.round(
+                    sum([1. for i in trig_table_tmp.loc[:, 'trig_dets'] if det + '_' in str(i)]) / n, 3)
+                # Percentage of events that detector det and range rng were triggered
+                dct_perc[rng][det+'_'+event_stat] = np.round(
+                    sum([1. for i in trig_table_tmp.loc[:, 'trig_dets'] if det+'_'+rng in str(i)]) / n, 3)
+    dtf_out = pd.DataFrame(dct_perc)
+    return dtf_out
+
+
+def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
+    """
+    Method that reduces trigger_table into an event_table. The list of events are reduced accordingly to this.
+    :param events_table: the triggers table.
+    :param events: the list of events (Segment objects).
+    :param t_filt: From the first trigger events, t_filt is the time waited that join the triggers into an event.
+    :param bln_gbm: If True GBM catalog are considered.
+    :return: Table of events, list of events.
+    """
+    # Define the event table
     events_table_red = pd.DataFrame(columns=events_table.columns)
     for i in range(1, events_table.shape[0]):
+        # If the next trigger is greater then t_filt add it as an event (except GBM catalog says it's the same)
         if events_table.loc[i, 'start_met'] - events_table.loc[i-1, 'start_met'] >= t_filt:
+            # join only if GBM catalog says it's belonging to the same event
             if events_table.loc[i-1, 'catalog_triggers'] != '' and bln_gbm:
                 if events_table.loc[i-1, 'catalog_triggers'] == events_table.loc[i, 'catalog_triggers']:
+                    # Update in the current trigger event the previous start times and join the detectors triggered
                     events_table.loc[i, 'start_met'] = events_table.loc[i - 1, 'start_met']
                     events_table.loc[i, 'start_index'] = events_table.loc[i - 1, 'start_index']
                     events_table.loc[i, 'start_times'] = events_table.loc[i - 1, 'start_times']
@@ -75,16 +123,22 @@ def reduce_table(events_table, t_filt=300, bln_gbm=True):
                             set(events_table.loc[i, 'trig_dets'].split(' '))))
                     ))
                 else:
-                    events_table_red = events_table_red.append(events_table.iloc[i - 1], ignore_index=True)
+                    # Add trigger as event
+                    events_table_red = events_table_red.append(events_table.loc[i - 1], ignore_index=True)
             else:
+                # Add trigger as event
                 events_table_red = events_table_red.append(events_table.loc[i - 1], ignore_index=True)
+        # If the next trigger is greater then t_filt join only if GBM catalg says it's belonging to the same event
         else:
             if events_table.loc[i-1, 'catalog_triggers'] != '' and bln_gbm:
+                # If the name of the GBM event coincide update the the current trigger
                 if events_table.loc[i-1, 'catalog_triggers'] == events_table.loc[i, 'catalog_triggers']:
                     pass
                 else:
-                    events_table_red = events_table_red.append(events_table.iloc[i - 1], ignore_index=True)
+                    # The name of the GBM trigger catalog don't coincide, add trigger as event and go to the next one
+                    events_table_red = events_table_red.append(events_table.loc[i - 1], ignore_index=True)
                     continue
+            # Update in the current trigger event the previous start times and join the detectors triggered
             events_table.loc[i, 'start_met'] = events_table.loc[i - 1, 'start_met']
             events_table.loc[i, 'start_index'] = events_table.loc[i - 1, 'start_index']
             events_table.loc[i, 'start_times'] = events_table.loc[i - 1, 'start_times']
@@ -94,10 +148,21 @@ def reduce_table(events_table, t_filt=300, bln_gbm=True):
                     set(events_table.loc[i, 'trig_dets'].split(' '))))
             ))
             if not bln_gbm:
+                # Joining events could overlap events present in the GBM catalog
                 events_table.iloc[i].catalog_triggers = ''.join([events_table.iloc[i].catalog_triggers,
                                                                  events_table.iloc[i-1].catalog_triggers])
+    # Add the remaining trigger as event
     events_table_red = events_table_red.append(events_table.iloc[events_table.shape[0] - 1], ignore_index=True)
-    return events_table_red
+
+    # Update and delete segment events if the start time is not present
+    lst_idx_ev_del = np.where(~pd.Series([e.start for e in events]).isin(events_table_red.start_index))[0]
+    for idx_del in np.sort(lst_idx_ev_del)[::-1]:
+        del events[idx_del]
+    # Update the end time of the events
+    for ev in events:
+        ev.end = events_table_red.loc[events_table_red.start_index == ev.start, 'end_index'].values[0]
+
+    return events_table_red, events
 
 
 def save_events_plots(events, threshold, folder):
