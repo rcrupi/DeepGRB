@@ -93,9 +93,14 @@ def set(mu_min=1, t_max: int = 0):
         for T, (x_t, lambda_t) in enumerate(zip(xs, bs)):
             if not np.isnan(lambda_t):
                 # mu_min and t_max curves cut
-                if curve_list and ((ab_crit and curve_list[0].a <= ab_crit * curve_list[0].b) or
-                                   (t_max and curve_list[0].t < t_max)):
+                if (
+                        curve_list
+                    and ((ab_crit and curve_list[0].a <= ab_crit * curve_list[0].b)
+                    or  (t_max and curve_list[0].t < t_max))
+                ):
                     curve_list = curve_list[1:]
+
+                # main step
                 curve_list, global_max, _ = focus_step(curve_list, x_t, lambda_t)
                 out.append(sqrt(2*global_max))
             else:
