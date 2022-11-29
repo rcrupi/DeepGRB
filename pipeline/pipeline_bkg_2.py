@@ -17,9 +17,9 @@ start_month = "03-2019" # 11-2010 # 03-2019
 end_month = "07-2019" # 02-2011 # 07-2019
 
 for (start_month, end_month) in [
-   # ("01-2014", "03-2014"),
-   # ("11-2010", "02-2011"),
     ("03-2019", "07-2019"),
+    ("01-2014", "03-2014"),
+    ("11-2010", "02-2011"),
 ]:
     print("Running on data {} {}".format(start_month, end_month))
 ## 1 Download CSPEC and Poshist
@@ -44,8 +44,8 @@ for (start_month, end_month) in [
 
 # 4 Run trigger (bkg, frg)
 # add_trig_gbm_to_frg(start_month, end_month)
-    # trigger_algorithm = focus.set(mu_min=1.2, t_max=50)
-    # run_trigger(start_month, end_month, trigger_algorithm)
+    #trigger_algorithm = focus.set(mu_min = 1.2, t_max=25)
+    #run_trigger(start_month, end_month, trigger_algorithm)
     # bln_update_tables = False
     # if bln_update_tables:
     #     df_burst_catalog()

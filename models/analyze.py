@@ -19,8 +19,8 @@ pd.options.display.max_columns = 100
 pd.options.display.width = 1000
 
 BINLENGTH = 4.096
-MIN_DET_NUMBER = 2
-MAX_DET_NUMBER = 12
+MIN_DET_NUMBER = 1
+MAX_DET_NUMBER = 13
 
 
 class MissingDataError(Exception):
@@ -59,29 +59,50 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
     bursts_data_folder.mkdir(parents=True, exist_ok=True)
 
     # fetch triggers from trigger table
-    triggers = fetch_triggers(focus, threshold, MIN_DET_NUMBER, MAX_DET_NUMBER)
-    segments = [Segment(*t) for t in triggers]
-    print("found {} trigger segments".format(len(segments)))
+    triggers_limits = fetch_triggers(focus, threshold, MIN_DET_NUMBER, MAX_DET_NUMBER)
+    triggers = [Segment(*t) for t in triggers_limits]
+    triggers_table = tableize(triggers, threshold)
+    triggers_table.to_csv(results_folder / 'triggers_table.csv', index=False)
+    print("found {} trigger segments".format(len(triggers)))
+    print('made triggers table.')
+
+    events_limits = merge(triggers_limits, length = int(600/BINLENGTH))
+    events = [Segment(*t) for t in events_limits]
+    events_table = tableize(events, threshold)
+    events_table.to_csv(results_folder / 'events_table.csv', index=False)
+    stat_table = statistics_table(events_table)
+    stat_table.to_csv(results_folder / 'stat_table.csv', index=True)
+    print("found {} events".format(len(events)))
+    print('made events table.')
 
     # check against catalogs
     detected, undetected, missing = check_against_gbmcatalogs(threshold, type_time, type_counts)
     print('detected {} events in GBM trig catalog;\nundetected: {};\nmissing: {}'
           .format(len(detected), len(undetected), len(missing)))
 
+    with open(results_folder / 'summary.txt', "w") as f:
+        f.write("found {} trigger segments.\n".format(len(triggers)))
+        f.write("from which {} events were resolved.\n".format(len(events)))
+        f.write(
+            "detected {} events in GBM trig catalog;\nundetected: {};\nmissing: {}"
+            .format(len(detected), len(undetected), len(missing))
+        )
+
+
     # stat and events
-    events_table = triggers_table(segments, threshold)
-    events_table.to_csv(results_folder / 'segments_table.csv', index=False)
-    events_table_red, events = reduce_table(events_table.copy(), segments, t_filt=600)
-    events_table_red.to_csv(results_folder / 'events_table.csv', index=False)
-    stat_table = statistics_table(events_table_red)
-    stat_table.to_csv(results_folder / 'stat_table.csv', index=True)
-    print("found {} events".format(len(events)))
-    print('made events table.')
+    # events_table = triggers_table(segments, threshold)
+    # events_table.to_csv(results_folder / 'segments_table.csv', index=False)
+    # events_table_red, events = reduce_table(events_table.copy(), segments, t_filt=600)
+    # events_table_red.to_csv(results_folder / 'events_table.csv', index=False)
+    # stat_table = statistics_table(events_table)
+    # stat_table.to_csv(results_folder / 'stat_table.csv', index=True)
+    # print("found {} events".format(len(events)))
+    # print('made events table.')
 
     # plots and data
     save_greenred_plot(detected, undetected, missing, plots_folder, type_time, type_counts)
-    #save_gbmbursts_plots(bursts_plots_folder)
-    #save_triggers_plots(events, threshold, triggers_plots_folder)
+    save_gbmbursts_plots(threshold, bursts_plots_folder)
+    save_triggers_plots(events, threshold, triggers_plots_folder)
     export_events_data(events, events_data_folder)
     export_bursts_data(bursts_data_folder)
     # print('made plots.')
@@ -89,8 +110,27 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
     return True
 
 
+def merge(data, length):
+    out = []
+    i = 0
+    while i < len(data):
+        j = 0
+        while (
+            (i + j < len(data))
+            and (data[i + j][1] - data[i][0] < length)
+        ):
+            j += 1
 
-def fetch_triggers(table, threshold, min_dets_num=2, max_dets_num=9):
+        if j == 0:
+            out.append((data[i][0], data[i][1]))
+            i += 1
+        else:
+            out.append((data[i][0], data[i + j - 1][1]))
+            i = i + j
+    return out
+
+
+def fetch_triggers(table, threshold, min_dets_num, max_dets_num):
     """
     implements trigger condition.
     inputs: a table of trigger values and the parameters for the trigger condition.
@@ -104,7 +144,7 @@ def fetch_triggers(table, threshold, min_dets_num=2, max_dets_num=9):
     # iter over detectors and check where significance values overcome threshold
     # over at least one energy range. merge into one single column per detector.
     for i in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b']:
-        table_ni = table[get_keys(ns=[i], rs=['0', '1', '2'])]
+        table_ni = table[get_keys(ns=[i], rs=['1'])]
         out[i] = table_ni[table_ni > threshold].any(axis=1)
     merged_ranges_df = pd.DataFrame(out)
 
@@ -227,7 +267,7 @@ def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
 
     return events_table_red, events
 
-def triggers_table(events, threshold):
+def tableize(events, threshold):
     def stringify(lst):
         return ' '.join(str(e) for e in lst)
 
@@ -277,7 +317,7 @@ def save_triggers_plots(events, threshold, folder):
     return True
 
 
-def save_gbmbursts_plots(folder):
+def save_gbmbursts_plots(threshold, folder):
     for i, row in trigger_catalog.iterrows():
         if row['name'][:3] == 'GRB':
             try:
@@ -288,6 +328,15 @@ def save_gbmbursts_plots(folder):
                       "Use from connections.fermi_data_tools import df_trigger_catalog.")
                 continue
 
+            string = ""
+            try:
+                if t.did_focus_trigger(threshold, MIN_DET_NUMBER, MAX_DET_NUMBER):
+                    string = "detected"
+                else:
+                    string = "undetected"
+            except MissingDataError as e:
+                string = "missed"
+
             fig, ax = t.plot()
             for i in range(3):
                 ax[i].set_ylabel('range {}'.format(str(i)))
@@ -296,7 +345,7 @@ def save_gbmbursts_plots(folder):
                     linestyle = 'dashed',
                     label = 'GBM trigger time'
                 )
-            fig.savefig(folder/'{}.png'.format(row['name']))
+            fig.savefig(folder/'{}_{}.png'.format(row['name'], string))
             plt.close()
     return
 
@@ -365,7 +414,7 @@ def export_bursts_data(filepath):
     for i, row in trigger_catalog.iterrows():
         if row['name'][:3] == 'GRB':
             t = GBMtrigger(row['name'])
-            t.export(filepath)
+            t.export(filepath, filename = row['name'])
     return
 
 
@@ -400,7 +449,6 @@ def check_against_gbmcatalogs(threshold, type_time='t90', type_counts='flux'):
                 else:
                     undetected.append(info(t))
             except MissingDataError as e:
-                print(e)
                 print("did_focus_trigger: Possible trig or burst catalog not updated "
                       + row['name'] +
                       ". Use from connections.fermi_data_tools import df_trigger_catalog.")
@@ -579,12 +627,17 @@ class Segment(GenericDisplay):
         self.focus = focus.loc[self.start:self.end][:]
         self.trigs = trigs.loc[self.start:self.end][:]
 
-    def export(self, filepath):
-        timestamp = self.fermi.timestamp.values[0].replace(' ', '_').replace(':', '-')[:19]
+    def export(self, filepath, filename = 'timestamp'):
+        if filename == 'timestamp':
+            timestamp = self.fermi.timestamp.values[0].replace(' ', '_').replace(':', '-')[:19]
+            label = timestamp
+        else:
+            label = filename
 
-        self.fermi.to_csv(filepath / "{}_fermi.csv".format(timestamp))
-        self.focus.to_csv(filepath / "{}_focus.csv".format(timestamp))
-        self.nn.to_csv(filepath / "{}_nn.csv".format(timestamp))
+        self.fermi.to_csv(filepath / "{}_fermi.csv".format(label))
+        self.focus.to_csv(filepath / "{}_focus.csv".format(label))
+        self.nn.to_csv(filepath / "{}_nn.csv".format(label))
+
 
     def get_catalog_triggers(self):
         return set(self.trigs.id) - set(['none'])
@@ -763,7 +816,7 @@ class GBMtrigger(Segment):
                         (self.fermi.met < trigger_time + BINLENGTH)
                       & (self.fermi.met > trigger_time - BINLENGTH)
                 )  # check if nans at grbs trig time
-                if np.isnan(self.focus[mask]).any(axis=None):
+                if np.isnan(self.focus[mask]).any(axis=None) or self.focus[mask].empty:
                     raise MissingDataError('Missing Data.')
             except Exception as e:
                 print(e)
