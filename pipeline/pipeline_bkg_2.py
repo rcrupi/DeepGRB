@@ -2,7 +2,7 @@
 # from connections.fermi_data_tools import df_burst_catalog, df_trigger_catalog
 # from models.download_bkg import download_spec
 # from models.preprocess import build_table
-from models.model_nn import ModelNN
+# from models.model_nn import ModelNN
 from models.trigger import run_trigger
 from models.trigs import focus
 from models.analyze import analyze
@@ -13,9 +13,15 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logg
 ## Define range of energy
 #erange = {'n': [(28, 50), (50, 300), (300, 500)],
 #          'b': [(756, 5025), (5025, 50000)]}
-start_month = "01-2014" # 11-2010 # 03-2019
-end_month = "03-2014" # 02-2011 # 07-2019
-for (start_month, end_month) in [("01-2014", "03-2014"), ("11-2010", "02-2011"), ("03-2019", "07-2019")]:
+start_month = "03-2019" # 11-2010 # 03-2019
+end_month = "07-2019" # 02-2011 # 07-2019
+
+for (start_month, end_month) in [
+    ("03-2019", "07-2019"),
+    ("01-2014", "03-2014"),
+    ("11-2010", "02-2011"),
+]:
+    print("Running on data {} {}".format(start_month, end_month))
 ## 1 Download CSPEC and Poshist
 #df_days = download_spec(start_month, end_month)
 #
@@ -38,13 +44,13 @@ for (start_month, end_month) in [("01-2014", "03-2014"), ("11-2010", "02-2011"),
 
 # 4 Run trigger (bkg, frg)
 # add_trig_gbm_to_frg(start_month, end_month)
-#trigger_algorithm = focus.set(mu_min=1.2, t_max=50)
-#run_trigger(start_month, end_month, trigger_algorithm)
-# bln_update_tables = False
-# if bln_update_tables:
-#     df_burst_catalog()
-#     df_trigger_catalog()
-    analyze(start_month, end_month, threshold=3., type_time='t90', type_counts='flux')
+    #trigger_algorithm = focus.set(mu_min = 1.2, t_max=25)
+    #run_trigger(start_month, end_month, trigger_algorithm)
+    # bln_update_tables = False
+    # if bln_update_tables:
+    #     df_burst_catalog()
+    #     df_trigger_catalog()
+    analyze(start_month, end_month, threshold=3.0, type_time='t90', type_counts='flux')
 
 # 5 Localise events
 # localize()
