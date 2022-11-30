@@ -13,6 +13,7 @@ from operator import itemgetter
 from math import ceil
 import sqlite3
 from pathlib import Path
+from typing import List
 
 pd.options.display.max_rows = 100
 pd.options.display.max_columns = 100
@@ -111,6 +112,19 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
 
 
 def merge(data, length):
+    """
+    inputs a list of 2-tuples and an int.
+    outputs a list of 2-tuples.
+
+    example:
+    data = [(1,4), (5,9), (10, 11), (12, 13), (20, 24), (25, 26)]
+    len = 10
+
+    returns:
+    [(1,9), (10, 13), (20, 26)]
+
+    (1,4) and (5,9) are merged in (1,9) since 9 - 1 < 10.
+    """
     out = []
     i = 0
     while i < len(data):
@@ -661,7 +675,7 @@ class Segment(GenericDisplay):
             return True
         return False
 
-    def plot(self, det, enlarge=0, figsize=None, legend=True):
+    def plot(self, det:  List[str], enlarge=0, figsize=None, legend=True):
         '''
         matplotlib is messy and so is this thing. handle mindfully
         :param det:
@@ -695,18 +709,14 @@ class Segment(GenericDisplay):
         else:
             fig, ax = plt.subplots(3, 1, sharex=True, figsize=figsize, tight_layout=True)
 
-        if isinstance(det, str):
-            raise ValueError("detectors should be in a list like e.g. ['n0_r0'] or ['n2_r1','n3_r0']")
+        for d in det:
+            range_label = int(d[-1])
+            mets = p_seg.fermi.met.values
+            fermi_data = p_seg.fermi[d]
+            nn_data = p_seg.nn[d]
 
-        elif isinstance(det, list):
-            for d in det:
-                range_label = int(d[-1])
-                mets = p_seg.fermi.met.values
-                fermi_data = p_seg.fermi[d]
-                nn_data = p_seg.nn[d]
-
-                ax[range_label].step(mets, fermi_data, color=colors_dic[d[1]], where='pre', label=d[:2])
-                ax[range_label].plot(mets, nn_data, color=colors_dic[d[1]])
+            ax[range_label].step(mets, fermi_data, color=colors_dic[d[1]], where='pre', label=d[:2])
+            ax[range_label].plot(mets, nn_data, color=colors_dic[d[1]])
 
         for trig in p_seg.get_catalog_triggers():
             if trig != 'none':
@@ -726,7 +736,7 @@ class Segment(GenericDisplay):
         for i in range(3):
             ax[i].set_ylim(bottom=0, top=None)
             ax[i].set_ylabel('range {}'.format(str(i)))
-        if legend:
+        if legend and det:
             labels = ['n' + i for i in get_indeces(det)]
             lines = [custom_lines[i] for i in get_indeces(det)]
             fig.legend(lines, labels, framealpha=1., ncol=ceil(len(labels) / 4),
