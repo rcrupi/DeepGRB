@@ -47,6 +47,7 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
     init(start_month, end_month)
     folder_name = 'frg_' + start_month + '_' + end_month + "/"
     results_folder = Path(FOLD_RES) / folder_name
+    results_folder.mkdir(parents=True, exist_ok=True)
     plots_folder = Path(FOLD_RES) / folder_name / "plots/"
     plots_folder.mkdir(parents=True, exist_ok=True)
     triggers_plots_folder = Path(FOLD_RES) / folder_name / "plots/triggers/"
@@ -307,7 +308,11 @@ def save_triggers_plots(events, threshold, folder):
         for i in ranges:
             ax[i].axvspan(fermi.met.iloc[event.start - 1], fermi.met.iloc[event.end], color='r', alpha=0.1)
         fig.suptitle('{} ({},{}) '.format(event.fermi.timestamp.iloc[0][:-7], event.start, event.end), x=0.34)
-        fig.savefig(folder/'out{}.png'.format(n))
+
+        try:
+            fig.savefig(folder/'out{}.png'.format(n))
+        except:
+            print('Error saving image.')
         plt.close()
 
         fig, ax = event.plot(untriggered_dets, figsize=(7, 6), enlarge=100)
@@ -345,7 +350,10 @@ def save_gbmbursts_plots(threshold, folder):
                     linestyle = 'dashed',
                     label = 'GBM trigger time'
                 )
-            fig.savefig(folder/'{}_{}.png'.format(row['name'], string))
+            try:
+                fig.savefig(folder/'{}_{}.png'.format(row['name'], string))
+            except:
+                print('Error saving image.')
             plt.close()
     return
 
@@ -726,12 +734,15 @@ class Segment(GenericDisplay):
         for i in range(3):
             ax[i].set_ylim(bottom=0, top=None)
             ax[i].set_ylabel('range {}'.format(str(i)))
-        if legend:
+        if legend and det:
             labels = ['n' + i for i in get_indeces(det)]
             lines = [custom_lines[i] for i in get_indeces(det)]
-            fig.legend(lines, labels, framealpha=1., ncol=ceil(len(labels) / 4),
-                       loc='upper right', bbox_to_anchor=(1.01, 1.005),
-                       fancybox=True, shadow=True)
+            if len(labels) > 0:
+                fig.legend(lines, labels, framealpha=1., ncol=ceil(len(labels) / 4),
+                           loc='upper right', bbox_to_anchor=(1.01, 1.005),
+                           fancybox=True, shadow=True)
+            else:
+                print("Warning, no labels to plot in image legend.")
         try:
             fig.supylabel('count rate')
             fig.supxlabel('time [MET]')
