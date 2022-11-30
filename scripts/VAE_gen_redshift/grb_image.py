@@ -14,7 +14,7 @@ tte_path = '/beegfs/rcrupi/zzz_other/tte/' # tte
 list_tte = os.listdir(tte_path)
 tte_pkl_path = '/beegfs/rcrupi/zzz_other/tte_pkl/' # tte pkl
 list_tte_pkl = os.listdir(tte_pkl_path)
-bool_pkl = False
+bool_pkl = True
 bool_download_gbm = False
 if bool_pkl:
     # Preprocess data downloaded from FTP
@@ -62,6 +62,8 @@ if bool_pkl:
         # # plot the lightcurve
         # lcplot = Lightcurve(data=phaii.to_lightcurve())
         # plt.show()
+        # TODO divide lightcurve 2400 and 1200
+        # TODO select GRB only by T90 from 500 and 100
         pdc = phaii.data.counts
         # Pad the values up to max_len_time
         if pdc.shape[0] < max_len_time:
