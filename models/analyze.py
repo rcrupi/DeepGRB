@@ -402,15 +402,15 @@ def save_greenred_plot(detected, undetected, missing, folder, type_time=None, ty
         ax.semilogy()
         ax.semilogx()
         if type_time == 't90':
-            ax.set_xlabel('$T_{90}$')
+            ax.set_xlabel('$T_{90} \: [s]$')
         elif type_time == 't50':
-            ax.set_xlabel('$T_{50}$')
+            ax.set_xlabel('$T_{50} \: [s]$')
         else:
             print("Warning, time axis (x) not specified")
         if type_count == 'fluence':
             ax.set_ylabel('Fluence')
         elif type_count == 'flux':
-            ax.set_ylabel('Flux')
+            ax.set_ylabel(r'Flux $[erg \: cm^{-2} \: s^{-1}]$')
         else:
             print("Warning, counts axis (y) not specified")
         ax.legend()

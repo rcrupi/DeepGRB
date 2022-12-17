@@ -1,5 +1,5 @@
 # import utils
-from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_BURST_DB, FOLD_NN, db_path
+from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_TRIG_DB, FOLD_NN, db_path
 import logging
 # Standard packages
 import matplotlib.pyplot as plt
@@ -12,6 +12,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 import gc
 from astropy.time import Time
+from datetime import date
 # Preprocess
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -107,9 +108,7 @@ class ModelNN:
         if bool_del_trig:
             logging.info("Deleting events already present in GBM calalogue in Train Set.")
             # Take index of the time where triggers were identified
-            engine = create_engine('sqlite:////' + GBM_BURST_DB + 'gbm_burst_catalog.db')
-            # TODO update this table. Updated up to 2021-01
-            gbm_tri = pd.read_sql_table('GBM_TRI', con=engine)
+            gbm_tri = pd.read_csv(GBM_TRIG_DB, index_col=[0])
             index_date = df_data['met'] >= 0
             index_tmp = 1
             for _, row in gbm_tri.iterrows():
@@ -287,7 +286,9 @@ class ModelNN:
 
             # Insert loss result in model name
             loss_test = round(nn_r.evaluate(X_test, y_test), 2)
-            name_model = 'model_' + self.start_month + '_' + self.end_month + '_' + str(loss_test)
+            # TODO set a proper name of the model
+            today = date.today()
+            name_model = 'model_' + self.start_month + '_' + self.end_month + '_' + str(loss_test) + '_' + str(today)
 
             # Predict the model
             logging.info("NN predict on train and test set.")
