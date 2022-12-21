@@ -15,11 +15,12 @@ FOLD_PRED = "pred"
 FOLD_NN = "nn_model"
 FOLD_TRIG = "trig"
 FOLD_PLOT = "plots"
+FOLD_POSHIST = 'poshist'
 db_path = os.path.dirname(__file__)
 PATH_GRB_TABLE = PATH_TO_SAVE + "grb_classification/df_grb.csv"
 # TODO: change above to use pathlib
 if user == 'rcrupi':
-    FOLD_RES = PATH_TO_SAVE + '/results/'
+    FOLD_RES = PATH_TO_SAVE + 'results/'
 else:
     FOLD_RES = Path(db_path).parent.parent / 'results/'
 GBM_BURST_DB = Path(db_path).parent.parent / 'data/gbm_burst_catalog.db'

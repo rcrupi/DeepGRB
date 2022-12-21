@@ -7,6 +7,7 @@ from models.trigger import run_trigger
 from models.trigs import focus
 from models.analyze import analyze
 from models.utils.GBMutils import add_trig_gbm_to_frg
+from models.localize_event import localize
 import logging
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -52,7 +53,6 @@ for (start_month, end_month) in [
     #     df_trigger_catalog()
     analyze(start_month, end_month, threshold=3.0, type_time='t90', type_counts='flux')
 
-# 5 Localise events
-# localize()
-# build_calalogue()
+    # 5 Localise events
+    localize(start_month, end_month)
 pass
