@@ -55,7 +55,7 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
 
     # Iterate per each event in catalog
     for index, row in ev_tab.iterrows():
-        print(row['start_met'],'trig id: ', row['trig_ids'])
+        print(row['start_met'], 'trig id: ', row['trig_ids'])
 
         try:
             # Define times of the event
@@ -144,7 +144,7 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                         cont_finder = ContinuousFtp(met=int(met_event))
                         cont_finder.get_poshist(PATH_TO_SAVE + FOLD_POSHIST)
                     except:
-                        print('Error in downloding poshist', row['trigs_id'])
+                        print('Error in downloading poshist', row['trigs_id'])
                         continue
                 # Open a poshist file
                 poshist = PosHist.open(PATH_TO_SAVE + FOLD_POSHIST + "/" + poshist_name)
