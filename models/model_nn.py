@@ -21,7 +21,7 @@ from sklearn.preprocessing import StandardScaler
 # Tensorflow, Keras
 import tensorflow as tf
 import keras_tuner as kt
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.models import load_model
@@ -199,13 +199,16 @@ class ModelNN:
             nn_input = tf.keras.Input(shape=(X_train.shape[1],))
             # First layers
             model_1 = Dense(units, activation='relu')(nn_input)
+            model_1 = BatchNormalization()(model_1)
             model_1 = Dropout(do)(model_1)
             # Second layer
             nn_r = Dense(units, activation='relu')(model_1)
+            nn_r = BatchNormalization()(nn_r)
             nn_r = Dropout(do)(nn_r)
             # Third layer
             nn_r = Dense(int(units / 2), activation='relu')(nn_r)
-            nn_r = Dropout(do)(nn_r)
+            nn_r = BatchNormalization()(nn_r)
+            #nn_r = Dropout(do)(nn_r)
             # Fourth (last) layer output
             outputs = Dense(len(self.col_range), activation='relu',
                             # kernel_regularizer=tf.keras.regularizers.l2(l2=1e-1),
@@ -213,8 +216,15 @@ class ModelNN:
                             # activity_regularizer=tf.keras.regularizers.l2(1e-5)
                             )(nn_r)
             nn_r = tf.keras.Model(inputs=[nn_input], outputs=outputs)
+            # # Learning rate decay
+            # # Example: lr*10 4 epoch, lr*2 8 epoch, lr 8 epoch, lr/4 remaining epochs
+            # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+            #     lr,
+            #     decay_steps=1,
+            #     decay_rate=0.96,
+            #     staircase=True)
             # Optimizer
-            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.8, beta_2=0.8, epsilon=1e-07)
+            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.9, beta_2=0.99, epsilon=1e-07)
             # opt = tf.keras.optimizers.RMSprop( learning_rate=0.002, rho=0.6, momentum=0.0, epsilon=1e-07)
 
             if loss_type == 'max':
