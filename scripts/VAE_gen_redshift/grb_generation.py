@@ -252,17 +252,21 @@ def cnn_model(N_HIDDEN=32, loss='mae'):
     return autoencoder, encoder, decoder
 
 
-def dense_model(N_HIDDEN=32):
+def dense_model(N_HIDDEN=32, loss='mae', lr=0.001):
     input = layers.Input(shape=(512, 128, 1))
     input_decoder = layers.Input(shape=(N_HIDDEN,))
     # Encoder
     x = layers.Flatten()(input)
-    x = layers.Dense(N_HIDDEN*128, activation='relu')(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(N_HIDDEN*2, activation='relu')(x)
+    x = layers.Dropout(0.2)(x)
     # Hidden layer
     h = layers.Dense(N_HIDDEN, activation='relu', name='hidden')(x)
     # Decoder
-    y = layers.Dense(N_HIDDEN*128, activation='linear')(input_decoder)
+    y = layers.Dense(N_HIDDEN*2, activation='linear')(input_decoder)
+    y = layers.Dropout(0.2)(y)
     y = layers.Dense(512*128, activation='linear')(y)
+    y = layers.Dropout(0.2)(y)
     y = layers.Reshape((512, 128, 1), input_shape=(y.shape[1],))(y)
 
     # Autoencoder
@@ -271,25 +275,26 @@ def dense_model(N_HIDDEN=32):
     autoencoder = Model(input, decoder(encoder(input)))
 
     opt = tf.keras.optimizers.Nadam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
-    autoencoder.compile(optimizer=opt, loss="mse")
+    autoencoder.compile(optimizer=opt, loss=loss)
     autoencoder.summary()
     return autoencoder, encoder, decoder
 
 
 autoencoder, encoder, decoder = cnn_model(512)
+autoencoder, encoder, decoder = dense_model(2)
 
 autoencoder.fit(
     x=ds_train_scale,
     y=ds_train_scale,
-    epochs=4,
+    epochs=1,
     batch_size=128,
     shuffle=True,
     validation_split=0.2,
 )
 
-emb_data = encoder.predict(ds_train_scale[0:1, :, :])
+emb_data = encoder.predict(ds_train_scale[10:11, :, :])
 predictions = decoder.predict(emb_data)
 plt.figure()
 plt.imshow(predictions[0, :, :, 0].T)
 plt.figure()
-plt.imshow(ds_train_scale[0, :, :].T)
+plt.imshow(ds_train_scale[10, :, :].T)
