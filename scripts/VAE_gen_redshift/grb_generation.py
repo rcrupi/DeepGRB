@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.colors import Normalize, LogNorm
 from pylab import imshow
+
 sns.set_theme()
 import numpy as np
 import matplotlib.image
@@ -16,11 +17,11 @@ from gbm.background import BackgroundFitter
 from gbm.background.binned import Polynomial
 from gbm.plot import Lightcurve
 
-LEN_LC = 512 # 64
+LEN_LC = 512  # 64
 TIME_RES = 0.064
-tte_path = '/beegfs/rcrupi/zzz_other/tte/' # tte
+tte_path = '/beegfs/rcrupi/zzz_other/tte/'  # tte
 list_tte = os.listdir(tte_path)
-tte_pkl_path = '/beegfs/rcrupi/zzz_other/tte_pkl_img/' # tte pkl
+tte_pkl_path = '/beegfs/rcrupi/zzz_other/tte_pkl_img/'  # tte pkl
 list_tte_pkl = [i for i in os.listdir(tte_pkl_path) if 'pickle' in i]
 list_tte_bn_pkl = ["_".join(i.split('_')[0:2]) for i in list_tte_pkl]
 bool_pkl = False
@@ -29,14 +30,17 @@ if bool_pkl:
     # Preprocess data downloaded from FTP
     from gbm.data import TTE
     from gbm.binning.unbinned import bin_by_time
+
     # from gbm.plot import Lightcurve
     if bool_download_gbm:
         from gbm.finder import BurstCatalog
+
         burstcat = BurstCatalog()
         df_burst = pd.DataFrame(burstcat.get_table())
-        df_burst.to_pickle(DB_PATH+'df_burst.pkl')
+        df_burst.to_pickle(DB_PATH + 'df_burst.pkl')
     else:
-        df_burst = pd.read_pickle(DB_PATH+'df_burst.pkl')
+        df_burst = pd.read_pickle(DB_PATH + 'df_burst.pkl')
+
 
     # Filter only the triggered detectors
     def det_triggered(str_mask):
@@ -50,6 +54,7 @@ if bool_pkl:
         except:
             print("Warning, not found detectors triggered. det_mask: ", str_mask)
             return list(list_det)
+
 
     # Initialise dataset
     ds_train = []
@@ -76,7 +81,7 @@ if bool_pkl:
                 # print(tte_tmp + ' not used.')
                 continue
             # read a tte file
-            tte = TTE.open(tte_path+tte_tmp)
+            tte = TTE.open(tte_path + tte_tmp)
             print(tte)
             t_min, t_max = tte.time_range
             # bkg times
@@ -102,7 +107,8 @@ if bool_pkl:
 
             bkgd_times = [(bkg_t_min_1, bkg_t_min_2), (bkg_t_max_1, bkg_t_max_2)]
             # bin in time (0.064s)
-            flt_bin_time = max((bkg_t_sel_2 - bkg_t_sel_1)/(LEN_LC-1), TIME_RES/64) # max(t50_tmp/LEN_LC, TIME_RES)
+            flt_bin_time = max((bkg_t_sel_2 - bkg_t_sel_1) / (LEN_LC - 1),
+                               TIME_RES / 64)  # max(t50_tmp/LEN_LC, TIME_RES)
             phaii = tte.to_phaii(bin_by_time, flt_bin_time, time_ref=0.0)
             type(phaii)
             # If the bin time is too small (less than TIME_RES) background estimation is not performed.
@@ -127,11 +133,11 @@ if bool_pkl:
 
                 # Select lighturve in the selected background interval
                 # This events have enough points to compute the background
-                #phaii = phaii.slice_time((-5, t90_tmp*1.5))
-                #bkgd = bkgd.slice_time(-5, t90_tmp*1.5)
+                # phaii = phaii.slice_time((-5, t90_tmp*1.5))
+                # bkgd = bkgd.slice_time(-5, t90_tmp*1.5)
                 pdc = phaii.data.rates - bkgd.rates
-                pdc = pdc[(phaii.data.time_centroids >= bkg_t_sel_1 - flt_bin_time/2) &
-                          (phaii.data.time_centroids <= bkg_t_sel_2 + flt_bin_time/2)]
+                pdc = pdc[(phaii.data.time_centroids >= bkg_t_sel_1 - flt_bin_time / 2) &
+                          (phaii.data.time_centroids <= bkg_t_sel_2 + flt_bin_time / 2)]
                 print(pdc.shape)
                 # plt.plot(pdc.sum(axis=1))
                 # # plot the lightcurve
@@ -150,8 +156,8 @@ if bool_pkl:
                 # # plot the lightcurve
                 # lcplot = Lightcurve(data=phaii.to_lightcurve(time_range=(bkg_t_sel_1, bkg_t_sel_2), energy_range=(8, 900)))
                 # lcplot.add_selection(phaii.to_lightcurve(time_range=(bkg_t_min_2, bkg_t_max_1), energy_range=(8, 900)))
-            #plt.show()
-            #continue
+            # plt.show()
+            # continue
 
             # Pad the values up to LEN_LC
             if pdc.shape[0] > LEN_LC:
@@ -167,7 +173,8 @@ if bool_pkl:
                 print("Logging. Padded series.")
 
             # Save GRB image
-            name_file = str(tte_tmp.split('_')[3]) + "_" + str(tte_tmp.split('_')[2]) + "_bin" + str(round(flt_bin_time, 4))
+            name_file = str(tte_tmp.split('_')[3]) + "_" + str(tte_tmp.split('_')[2]) + "_bin" + str(
+                round(flt_bin_time, 4))
             with open(tte_pkl_path + name_file + '.pickle', 'wb') as f:
                 pickle.dump(pdc, f)
             path_tmp = tte_pkl_path + name_file + '.svg'
@@ -177,21 +184,70 @@ if bool_pkl:
             print("Error in loop.", tte_tmp.split('_')[3])
 else:
     ds_train = []
-    bln_all = False
-    if bln_all:
-        lst_tte_pkl_files = list_tte_pkl
-    else:
-        lst_tte_pkl_files = list_tte_pkl[:2000]
-    for i in tqdm(lst_tte_pkl_files):
-        with open(tte_pkl_path+i, 'rb') as f:
-            ds_train.append(pickle.load(f))
+    lst_tte_pkl_aug = []
+    np.random.seed(10)
+    bln_augment = True
+    counter_constant = 0
+    for i in tqdm(list_tte_pkl):
+        with open(tte_pkl_path + i, 'rb') as f:
+            event_tmp = pickle.load(f)
+            if abs(event_tmp.max() - event_tmp.min()) < 10 ** -6:
+                counter_constant += 1
+                continue
+            ds_train.append(event_tmp)
+            lst_tte_pkl_aug.append(' '.join(i.split('_')) + " " + "no shift")
+            if bln_augment:
+                event_tmp_r_shift = np.roll(event_tmp, np.random.randint(0, int(LEN_LC / 4), 1)[0], axis=0)
+                ds_train.append(event_tmp_r_shift)
+                lst_tte_pkl_aug.append(' '.join(i.split('_')) + " " + "right shift")
+                event_tmp_l_shift = np.roll(event_tmp, -np.random.randint(0, int(LEN_LC / 4), 1)[0], axis=0)
+                ds_train.append(event_tmp_l_shift)
+                lst_tte_pkl_aug.append(' '.join(i.split('_')) + " " + "left shift")
     ds_train = np.array(ds_train)
+    print("Event that are constant: ", counter_constant)
 
 # Scale dataset
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
 ds_train_scale = ds_train.copy()
-for i in range(0, ds_train.shape[0]):
+bln_save_img_scale = False
+for i in tqdm(range(0, ds_train.shape[0])):
     ds_train_scale[i, :, :] = StandardScaler().fit_transform(ds_train[i, :, :])
+    # ds_train_scale[i, :, :] = MinMaxScaler().fit_transform(ds_train[i, :, :])
+    if abs(ds_train_scale[i, :, :].max() - ds_train_scale[i, :, :].min()) > 10 ** -6:
+        ds_train_scale[i, :, :] = (ds_train_scale[i, :, :] - ds_train_scale[i, :, :].min()) / \
+                                  (ds_train_scale[i, :, :].max() - ds_train_scale[i, :, :].min())
+        if bln_save_img_scale:
+            path_tmp = tte_pkl_path + "scaled/" + lst_tte_pkl_aug[i].replace('.', '') + '.png'
+            path_tmp = path_tmp.replace(" ", "_")
+            matplotlib.image.imsave(path_tmp, ds_train_scale[i, :, :].T, format='png')
+            # # Convert matrix to image matrix
+            # from PIL import Image
+            # aaa = Image.fromarray(ds_train_scale[i, :, :].T, "RGB")
+            # np.asarray(aaa)
+    else:
+        print("Warning. Signal constant.")
+
+# with open("/home/rcrupi/Downloads/grb_train.npy", 'wb') as f:
+#     np.save(f, ds_train_scale)
+# with open("/home/rcrupi/Downloads/grb_train.npy", 'rb') as f:
+#     a = np.load(f)
+
+# pandas of images
+from PIL import Image
+lst_grb_scaled = []
+lst_tte_pkl_name = os.listdir(tte_pkl_path + "scaled/")
+for i in tqdm(lst_tte_pkl_name):
+    # lst_grb_scaled.append(Image.fromarray(ds_train_scale[i, :, :].T, "RGB").tobytes())
+    lst_grb_scaled.append(Image.open(tte_pkl_path + "scaled/" + i).tobytes())
+df_grb_scaled = pd.DataFrame({'image': lst_grb_scaled, 'name': lst_tte_pkl_name})
+df_grb_scaled['height'] = 128
+df_grb_scaled['widgth'] = 512
+df_grb_scaled.to_parquet("/home/rcrupi/Downloads/grb_train.parquet")
+# df_grb_scaled = pd.read_parquet("/home/rcrupi/Downloads/grb_train.parquet")
+# ccc = Image.frombytes("RGBA", (512, 128), df_grb_scaled.iloc[0]['image'])
+# np.asarray(ccc)[:, :, 0:3]
+
 
 idx_fig = 0
 # Create two subplots and unpack the output array immediately
@@ -215,38 +271,82 @@ pass
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model
+
 N_HIDDEN = 32
 
 
-def cnn_model(N_HIDDEN=32, loss='mae'):
+def cnn_model_naive(N_HIDDEN=32, loss='mse', lr=0.001):
     input = layers.Input(shape=(512, 128, 1))
-    input_decoder = layers.Input(shape=(N_HIDDEN,))
+    input_decoder = layers.Input(shape=(512 * 128,))
     # Encoder
-    x = layers.Conv2D(32, (2, 2), activation="relu", padding="same")(input)
-    x = layers.MaxPooling2D((2, 2), padding="same")(x)
-    x = layers.Conv2D(32, (4, 4), activation="relu", padding="same")(x)
-    x = layers.MaxPooling2D((4, 4), padding="same")(x)
-    x = layers.Conv2D(32, (8, 8), activation="relu", padding="same")(x)
-    x = layers.MaxPooling2D((8, 8), padding="same")(x)
-    x = layers.Flatten()(x)
+    x = layers.Conv2D(1, (1, 1), activation="linear", padding="same")(input)
+    # x = layers.MaxPooling2D((1, 1), padding="same")(x)
     # Hidden layer
-    h = layers.Dense(N_HIDDEN, activation='relu', name='hidden')(x)
+    h = layers.Flatten()(x)
     # Decoder
-    y = layers.Dense(x.shape[1], activation='relu')(input_decoder)
-    y = layers.Reshape((8, 2, 32), input_shape=(N_HIDDEN,))(y)
-    y = layers.Conv2DTranspose(32, (9, 9), strides=2, activation="relu", padding="same")(y)
-    y = layers.Conv2DTranspose(32, (6, 6), strides=2, activation="relu", padding="same")(y)
-    y = layers.Conv2DTranspose(32, (6, 6), strides=2, activation="relu", padding="same")(y)
-    y = layers.Conv2DTranspose(32, (3, 3), strides=4, activation="relu", padding="same")(y)
-    y = layers.Conv2DTranspose(32, (3, 3), strides=2, activation="relu", padding="same")(y)
-    y = layers.Conv2D(1, (3, 3), activation="linear", padding="same")(y)
-
+    # y = layers.Dense(512*128, activation='relu')(input_decoder)
+    y = layers.Reshape((512, 128, 1), input_shape=(512 * 128,))(input_decoder)
+    # y = layers.Conv2D(1, (1, 1), activation="hard_sigmoid", padding="same")(y)
+    y = layers.Lambda(lambda x: (x - tf.math.reduce_min(x, axis=None)) /
+                                (tf.math.reduce_max(x, axis=None) - tf.math.reduce_min(x, axis=None)))(y)
     # Autoencoder
     encoder = Model(input, h)
     decoder = Model(input_decoder, y)
     autoencoder = Model(input, decoder(encoder(input)))
 
-    opt = tf.keras.optimizers.Nadam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+    opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+    autoencoder.compile(optimizer=opt, loss=loss)
+    autoencoder.summary()
+    return autoencoder, encoder, decoder
+
+
+def cnn_model(N_HIDDEN=32, loss='mse', lr=0.001, opt_type='adam', do=0.05):
+    input = layers.Input(shape=(512, 128, 1))
+    input_decoder = layers.Input(shape=(N_HIDDEN,))
+    # Encoder
+    x = layers.Conv2D(5, (2, 2), activation="relu", padding="same")(input)
+    x = layers.MaxPooling2D((2, 2), padding="same")(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(do)(x)
+    x = layers.Conv2D(5, (2, 2), activation="relu", padding="same")(x)
+    x = layers.MaxPooling2D((2, 2), padding="same")(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dropout(do)(x)
+    x = layers.Conv2D(5, (2, 2), activation="relu", padding="same")(x)
+    x_pre_flat = layers.MaxPooling2D((2, 2), padding="same")(x)
+    x_pre_flat = layers.BatchNormalization()(x_pre_flat)
+    x_pre_flat = layers.Dropout(do)(x_pre_flat)
+    x = layers.Flatten()(x_pre_flat)
+    # Hidden layer
+    h = layers.Dense(N_HIDDEN, activation='linear', name='hidden')(x)
+    # Decoder
+    y = layers.Dense(x.shape[1], activation='relu')(input_decoder)
+    y = layers.Reshape(x_pre_flat.shape[1:4], input_shape=(y.shape[1],))(y)
+    x = layers.BatchNormalization()(x)
+    y = layers.Dropout(do)(y)
+    y = layers.Conv2DTranspose(64, (2, 2), strides=2, activation="relu", padding="same")(y)
+    x = layers.BatchNormalization()(x)
+    y = layers.Dropout(do)(y)
+    y = layers.Conv2DTranspose(32, (2, 2), strides=2, activation="relu", padding="same")(y)
+    x = layers.BatchNormalization()(x)
+    y = layers.Dropout(do)(y)
+    y = layers.Conv2DTranspose(16, (2, 2), strides=2, activation="relu", padding="same")(y)
+    x = layers.BatchNormalization()(x)
+    y = layers.Dropout(do)(y)
+    y = layers.Conv2DTranspose(1, (2, 2), strides=1, activation="linear", padding="same")(y)
+    y = layers.Lambda(lambda x: (x - tf.math.reduce_min(x, axis=None)) /
+                                (tf.math.reduce_max(x, axis=None) - tf.math.reduce_min(x, axis=None)))(y)
+    # Autoencoder
+    encoder = Model(input, h)
+    decoder = Model(input_decoder, y)
+    autoencoder = Model(input, decoder(encoder(input)))
+
+    beta_1 = 0.8
+    beta_2 = 0.8
+    if opt_type == 'adam':
+        opt = tf.keras.optimizers.Adam(learning_rate=lr, beta_1=beta_1, beta_2=beta_2, epsilon=1e-07)
+    else:
+        opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=beta_1, beta_2=beta_2, epsilon=1e-07)
     autoencoder.compile(optimizer=opt, loss=loss)
     autoencoder.summary()
     return autoencoder, encoder, decoder
@@ -258,14 +358,14 @@ def dense_model(N_HIDDEN=32, loss='mae', lr=0.001):
     # Encoder
     x = layers.Flatten()(input)
     x = layers.Dropout(0.2)(x)
-    x = layers.Dense(N_HIDDEN*2, activation='relu')(x)
+    x = layers.Dense(N_HIDDEN * 2, activation='relu')(x)
     x = layers.Dropout(0.2)(x)
     # Hidden layer
     h = layers.Dense(N_HIDDEN, activation='relu', name='hidden')(x)
     # Decoder
-    y = layers.Dense(N_HIDDEN*2, activation='linear')(input_decoder)
+    y = layers.Dense(N_HIDDEN * 2, activation='relu')(input_decoder)
     y = layers.Dropout(0.2)(y)
-    y = layers.Dense(512*128, activation='linear')(y)
+    y = layers.Dense(512 * 128, activation='sigmoid')(y)
     y = layers.Dropout(0.2)(y)
     y = layers.Reshape((512, 128, 1), input_shape=(y.shape[1],))(y)
 
@@ -274,27 +374,53 @@ def dense_model(N_HIDDEN=32, loss='mae', lr=0.001):
     decoder = Model(input_decoder, y)
     autoencoder = Model(input, decoder(encoder(input)))
 
-    opt = tf.keras.optimizers.Nadam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+    opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
     autoencoder.compile(optimizer=opt, loss=loss)
     autoencoder.summary()
     return autoencoder, encoder, decoder
 
 
-autoencoder, encoder, decoder = cnn_model(512)
-autoencoder, encoder, decoder = dense_model(2)
-
-autoencoder.fit(
+# losses: mse, mae, log_cosh
+autoencoder, encoder, decoder = cnn_model(32, loss='mae', lr=0.001, opt_type='nadam')
+# autoencoder, encoder, decoder = cnn_model_naive(2, loss='mse', lr=0.001)
+# autoencoder, encoder, decoder = dense_model(2, loss='mse', lr=0.0001)
+es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=4)
+history = autoencoder.fit(
     x=ds_train_scale,
     y=ds_train_scale,
-    epochs=1,
-    batch_size=128,
+    epochs=2,
+    batch_size=64,
     shuffle=True,
-    validation_split=0.2,
+    validation_split=0.2, callbacks=[es]
 )
 
-emb_data = encoder.predict(ds_train_scale[10:11, :, :])
-predictions = decoder.predict(emb_data)
 plt.figure()
-plt.imshow(predictions[0, :, :, 0].T)
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
 plt.figure()
-plt.imshow(ds_train_scale[10, :, :].T)
+plt.plot(history.history['loss'][4:])
+plt.plot(history.history['val_loss'][4:])
+
+
+def plot_event(idx):
+    emb_data = encoder.predict(ds_train_scale[idx:(idx + 1), :, :])
+    predictions = decoder.predict(emb_data)
+
+    f3, (ax5, ax6) = plt.subplots(2, 1)
+    ax5.imshow(ds_train_scale[idx, :, :].T)
+    ax5.set_title('Spectrogram scaled: ' + lst_tte_pkl_aug[idx])
+    ax5.axis('off')
+    ax6.imshow(predictions[0, :, :, 0].T)
+    ax6.set_title('Spectrogram predicted')
+    ax6.axis('off')
+
+    diff = predictions[:, :, :, 0] - ds_train_scale[idx:(idx + 1), :, :]
+    print(predictions[:, :, :, 0].min(), predictions[:, :, :, 0].max())
+    print(ds_train_scale[idx:(idx + 1), :, :].min(), ds_train_scale[idx:(idx + 1), :, :].max())
+    print(diff.min(), diff.max())
+
+
+idx = 48
+plot_event(idx)
+
+pass
