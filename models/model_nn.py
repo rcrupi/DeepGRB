@@ -208,7 +208,7 @@ class ModelNN:
             # Third layer
             nn_r = Dense(int(units / 2), activation='relu')(nn_r)
             nn_r = BatchNormalization()(nn_r)
-            #nn_r = Dropout(do)(nn_r)
+            nn_r = Dropout(do)(nn_r)
             # Fourth (last) layer output
             outputs = Dense(len(self.col_range), activation='relu',
                             # kernel_regularizer=tf.keras.regularizers.l2(l2=1e-1),
@@ -216,15 +216,14 @@ class ModelNN:
                             # activity_regularizer=tf.keras.regularizers.l2(1e-5)
                             )(nn_r)
             nn_r = tf.keras.Model(inputs=[nn_input], outputs=outputs)
-            # # Learning rate decay
-            # # Example: lr*10 4 epoch, lr*2 8 epoch, lr 8 epoch, lr/4 remaining epochs
-            # lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-            #     lr,
-            #     decay_steps=1,
-            #     decay_rate=0.96,
-            #     staircase=True)
+            # Learning rate decay
+            # Example: lr*12.5 4 epoch, lr 8 epoch, lr/4 20 epoch, lr/8 remaining epochs
+            call_lr = tf.keras.optimizers.schedules.PiecewiseConstantDecay([4, 12, 32], [lr*12.5, lr, lr/4, lr/8])
+
             # Optimizer
-            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.9, beta_2=0.99, epsilon=1e-07)
+            # opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.9, beta_2=0.99, epsilon=1e-07)
+            opt = tf.keras.optimizers.experimental.Nadam(learning_rate=call_lr, beta_1=0.9, beta_2=0.99, use_ema=False,
+                                                         epsilon=1e-07)
             # opt = tf.keras.optimizers.RMSprop( learning_rate=0.002, rho=0.6, momentum=0.0, epsilon=1e-07)
 
             if loss_type == 'max':
