@@ -94,10 +94,15 @@ class ModelNN:
             if csv_tmp[0:4] != yymm:
                 logging.info("Loading: " + csv_tmp)
                 yymm = csv_tmp[0:4]
-            df_tmp = pd.read_csv(PATH_TO_SAVE + FOLD_BKG + '/' + csv_tmp)
-            # import datetime
-            # df_tmp['day'] = datetime.datetime(int('20'+csv_tmp[0:2]), int(csv_tmp[2:4]), int(csv_tmp[4:6])).timetuple().tm_yday
-            df_data = df_data.append(df_tmp, ignore_index=True)
+            df_tmp = None
+            try:
+                df_tmp = pd.read_csv(PATH_TO_SAVE + FOLD_BKG + '/' + csv_tmp)
+                # import datetime
+                # df_tmp['day'] = datetime.datetime(int('20'+csv_tmp[0:2]), int(csv_tmp[2:4]), int(csv_tmp[4:6])).timetuple().tm_yday
+                df_data = df_data.append(df_tmp, ignore_index=True)
+            except Exception as e:
+                logging.warning(e)
+                logging.warning("Can't load day: " + str(csv_tmp))
         del df_tmp
 
         # Filter data within saa
@@ -199,12 +204,15 @@ class ModelNN:
             nn_input = tf.keras.Input(shape=(X_train.shape[1],))
             # First layers
             model_1 = Dense(units, activation='relu')(nn_input)
+            model_1 = tf.keras.layers.BatchNormalization()(model_1)
             model_1 = Dropout(do)(model_1)
             # Second layer
             nn_r = Dense(units, activation='relu')(model_1)
+            nn_r = tf.keras.layers.BatchNormalization()(nn_r)
             nn_r = Dropout(do)(nn_r)
             # Third layer
             nn_r = Dense(int(units / 2), activation='relu')(nn_r)
+            nn_r = tf.keras.layers.BatchNormalization()(nn_r)
             nn_r = Dropout(do)(nn_r)
             # Fourth (last) layer output
             outputs = Dense(len(self.col_range), activation='relu',
@@ -214,7 +222,7 @@ class ModelNN:
                             )(nn_r)
             nn_r = tf.keras.Model(inputs=[nn_input], outputs=outputs)
             # Optimizer
-            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.8, beta_2=0.8, epsilon=1e-07)
+            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.9, beta_2=0.99, epsilon=1e-07)
             # opt = tf.keras.optimizers.RMSprop( learning_rate=0.002, rho=0.6, momentum=0.0, epsilon=1e-07)
 
             if loss_type == 'max':
@@ -250,6 +258,16 @@ class ModelNN:
             # Compile nn model
             nn_r.compile(loss=loss, loss_weights=1, optimizer=opt)
 
+            def scheduler(epoch, lr_actual):
+                if epoch < 4:
+                    return lr*12.5
+                if 4 <= epoch < 12:
+                    return lr*2
+                if 12 <= epoch:
+                    return lr/2
+
+            call_lr = tf.keras.callbacks.LearningRateScheduler(scheduler)
+
             if not bool_hyper:
                 # Fitting the model
                 if modelcheck:
@@ -264,11 +282,11 @@ class ModelNN:
                 # callbacks=[es, mc]
                 if modelcheck:
                     history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
-                                       validation_split=0.3, callbacks=[es, mc])
+                                       validation_split=0.3, callbacks=[es, mc, call_lr])
                     nn_r = load_model(db_path + '/m_check/saved_model.ckpt')
                 else:
                     history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
-                                       validation_split=0.3, callbacks=[es])
+                                       validation_split=0.3, callbacks=[es, call_lr])
             else:
                 tuner = kt.Hyperband(self.build_model_hype,
                                      objective='val_loss',

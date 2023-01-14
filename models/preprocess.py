@@ -111,16 +111,23 @@ def fun_lightcurve(dic_data, file_tmp, erange):
             raise
         # num_detector = file_tmp.headers['PRIMARY']['DETNAM']
         num_detector = file_tmp[(file_tmp.find(type_detector)+1):(file_tmp.find(type_detector)+2)]
-        # rebin the data to 4096 ms resolution
-        logging.info('Start binning phase')
-        rebinned_cspec = c_tmp.rebin_time(rebin_by_time, 4.096)
-        logging.info('End binning phase')
+
         lightcurve = None
         for idx, erange_tmp in enumerate(erange[type_detector]):
-            # integrate over the four range keV
-            lightcurve = rebinned_cspec.to_lightcurve(energy_range=erange_tmp)
-            # the lightcurve bin centroids and count rates
-            dic_data[type_detector+num_detector+'_r'+str(idx)] = lightcurve.rates
+            try:
+                logging.info('Start binning and energy integrating phase')
+                # integrate over the four range keV
+                # lightcurve = rebinned_cspec.to_lightcurve(energy_range=erange_tmp)
+                lightcurve_unbinned = c_tmp.to_lightcurve(energy_range=erange_tmp)
+                # if slice id needed, then: .slice(tstart=c_tmp.time_range[0] + 0, tstop=c_tmp.time_range[1])
+                # rebin the data to 4096 ms resolution
+                lightcurve = lightcurve_unbinned.rebin(rebin_by_time, 4.096)
+                # the lightcurve bin centroids and count rates
+                dic_data[type_detector+num_detector+'_r'+str(idx)] = lightcurve.rates
+                logging.info('End binning and energy integrating phase')
+            except:
+                logging.error("Warning in file: " + str(file_tmp))
+                raise
         if 'met' not in dic_data.keys():
             # Set the timestamp as the first centroid of the lightcurve
             if lightcurve is not None:
@@ -131,6 +138,7 @@ def fun_lightcurve(dic_data, file_tmp, erange):
         # Remove file if all the data are saved in dic_data
         # os.remove(PATH_TO_SAVE + FOLD_CSPEC_POS + '/' + file_tmp)
         return dic_data
+
     else:
         logging.error('Error. Not a .pha file.')
         raise
@@ -153,6 +161,10 @@ def fun_poshist(dic_data, file_tmp):
         met_ts = dic_data['met']
         time_filter = (met_ts >= p_tmp._times.min()) & (met_ts <= p_tmp._times.max())
         for key in dic_data.keys():
+            if (dic_data['met'].shape[0] - dic_data[key].shape[0]) > 10:
+                logging.warning("Dimension of dic_data cspec of met different for: " + str(key) +
+                              ". {:10.0f}".format(dic_data['met'].shape[0]) +
+                              " and {:10.0f}".format(dic_data[key].shape[0]))
             dic_data[key] = dic_data[key][time_filter]
         met_ts = dic_data['met']
         # # # Add feature columns
