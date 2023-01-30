@@ -222,3 +222,49 @@ def plot_gbm_loc(starttime, endtime=None, type_plot='earth'):
         earthplot = EarthPlot()
         earthplot.add_poshist(poshist, trigtime=met_event, time_range=(met_start, met_end))
     plt.show()
+
+
+def compute_flux(df_frg, df_bkg, ev_tab, bln_max=True):
+    """
+    Plot the count rates sum of the event in the catalog versus the duration.
+    :param df_frg: Dataframe of foreground
+    :param df_bkg: Dataframe of background
+    :param ev_tab: Table of events
+    :param bln_max: Boolean, if True is it summed the count rates of the most triggered detector.
+                    If False all triggered detectors are summed.
+    :return: None
+    """
+    # Add proxy variables for Fluence, number of detector triggered and event duration
+    ev_tab['fluence'] = None
+    ev_tab['n_det'] = None
+    ev_tab['duration'] = ev_tab.end_met - ev_tab.start_met
+    # Iterate per each event in catalog
+    for index, row in ev_tab.iterrows():
+        print(row['start_met'], 'trig id: ', row['trig_ids'])
+        trig_dets = list(set([i.split('_')[0] for i in row['trig_dets'].split(' ')]))
+        ev_tab.loc[index, 'n_det'] = len(trig_dets)
+        lst_det_rng = []
+        for i in trig_dets:
+            lst_det_rng.append(i+'_r0')
+            lst_det_rng .append(i+'_r1')
+            lst_det_rng.append(i+'_r2')
+        time_index = (df_frg.met >= row['start_met']) & (df_frg.met <= row['end_met'])
+        if bln_max:
+            idx_max = (np.maximum(df_frg.loc[time_index, lst_det_rng] - df_bkg.loc[time_index, lst_det_rng], 0)).sum().idxmax()
+            det_max = idx_max.split('_')[0]
+            lst_det_rng = [det_max+'_r0', det_max+'_r1', det_max+'_r2']
+        # Sum the count rates accordingly to the bln_max logic
+        ev_tab.loc[index, 'fluence'] = (np.maximum(df_frg.loc[time_index, lst_det_rng] -
+                                                       df_bkg.loc[time_index, lst_det_rng], 0).sum().sum())
+    # Compute Flux
+    ev_tab['flux'] = ev_tab['fluence'] / ev_tab['duration']
+    # Plot the scatter plot for events in catalog and not
+    plt.scatter(ev_tab.loc[ev_tab['catalog_triggers'].isna(), 'duration'],
+                ev_tab.loc[ev_tab['catalog_triggers'].isna(), 'flux'], label='Not in catalog')
+    plt.scatter(ev_tab.loc[ev_tab['catalog_triggers'].notna(), 'duration'],
+                ev_tab.loc[ev_tab['catalog_triggers'].notna(), 'flux'], label='In catalog')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('Duration [s]')
+    plt.legend()
+    plt.ylabel('Proxy Flux [count rate / $s^2$]')
