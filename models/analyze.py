@@ -14,6 +14,9 @@ from math import ceil
 import sqlite3
 from pathlib import Path
 from typing import List
+import matplotlib
+
+matplotlib.use('agg')
 
 pd.options.display.max_rows = 100
 pd.options.display.max_columns = 100
@@ -700,13 +703,14 @@ class Segment(GenericDisplay):
             return True
         return False
 
-    def plot(self, det:  List[str], enlarge=0, figsize=None, legend=True):
+    def plot(self, det:  List[str], enlarge=0, figsize=None, legend=True, bln_ylim=True):
         '''
         matplotlib is messy and so is this thing. handle mindfully
         :param det:
         :param enlarge:
         :param figsize:
         :param legend:
+        :param bln_ylim:
         :return:
         '''
 
@@ -759,7 +763,8 @@ class Segment(GenericDisplay):
                             fontsize=12)
 
         for i in range(3):
-            ax[i].set_ylim(bottom=0, top=None)
+            if bln_ylim:
+                ax[i].set_ylim(bottom=0, top=None)
             ax[i].set_ylabel('range {}'.format(str(i)))
         if legend and det:
             labels = ['n' + i for i in get_indeces(det)]
