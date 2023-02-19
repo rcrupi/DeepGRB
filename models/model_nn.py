@@ -1,5 +1,5 @@
 # import utils
-from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_BURST_DB, FOLD_NN, db_path
+from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, GBM_TRIG_DB, FOLD_NN, db_path
 import logging
 # Standard packages
 import matplotlib.pyplot as plt
@@ -12,6 +12,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 import gc
 from astropy.time import Time
+from datetime import date
 # Preprocess
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -93,10 +94,15 @@ class ModelNN:
             if csv_tmp[0:4] != yymm:
                 logging.info("Loading: " + csv_tmp)
                 yymm = csv_tmp[0:4]
-            df_tmp = pd.read_csv(PATH_TO_SAVE + FOLD_BKG + '/' + csv_tmp)
-            # import datetime
-            # df_tmp['day'] = datetime.datetime(int('20'+csv_tmp[0:2]), int(csv_tmp[2:4]), int(csv_tmp[4:6])).timetuple().tm_yday
-            df_data = df_data.append(df_tmp, ignore_index=True)
+            df_tmp = None
+            try:
+                df_tmp = pd.read_csv(PATH_TO_SAVE + FOLD_BKG + '/' + csv_tmp)
+                # import datetime
+                # df_tmp['day'] = datetime.datetime(int('20'+csv_tmp[0:2]), int(csv_tmp[2:4]), int(csv_tmp[4:6])).timetuple().tm_yday
+                df_data = df_data.append(df_tmp, ignore_index=True)
+            except Exception as e:
+                logging.warning(e)
+                logging.warning("Can't load day: " + str(csv_tmp))
         del df_tmp
 
         # Filter data within saa
@@ -107,9 +113,7 @@ class ModelNN:
         if bool_del_trig:
             logging.info("Deleting events already present in GBM calalogue in Train Set.")
             # Take index of the time where triggers were identified
-            engine = create_engine('sqlite:////' + GBM_BURST_DB + 'gbm_burst_catalog.db')
-            # TODO update this table. Updated up to 2021-01
-            gbm_tri = pd.read_sql_table('GBM_TRI', con=engine)
+            gbm_tri = pd.read_csv(GBM_TRIG_DB, index_col=[0])
             index_date = df_data['met'] >= 0
             index_tmp = 1
             for _, row in gbm_tri.iterrows():
@@ -200,12 +204,15 @@ class ModelNN:
             nn_input = tf.keras.Input(shape=(X_train.shape[1],))
             # First layers
             model_1 = Dense(units, activation='relu')(nn_input)
+            model_1 = tf.keras.layers.BatchNormalization()(model_1)
             model_1 = Dropout(do)(model_1)
             # Second layer
             nn_r = Dense(units, activation='relu')(model_1)
+            nn_r = tf.keras.layers.BatchNormalization()(nn_r)
             nn_r = Dropout(do)(nn_r)
             # Third layer
             nn_r = Dense(int(units / 2), activation='relu')(nn_r)
+            nn_r = tf.keras.layers.BatchNormalization()(nn_r)
             nn_r = Dropout(do)(nn_r)
             # Fourth (last) layer output
             outputs = Dense(len(self.col_range), activation='relu',
@@ -215,7 +222,7 @@ class ModelNN:
                             )(nn_r)
             nn_r = tf.keras.Model(inputs=[nn_input], outputs=outputs)
             # Optimizer
-            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.8, beta_2=0.8, epsilon=1e-07)
+            opt = tf.keras.optimizers.Nadam(learning_rate=lr, beta_1=0.9, beta_2=0.99, epsilon=1e-07)
             # opt = tf.keras.optimizers.RMSprop( learning_rate=0.002, rho=0.6, momentum=0.0, epsilon=1e-07)
 
             if loss_type == 'max':
@@ -251,6 +258,16 @@ class ModelNN:
             # Compile nn model
             nn_r.compile(loss=loss, loss_weights=1, optimizer=opt)
 
+            def scheduler(epoch, lr_actual):
+                if epoch < 4:
+                    return lr*12.5
+                if 4 <= epoch < 12:
+                    return lr*2
+                if 12 <= epoch:
+                    return lr/2
+
+            call_lr = tf.keras.callbacks.LearningRateScheduler(scheduler)
+
             if not bool_hyper:
                 # Fitting the model
                 if modelcheck:
@@ -265,11 +282,11 @@ class ModelNN:
                 # callbacks=[es, mc]
                 if modelcheck:
                     history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
-                                       validation_split=0.3, callbacks=[es, mc])
+                                       validation_split=0.3, callbacks=[es, mc, call_lr])
                     nn_r = load_model(db_path + '/m_check/saved_model.ckpt')
                 else:
                     history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
-                                       validation_split=0.3, callbacks=[es])
+                                       validation_split=0.3, callbacks=[es, call_lr])
             else:
                 tuner = kt.Hyperband(self.build_model_hype,
                                      objective='val_loss',
@@ -287,7 +304,9 @@ class ModelNN:
 
             # Insert loss result in model name
             loss_test = round(nn_r.evaluate(X_test, y_test), 2)
-            name_model = 'model_' + self.start_month + '_' + self.end_month + '_' + str(loss_test)
+            # TODO set a proper name of the model
+            today = date.today()
+            name_model = 'model_' + self.start_month + '_' + self.end_month + '_' + str(loss_test) + '_' + str(today)
 
             # Predict the model
             logging.info("NN predict on train and test set.")

@@ -17,11 +17,12 @@ FOLD_PRED = "pred"
 FOLD_NN = "nn_model"
 FOLD_TRIG = "trig"
 FOLD_PLOT = "plots"
+FOLD_POSHIST = 'poshist'
 db_path = os.path.dirname(__file__)
 PATH_GRB_TABLE = PATH_TO_SAVE + "grb_classification/df_grb.csv"
 # TODO: change above to use pathlib
 if user == 'rcrupi':
-    FOLD_RES = PATH_TO_SAVE + '/results/'
+    FOLD_RES = PATH_TO_SAVE + 'results/'
 elif user == 'riccardo':
     FOLD_RES = "C:/Users/riccardo/Documents/GBM_data/" + '/results/'
 else:

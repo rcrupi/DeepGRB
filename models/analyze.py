@@ -295,6 +295,19 @@ def tableize(events, threshold):
     end_times = [s.fermi['timestamp'][s.end] for s in events]
     trig_dets = [stringify(list(s.focus[s.focus > threshold].any()[s.focus[s.focus > threshold].any() == True].keys()))
                  for s in events]
+    # Calculate the significance per each event
+    lst_sigma = {'r0': [], 'r1': [], 'r2': []}
+    lst_det = ['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'na', 'nb']
+    for i in range(0, len(events)):
+        for rng in ['r0', 'r1', 'r2']:
+            if rng in trig_dets[i]:
+                lst_det_trig = [d_t + '_' + rng for d_t in lst_det if d_t in trig_dets[i]]
+                lst_sigma[rng].append(
+                    (events[i].focus[lst_det_trig].sum(axis=1)/np.sqrt(len(lst_det_trig))).max()
+                )
+            else:
+                lst_sigma[rng].append(0)
+
     catalog_trigs = [stringify(s.get_catalog_triggers()) for s in events]
     trig_dic = {'trig_ids': trig_ids,
                 'start_index': start_ids,
@@ -304,7 +317,11 @@ def tableize(events, threshold):
                 'end_met': end_mets,
                 'end_times': end_times,
                 'catalog_triggers': catalog_trigs,
-                'trig_dets': trig_dets}
+                'trig_dets': trig_dets,
+                'sigma_r0': lst_sigma['r0'],
+                'sigma_r1': lst_sigma['r1'],
+                'sigma_r2': lst_sigma['r2']
+                }
     out = pd.DataFrame(trig_dic)
     return out
 
@@ -410,15 +427,15 @@ def save_greenred_plot(detected, undetected, missing, folder, type_time=None, ty
         ax.semilogy()
         ax.semilogx()
         if type_time == 't90':
-            ax.set_xlabel('$T_{90}$')
+            ax.set_xlabel('$T_{90} \: [s]$')
         elif type_time == 't50':
-            ax.set_xlabel('$T_{50}$')
+            ax.set_xlabel('$T_{50} \: [s]$')
         else:
             print("Warning, time axis (x) not specified")
         if type_count == 'fluence':
             ax.set_ylabel('Fluence')
         elif type_count == 'flux':
-            ax.set_ylabel('Flux')
+            ax.set_ylabel(r'Flux $[erg \: cm^{-2} \: s^{-1}]$')
         else:
             print("Warning, counts axis (y) not specified")
         ax.legend()

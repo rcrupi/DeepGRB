@@ -58,6 +58,9 @@ def download_spec(start_month, end_month, bool_overwrite=False):
             try:
                 # Check if files is already downloaded. 15 files are needed.
                 if row['num_files'] < 15 or bool_overwrite:
+                    # Delete the files that are being downloaded again
+                    lst_files_to_delete = [i for i in os.listdir(PATH_TO_SAVE + FOLD_CSPEC_POS) if row['id'] in i]
+                    [os.remove(PATH_TO_SAVE + FOLD_CSPEC_POS + "/" + i) for i in lst_files_to_delete]
                     # Define what day download
                     # ftp_daily = ContinuousFtp(met=row['tStart'])
                     logging.info('Initialise connection FTP for time UTC: ' + row['tStart'])
