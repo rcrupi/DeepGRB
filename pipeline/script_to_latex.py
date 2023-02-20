@@ -20,7 +20,7 @@ df_tmp = df_tmp.append(e_v)
 
 df_tmp = df_tmp.reset_index(drop=True)
 df_tmp.drop(columns=['start_index', 'end_index', 'end_times'], inplace=True)
-df_tmp['period'] = (df_tmp['start_times'].str.slice(0, 4)).apply(lambda x: '2011' if x == '2010' else x)
+df_tmp['period'] = (df_tmp['start_times'].str.slice(0, 4)).apply(lambda x: '2010' if x == '2011' else x)
 df_tmp['trig_ids'] = df_tmp['period'] + '_' + df_tmp['trig_ids'].astype(str)
 df_tmp['datetime'] = df_tmp['start_times'].str.slice(0, 19)
 df_tmp['det trigs'] = df_tmp['trig_dets'].apply(lambda x: ' '.join(np.sort(list(set([i.split('_')[0] for i in x.split(' ')])))))

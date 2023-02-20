@@ -285,7 +285,8 @@ def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
 
     return events_table_red, events
 
-def tableize(events, threshold):
+
+def tableize(events, threshold, sigma_focus=True):
     def stringify(lst):
         return ' '.join(str(e) for e in lst)
 
@@ -305,9 +306,12 @@ def tableize(events, threshold):
         for rng in ['r0', 'r1', 'r2']:
             if rng in trig_dets[i]:
                 lst_det_trig = [d_t + '_' + rng for d_t in lst_det if d_t in trig_dets[i]]
-                lst_sigma[rng].append(
-                    (events[i].focus[lst_det_trig].sum(axis=1)/np.sqrt(len(lst_det_trig))).max()
-                )
+                if sigma_focus:
+                    sigma_tmp = (events[i].focus[lst_det_trig].sum(axis=1) / np.sqrt(len(lst_det_trig))).max().round(2)
+                else:
+                    sigma_tmp = (events[i].fermi[lst_det_trig] - events[i].nn[lst_det_trig]).sum().values[0] / \
+                                np.sqrt(events[i].nn[lst_det_trig].sum().values[0]).round(2)
+                lst_sigma[rng].append(sigma_tmp)
             else:
                 lst_sigma[rng].append(0)
 
