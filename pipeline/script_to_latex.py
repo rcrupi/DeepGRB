@@ -29,9 +29,10 @@ df_tmp['end_met'] = df_tmp['end_met'].astype('int')
 df_tmp['sigma_r0'] = df_tmp['sigma_r0'].round(2)
 df_tmp['sigma_r1'] = df_tmp['sigma_r1'].round(2)
 df_tmp['sigma_r2'] = df_tmp['sigma_r2'].round(2)
+df_tmp['duration'] = df_tmp['duration'].round(2)
 df_tmp['sigma_max'] = df_tmp[['sigma_r0', 'sigma_r1', 'sigma_r2']].max(axis=1)
 
-df_tmp2 = df_tmp[['trig_ids', 'datetime', 'start_met', 'end_met', 'det trigs', 'catalog_triggers',
+df_tmp2 = df_tmp[['trig_ids', 'datetime', 'duration', 'det trigs', 'catalog_triggers',
                  'sigma_r0', 'sigma_r1', 'sigma_r2', 'sigma_max']]
 
 df_tmp2 = df_tmp2.loc[(df_tmp2['catalog_triggers'] != 'f') & (df_tmp2['catalog_triggers'] != 'f (ssa)')]
@@ -63,4 +64,14 @@ print('Stat. with event in catalog', df_tmp2.loc[(df_tmp2['catalog_triggers'] !=
 
 del df_tmp2['sigma_max']
 
+for col_sigma in ['sigma_r0', 'sigma_r1', 'sigma_r2']:
+    if df_tmp2.loc[df_tmp2[col_sigma] < 0, :].shape[0] > 0:
+        print(df_tmp2.loc[df_tmp2[col_sigma] < 0, :])
+        df_tmp2.loc[df_tmp2[col_sigma] < 0, col_sigma] = 0
+    # Set a symbol to avoid enormous standard score
+    #df_tmp2[col_sigma] = df_tmp2[col_sigma].astype('str')
+    df_tmp2.loc[df_tmp2[col_sigma] > 100, col_sigma] = '$>100$'
+
+
 print(df_tmp2.to_latex())
+pass

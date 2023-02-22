@@ -286,7 +286,7 @@ def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
     return events_table_red, events
 
 
-def tableize(events, threshold, sigma_focus=True):
+def tableize(events, threshold, sigma_focus=False):
     def stringify(lst):
         return ' '.join(str(e) for e in lst)
 
@@ -296,6 +296,7 @@ def tableize(events, threshold, sigma_focus=True):
     start_times = [s.fermi['timestamp'][s.start] for s in events]
     end_ids = [s.end for s in events]
     end_mets = [s.fermi['met'][s.end] for s in events]
+    durations = [s.fermi['met'][s.end] - s.fermi['met'][s.start] for s in events]
     end_times = [s.fermi['timestamp'][s.end] for s in events]
     trig_dets = [stringify(list(s.focus[s.focus > threshold].any()[s.focus[s.focus > threshold].any() == True].keys()))
                  for s in events]
@@ -309,8 +310,8 @@ def tableize(events, threshold, sigma_focus=True):
                 if sigma_focus:
                     sigma_tmp = (events[i].focus[lst_det_trig].sum(axis=1) / np.sqrt(len(lst_det_trig))).max().round(2)
                 else:
-                    sigma_tmp = (events[i].fermi[lst_det_trig] - events[i].nn[lst_det_trig]).sum().values[0] / \
-                                np.sqrt(events[i].nn[lst_det_trig].sum().values[0]).round(2)
+                    sigma_tmp = (events[i].fermi[lst_det_trig] - events[i].nn[lst_det_trig]).sum().sum() / \
+                                np.sqrt(events[i].nn[lst_det_trig].sum().sum()).round(2)
                 lst_sigma[rng].append(sigma_tmp)
             else:
                 lst_sigma[rng].append(0)
@@ -327,7 +328,8 @@ def tableize(events, threshold, sigma_focus=True):
                 'trig_dets': trig_dets,
                 'sigma_r0': lst_sigma['r0'],
                 'sigma_r1': lst_sigma['r1'],
-                'sigma_r2': lst_sigma['r2']
+                'sigma_r2': lst_sigma['r2'],
+                'duration': durations
                 }
     out = pd.DataFrame(trig_dic)
     return out
