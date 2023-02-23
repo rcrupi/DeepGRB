@@ -88,6 +88,7 @@ def set(mu_min=1, t_max: int = 0):
         '''
 
         out = []
+        out_offset = []
         curve_list = []
 
         for T, (x_t, lambda_t) in enumerate(zip(xs, bs)):
@@ -101,13 +102,15 @@ def set(mu_min=1, t_max: int = 0):
                     curve_list = curve_list[1:]
 
                 # main step
-                curve_list, global_max, _ = focus_step(curve_list, x_t, lambda_t)
+                curve_list, global_max, offset = focus_step(curve_list, x_t, lambda_t)
                 out.append(sqrt(2*global_max))
+                out_offset.append(offset)
             else:
                 # expects np.nan when SAA turn-off
                 curve_list = [] # reset changepoints
                 out.append(np.nan)
-        return out
+                out_offset.append(np.nan)
+        return out, out_offset
 
     assert mu_min >= 1.
     assert t_max >= 0

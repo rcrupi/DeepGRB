@@ -65,6 +65,33 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
 
     # fetch triggers from trigger table
     triggers_limits = fetch_triggers(focus, threshold, MIN_DET_NUMBER, MAX_DET_NUMBER)
+    # triggers_limits_2 = fetch_triggers(focus, threshold/3, MIN_DET_NUMBER, MAX_DET_NUMBER)
+    #
+    # triggers_limits_extended = []
+    # for t in triggers_limits:
+    #     for t2 in triggers_limits_2:
+    #         if t[0] >= t2[0] and t[1] <= t2[1]:
+    #             if (t2[0], t[1]) not in triggers_limits_extended:
+    #                 triggers_limits_extended.append((t2[0], t[1]))
+    #             break
+    # lst_true = np.array([False]*triggers_limits_extended[-1][1])
+    # for t in triggers_limits_extended:
+    #     lst_true[t[0]:t[1]] = True
+    # bln_tmp = False
+    # triggers_limits = []
+    # counter = 0
+    # for i in lst_true:
+    #     if i and not bln_tmp:
+    #         t0 = counter
+    #         bln_tmp = True
+    #     if not i and bln_tmp:
+    #         t1 = counter
+    #         bln_tmp = False
+    #         triggers_limits.append((t0, t1))
+    #     counter += 1
+    # if i:
+    #     triggers_limits.append((t0, counter))
+
     triggers = [Segment(*t) for t in triggers_limits]
     triggers_table = tableize(triggers, threshold)
     triggers_table.to_csv(results_folder / 'triggers_table.csv', index=False)
