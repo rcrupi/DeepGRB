@@ -45,13 +45,13 @@ for (start_month, end_month) in [
 
 # 4 Run trigger (bkg, frg)
 # add_trig_gbm_to_frg(start_month, end_month)
-    trigger_algorithm = focus.set(mu_min = 1.2, t_max=25)
-    run_trigger(start_month, end_month, trigger_algorithm)
+    # trigger_algorithm = focus.set(mu_min = 1.2, t_max=25)
+    # run_trigger(start_month, end_month, trigger_algorithm)
     # bln_update_tables = False
     # if bln_update_tables:
     #     df_burst_catalog()
     #     df_trigger_catalog()
-    analyze(start_month, end_month, threshold=3.0, type_time='t90', type_counts='flux')
+    analyze(start_month, end_month, threshold=3.0, type_time='t90', type_counts='flux', bln_plot=False)
 
     # 5 Localise events
     # localize(start_month, end_month)

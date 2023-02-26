@@ -1,7 +1,12 @@
 import pandas as pd
 import numpy as np
-from pipeline.manual_label import p_manual_2011, p_manual_2014, p_manual_2019
+from pipeline.manual_label import p_manual_2011, p_manual_2014, p_manual_2019, selected_trig_eve
 from connections.utils.config import FOLD_RES
+
+pd.options.display.max_rows = 100
+pd.options.display.max_columns = 100
+pd.options.display.width = 1000
+
 path_1 = FOLD_RES
 p_2014 = "frg_01-2014_03-2014/"
 p_2019 = "frg_03-2019_07-2019/"
@@ -70,8 +75,9 @@ for col_sigma in ['sigma_r0', 'sigma_r1', 'sigma_r2']:
         df_tmp2.loc[df_tmp2[col_sigma] < 0, col_sigma] = 0
     # Set a symbol to avoid enormous standard score
     #df_tmp2[col_sigma] = df_tmp2[col_sigma].astype('str')
-    df_tmp2.loc[df_tmp2[col_sigma] > 100, col_sigma] = '$>100$'
+    df_tmp2.loc[df_tmp2[col_sigma] > 10, col_sigma] = '$>10$'
 
-
+df_tmp_sorted = df_tmp.sort_values(by=['sigma_max'])
 print(df_tmp2.to_latex())
+print(df_tmp2[df_tmp2['datetime'].isin(selected_trig_eve)])
 pass
