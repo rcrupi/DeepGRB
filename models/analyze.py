@@ -323,7 +323,7 @@ def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
     return events_table_red, events
 
 
-def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson'):
+def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson', det_num=2):
     """
     Build the catalog table.
     :param events: events object.
@@ -332,6 +332,8 @@ def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson'):
     :param sigma_type: str, 'focus' uses the significance of focus, 'SC_poisson' uses the Standard Score with the
                         hypothesis that the process is poisson (mu=std_dev^2), 'SC_residual' uses the Standard Score but
                          with std_dev the one corresponding to det_rng in sigma_residual.
+    :param det_num: int, if None are considered only the detectors triggered. If an integer k is specified takes the
+                          highest k residuals detectors.
     :return: Catalog table with information about start/end time, significance and duration.
     """
     def stringify(lst):
@@ -355,7 +357,12 @@ def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson'):
     for i in range(0, len(events)):
         for rng in ['r0', 'r1', 'r2']:
             if rng in trig_dets[i]:
-                lst_det_trig = [d_t + '_' + rng for d_t in lst_det if d_t in trig_dets[i]]
+                if det_num is None:
+                    lst_det_trig = [d_t + '_' + rng for d_t in lst_det if d_t in trig_dets[i]]
+                else:
+                    lst_det_trig = np.argsort((events[i].fermi_offset[[d_t + '_' + rng for d_t in lst_det]] -
+                                               events[i].nn_offset[[d_t + '_' + rng for d_t in lst_det]]).sum(axis=0).
+                                              sort_values(ascending=False))[0:det_num].index
                 if sigma_type == 'focus':
                     sigma_tmp = (events[i].focus[lst_det_trig].sum(axis=1) / np.sqrt(len(lst_det_trig))).max().round(2)
                 elif sigma_type == 'SC_poisson':
@@ -375,19 +382,6 @@ def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson'):
                             qtl_max = qtl
                     sigma_tmp = sigma_tmp_max
                     quantile_cut[rng].append(qtl_max)
-                    # if sigma_tmp < threshold:
-                    #     for idx1 in range(0, len_event-1):
-                    #         for idx2 in range(idx1+1, len_event):
-                    #             sigma_tmp = (ev_fermi_offset.loc[idx1:idx2, lst_det_trig] - ev_nn_offset.loc[idx1:idx2, lst_det_trig]).sum().sum() / \
-                    #                     np.sqrt(ev_nn_offset.loc[idx1:idx2, lst_det_trig].sum().sum()).round(2)
-                    #             if sigma_tmp > sigma_tmp_max:
-                    #                 sigma_tmp_max = sigma_tmp
-                    #                 if sigma_tmp_max > 10:
-                    #                     break
-                    #         if sigma_tmp_max > 10:
-                    #             break
-                    #     sigma_tmp = sigma_tmp_max
-
                 elif sigma_type == 'SC_residual' and sigma_r is not None:
                     len_lst_det_trig = len(lst_det_trig)
                     len_event = events[i].fermi_offset.shape[0]
