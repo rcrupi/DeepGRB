@@ -101,14 +101,14 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
     #     triggers_limits.append((t0, counter))
 
     triggers = [Segment(*t) for t in triggers_limits]
-    triggers_table = tableize(triggers, threshold, sigma_residual)
+    triggers_table = tableize(triggers, threshold)
     triggers_table.to_csv(results_folder / 'triggers_table.csv', index=False)
     print("found {} trigger segments".format(len(triggers)))
     print('made triggers table.')
 
     events_limits = merge(triggers_limits, length = int(600/BINLENGTH))
     events = [Segment(*t) for t in events_limits]
-    events_table = tableize(events, threshold, sigma_residual)
+    events_table = tableize(events, threshold)
     events_table.to_csv(results_folder / 'events_table.csv', index=False)
     stat_table = statistics_table(events_table)
     stat_table.to_csv(results_folder / 'stat_table.csv', index=True)
@@ -323,7 +323,7 @@ def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
     return events_table_red, events
 
 
-def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson', det_num=2):
+def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson', det_num=None):
     """
     Build the catalog table.
     :param events: events object.
@@ -331,7 +331,8 @@ def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson', det_num=2
     :param sigma_r: dictionary that map the sigma of residuals per each detector_range.
     :param sigma_type: str, 'focus' uses the significance of focus, 'SC_poisson' uses the Standard Score with the
                         hypothesis that the process is poisson (mu=std_dev^2), 'SC_residual' uses the Standard Score but
-                         with std_dev the one corresponding to det_rng in sigma_residual.
+                         with std_dev the one corresponding to det_rng in sigma_residual. 'SC_Focus' compute the
+                         Stanard Score within the interval (time_max_focus_sigma - offset + 1, time_max_focus_sigma).
     :param det_num: int, if None are considered only the detectors triggered. If an integer k is specified takes the
                           highest k residuals detectors.
     :return: Catalog table with information about start/end time, significance and duration.
@@ -365,6 +366,18 @@ def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson', det_num=2
                                               sort_values(ascending=False))[0:det_num].index
                 if sigma_type == 'focus':
                     sigma_tmp = (events[i].focus[lst_det_trig].sum(axis=1) / np.sqrt(len(lst_det_trig))).max().round(2)
+                elif sigma_type == 'SC_focus':
+                    ev_focus = events[i].focus_offset.reset_index().loc[:, lst_det_trig].sum(axis=1)
+                    index_max = np.argmax(ev_focus)
+                    ev_offset = events[i].offset.reset_index().loc[index_max, lst_det_trig].min()
+                    ev_fermi_offset = events[i].fermi_offset.reset_index().loc[index_max+ev_offset+1:index_max,
+                                      lst_det_trig].sum(axis=1)
+                    ev_nn_offset = events[i].nn_offset.reset_index().loc[index_max+ev_offset+1:index_max,
+                                   lst_det_trig].sum(axis=1)
+                    sigma_tmp = (ev_fermi_offset - ev_nn_offset).sum() / np.sqrt(ev_nn_offset.sum()).round(2)
+                    if len(ev_fermi_offset) == 0 or len(ev_nn_offset) == 0:
+                        print('Warning, selected interval is empty.')
+                        sigma_tmp = 0
                 elif sigma_type == 'SC_poisson':
                     # ev_fermi_offset = events[i].fermi_offset.reset_index()
                     # ev_nn_offset = events[i].nn_offset.reset_index()
@@ -399,6 +412,7 @@ def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson', det_num=2
     if len(quantile_cut['r0']) != len(events) or len(quantile_cut['r1']) != len(events) or len(quantile_cut['r2']) != len(events):
         quantile_cut = {'r0': [0]*len(events), 'r1': [0]*len(events), 'r2': [0]*len(events)}
 
+    # Build the catalog
     catalog_trigs = [stringify(s.get_catalog_triggers()) for s in events]
     trig_dic = {'trig_ids': trig_ids,
                 'start_index': start_ids,
@@ -764,6 +778,7 @@ class Segment(GenericDisplay):
         self.nn = nn.loc[self.start:self.end][:]
         self.focus = focus.loc[self.start:self.end][:]
         self.trigs = trigs.loc[self.start:self.end][:]
+        self.offset = offset.loc[self.start_offset:self.end_offset][:]
         self.fermi_offset = fermi.loc[self.start_offset:self.end_offset][:]
         self.nn_offset = nn.loc[self.start_offset:self.end_offset][:]
         self.focus_offset = focus.loc[self.start_offset:self.end_offset][:]
@@ -779,6 +794,7 @@ class Segment(GenericDisplay):
         self.fermi.to_csv(filepath / "{}_fermi.csv".format(label))
         self.focus.to_csv(filepath / "{}_focus.csv".format(label))
         self.nn.to_csv(filepath / "{}_nn.csv".format(label))
+        self.offset.to_csv(filepath / "{}_offset.csv".format(label))
         self.fermi_offset.to_csv(filepath / "{}_fermi_offset.csv".format(label))
         self.focus_offset.to_csv(filepath / "{}_focus_offset.csv".format(label))
         self.nn_offset.to_csv(filepath / "{}_nn_offset.csv".format(label))
