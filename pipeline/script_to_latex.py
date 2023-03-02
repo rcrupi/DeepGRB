@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-from pipeline.manual_label import p_manual_2011, p_manual_2014, p_manual_2019, selected_trig_eve
+from pipeline.manual_label import p_manual_2011, p_manual_2014, p_manual_2019, selected_trig_eve, event_2010, \
+    event_2014, event_2019
 from connections.utils.config import FOLD_RES
 
 pd.options.display.max_rows = 100
@@ -69,6 +70,13 @@ print('Stat. with event in catalog', df_tmp2.loc[(df_tmp2['catalog_triggers'] !=
 
 del df_tmp2['sigma_max']
 
+df_tmp2['S_type'] = 'None'
+df_tmp2.loc[(((df_tmp2[['sigma_r0', 'sigma_r1', 'sigma_r2']]>0).sum(axis=1)>1)&\
+             ((df_tmp2['det trigs'].str.len())>2)), 'S_type'] = 'S'
+df_tmp2.loc[(((df_tmp2[['sigma_r0', 'sigma_r1', 'sigma_r2']]>0).sum(axis=1)==1)&\
+                   ((df_tmp2['det trigs'].str.len())>2)), 'S_type'] = 'R'
+df_tmp2.loc[ (((df_tmp2['det trigs'].str.len())==2)), 'S_type'] = 'P'
+
 for col_sigma in ['sigma_r0', 'sigma_r1', 'sigma_r2']:
     if df_tmp2.loc[df_tmp2[col_sigma] < 0, :].shape[0] > 0:
         print(df_tmp2.loc[df_tmp2[col_sigma] < 0, :])
@@ -78,6 +86,21 @@ for col_sigma in ['sigma_r0', 'sigma_r1', 'sigma_r2']:
     df_tmp2.loc[df_tmp2[col_sigma] > 10, col_sigma] = '$>10$'
 
 df_tmp_sorted = df_tmp.sort_values(by=['sigma_max'])
-print(df_tmp2.to_latex())
 print(df_tmp2[df_tmp2['datetime'].isin(selected_trig_eve)])
+
+# Join tentative assign class transient
+ev_class_2010 = pd.DataFrame({'trig_ids': ['2010_'+str(i) for i in event_2010.keys()], 'class': event_2010.values()})
+ev_class_2014 = pd.DataFrame({'trig_ids': ['2014_'+str(i) for i in event_2014.keys()], 'class': event_2014.values()})
+ev_class_2019 = pd.DataFrame({'trig_ids': ['2019_'+str(i) for i in event_2019.keys()], 'class': event_2019.values()})
+ev_class = ev_class_2010.append(ev_class_2014, ignore_index=True).append(ev_class_2019, ignore_index=True)
+df_tmp2_class = pd.merge(df_tmp2, ev_class, how='left', on=['trig_ids'])
+df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', 'class']
+
+np.where(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', 'class'].isna())
+df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', :].iloc[[7,16,53,63]]
+np.where(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] != 'UNKNOWN', 'class'].notna())
+df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] != 'UNKNOWN', :].iloc[[ 73,  74,  75,  96, 126, 127, 128]]
+
+print(df_tmp2_class.to_latex())
+
 pass
