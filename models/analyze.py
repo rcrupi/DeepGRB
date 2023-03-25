@@ -532,7 +532,7 @@ def save_greenred_plot(detected, undetected, missing, folder, type_time=None, ty
                     label="undetected" if i == 0 else "",
                 )
         if missing:
-            ax.scatter(missing_t90s, missing_fluences, c='lightgrey', label='missing')
+            ax.scatter(missing_t90s, missing_fluences, c='lightgrey', label='no data')
         ax.axvspan(0.01, 4, color='grey', alpha=0.05)
         ax.semilogy()
         ax.semilogx()
