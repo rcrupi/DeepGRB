@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pipeline.manual_label import p_manual_2011, p_manual_2014, p_manual_2019, selected_trig_eve, event_2010, \
-    event_2014, event_2019
+    event_2014, event_2019, the_events
 from connections.utils.config import FOLD_RES
 
 pd.options.display.max_rows = 100
@@ -72,9 +72,9 @@ del df_tmp2['sigma_max']
 
 df_tmp2['S_type'] = 'None'
 df_tmp2.loc[(((df_tmp2[['sigma_r0', 'sigma_r1', 'sigma_r2']]>0).sum(axis=1)>1)&\
-             ((df_tmp2['det trigs'].str.len())>2)), 'S_type'] = 'S'
+             ((df_tmp2['det trigs'].str.len())>2)), 'S_type'] = 'R'
 df_tmp2.loc[(((df_tmp2[['sigma_r0', 'sigma_r1', 'sigma_r2']]>0).sum(axis=1)==1)&\
-                   ((df_tmp2['det trigs'].str.len())>2)), 'S_type'] = 'R'
+                   ((df_tmp2['det trigs'].str.len())>2)), 'S_type'] = 'S'
 df_tmp2.loc[ (((df_tmp2['det trigs'].str.len())==2)), 'S_type'] = 'P'
 
 for col_sigma in ['sigma_r0', 'sigma_r1', 'sigma_r2']:
@@ -94,13 +94,27 @@ ev_class_2014 = pd.DataFrame({'trig_ids': ['2014_'+str(i) for i in event_2014.ke
 ev_class_2019 = pd.DataFrame({'trig_ids': ['2019_'+str(i) for i in event_2019.keys()], 'class': event_2019.values()})
 ev_class = ev_class_2010.append(ev_class_2014, ignore_index=True).append(ev_class_2019, ignore_index=True)
 df_tmp2_class = pd.merge(df_tmp2, ev_class, how='left', on=['trig_ids'])
-df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', 'class']
 
-np.where(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', 'class'].isna())
-df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', :].iloc[[7,16,53,63]]
-np.where(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] != 'UNKNOWN', 'class'].notna())
-df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] != 'UNKNOWN', :].iloc[[ 73,  74,  75,  96, 126, 127, 128]]
+# Unknown class - add tentative event class
+idx_tmp = np.where(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', 'class'].isna())
+if len(idx_tmp):
+    print(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] == 'UNKNOWN', :].iloc[idx_tmp])
+idx_tmp = np.where(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] != 'UNKNOWN', 'class'].notna())
+if len(idx_tmp):
+    print(df_tmp2_class.loc[df_tmp2_class['catalog_triggers'] != 'UNKNOWN', :].iloc[idx_tmp])
 
-print(df_tmp2_class.to_latex())
+df_tmp2_class['class'] = df_tmp2_class['class'].fillna('')
+
+idx_unknown = df_tmp2_class['catalog_triggers'] == 'UNKNOWN'
+df_tmp2_class.loc[idx_unknown, 'catalog_triggers'] = 'UNKNOWN: ' + df_tmp2_class['class']
+del df_tmp2_class['class']
+
+# add * to the seven events
+for trig_ids_tmp in the_events:
+    df_tmp2_class.loc[df_tmp2_class['trig_ids'] == trig_ids_tmp, 'trig_ids'] = trig_ids_tmp + '*'
+
+# print latex tables
+print(df_tmp2_class[idx_unknown].to_latex())
+print(df_tmp2_class[(idx_unknown!=True)].to_latex())
 
 pass
