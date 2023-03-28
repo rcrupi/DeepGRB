@@ -23,7 +23,7 @@ Python version: `3.6.8`
 
 ### Configuration
 
-In config `connections/utils/config.py` specify the path folder **`PATH_TO_SAVE`** in which you want to download the data and save the results. 
+In the config file `connections/utils/config.py` specify the path folder **`PATH_TO_SAVE`** in which you want to download the data and save the results. 
 
 ### Quick start
 ```
