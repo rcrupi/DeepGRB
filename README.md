@@ -13,6 +13,6 @@ pipeline_bkg.py is the main script in which you can set the period of interest a
 5) localize and build the catalog (work in progress)
 
 This work is based on:
-- A data driven framework for searching long faint astronomical high-energy transients. Riccardo Crupi, Giuseppe Dilillo, Fabrizio Fiore, Andrea Vacchi. Work in progress
+- Searching for long faint astronomical high energy transients: a data driven approach. Riccardo Crupi, Giuseppe Dilillo, Elisabetta Bissaldi, Fabrizio Fiore, Andrea Vacchi. Work in progress
 - Poisson-FOCuS: An efficient online method for detecting count bursts with application to gamma ray burst detection. Kester Ward, Giuseppe Dilillo, Idris Eckley, Paul Fearnhead. https://arxiv.org/abs/2208.01494
 
