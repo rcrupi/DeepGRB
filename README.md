@@ -31,12 +31,12 @@ python pipeline/pipeline_bkg.py
 ```
 
 ## Workflow
-`pipeline/pipeline_bkg.py` is the main script in which you can set the period of interest and:
+`pipeline/pipeline_bkg.py` is the main script in which you can set the period of interest and run the following steps:
 1) download the data
 2) preprocess the data
-3) train the NN
-4) perform FOCuS
-5) localize and build the catalog
+3) train and predict the bkg with an NN
+4) perform FOCuS, build the catalog
+5) localize the events and update the catalog
 
 
 
