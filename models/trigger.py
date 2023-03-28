@@ -35,10 +35,20 @@ def run_trigger(start_month, end_month, trigger):
 
     # Launch trigger
     print("Running trigger algorithm..")
-    focus_res = pd.DataFrame({key: trigger(fermi_data[key], nn_pred[key]) for key in keys})
+    dct_res = {}
+    dct_offset = {}
+    for key in keys:
+        print("Focus trigger... Elaborating key: ", key)
+        out, out_offset = trigger(fermi_data[key], nn_pred[key])
+        dct_res[key] = out
+        dct_offset[key] = out_offset
+    focus_res = pd.DataFrame(dct_res)
+    focus_offset = pd.DataFrame(dct_offset)
     # TODO: [GD] csv name should report trigger parameters
     # Save data to csv
     focus_res.to_csv(PATH_TO_SAVE + FOLD_TRIG + '/trig_' + start_month + '_' + end_month + '.csv',
+                     index=False, float_format='%.2f')
+    focus_offset.to_csv(PATH_TO_SAVE + FOLD_TRIG + '/offset_' + start_month + '_' + end_month + '.csv',
                      index=False, float_format='%.2f')
     print("Done.")
     return focus_res

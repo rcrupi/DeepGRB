@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from scipy import stats
 import warnings
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -14,6 +15,9 @@ from math import ceil
 import sqlite3
 from pathlib import Path
 from typing import List
+import matplotlib
+
+matplotlib.use('agg')
 
 pd.options.display.max_rows = 100
 pd.options.display.max_columns = 100
@@ -34,20 +38,28 @@ def init(start_month, end_month):
     global trigger_catalog
     global focus
     global trigs
+    global sigma_residual
+    global offset
 
     fermi = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'frg_' + start_month + '_' + end_month + '.csv')
     nn = pd.read_csv(PATH_TO_SAVE + FOLD_PRED + "/" + 'bkg_' + start_month + '_' + end_month + '.csv')
     focus = pd.read_csv(PATH_TO_SAVE + FOLD_TRIG + "/" + 'trig_' + start_month + '_' + end_month + '.csv')
+    offset = pd.read_csv(PATH_TO_SAVE + FOLD_TRIG + "/" + 'offset_' + start_month + '_' + end_month + '.csv')
+
+    mad = stats.median_abs_deviation(fermi[nn.columns] - nn, axis=0, scale="normal", nan_policy="omit")
+    sigma_residual = dict(zip(nn.columns, mad))
+
     trigger_catalog = crop_catalog(fermi.met.values[0], fermi.met.values[-1])
     trigs = _trigs_make()
 
 
-def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flux'):
+def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flux', bln_plot=True):
     print("Analysis started.")
     # prepare directories and stuff
     init(start_month, end_month)
     folder_name = 'frg_' + start_month + '_' + end_month + "/"
     results_folder = Path(FOLD_RES) / folder_name
+    results_folder.mkdir(parents=True, exist_ok=True)
     plots_folder = Path(FOLD_RES) / folder_name / "plots/"
     plots_folder.mkdir(parents=True, exist_ok=True)
     triggers_plots_folder = Path(FOLD_RES) / folder_name / "plots/triggers/"
@@ -61,6 +73,33 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
 
     # fetch triggers from trigger table
     triggers_limits = fetch_triggers(focus, threshold, MIN_DET_NUMBER, MAX_DET_NUMBER)
+    # triggers_limits_2 = fetch_triggers(focus, threshold/3, MIN_DET_NUMBER, MAX_DET_NUMBER)
+    #
+    # triggers_limits_extended = []
+    # for t in triggers_limits:
+    #     for t2 in triggers_limits_2:
+    #         if t[0] >= t2[0] and t[1] <= t2[1]:
+    #             if (t2[0], t[1]) not in triggers_limits_extended:
+    #                 triggers_limits_extended.append((t2[0], t[1]))
+    #             break
+    # lst_true = np.array([False]*triggers_limits_extended[-1][1])
+    # for t in triggers_limits_extended:
+    #     lst_true[t[0]:t[1]] = True
+    # bln_tmp = False
+    # triggers_limits = []
+    # counter = 0
+    # for i in lst_true:
+    #     if i and not bln_tmp:
+    #         t0 = counter
+    #         bln_tmp = True
+    #     if not i and bln_tmp:
+    #         t1 = counter
+    #         bln_tmp = False
+    #         triggers_limits.append((t0, t1))
+    #     counter += 1
+    # if i:
+    #     triggers_limits.append((t0, counter))
+
     triggers = [Segment(*t) for t in triggers_limits]
     triggers_table = tableize(triggers, threshold)
     triggers_table.to_csv(results_folder / 'triggers_table.csv', index=False)
@@ -89,6 +128,8 @@ def analyze(start_month, end_month, threshold, type_time='t90', type_counts='flu
             .format(len(detected), len(undetected), len(missing))
         )
 
+    if not bln_plot:
+        return True
 
     # stat and events
     # events_table = triggers_table(segments, threshold)
@@ -281,7 +322,21 @@ def reduce_table(events_table, events, t_filt=300, bln_gbm=True):
 
     return events_table_red, events
 
-def tableize(events, threshold):
+
+def tableize(events, threshold, sigma_r=None, sigma_type='SC_poisson', det_num=None):
+    """
+    Build the catalog table.
+    :param events: events object.
+    :param threshold: the theshold value express in sigma.
+    :param sigma_r: dictionary that map the sigma of residuals per each detector_range.
+    :param sigma_type: str, 'focus' uses the significance of focus, 'SC_poisson' uses the Standard Score with the
+                        hypothesis that the process is poisson (mu=std_dev^2), 'SC_residual' uses the Standard Score but
+                         with std_dev the one corresponding to det_rng in sigma_residual. 'SC_Focus' compute the
+                         Stanard Score within the interval (time_max_focus_sigma - offset + 1, time_max_focus_sigma).
+    :param det_num: int, if None are considered only the detectors triggered. If an integer k is specified takes the
+                          highest k residuals detectors.
+    :return: Catalog table with information about start/end time, significance and duration.
+    """
     def stringify(lst):
         return ' '.join(str(e) for e in lst)
 
@@ -289,29 +344,81 @@ def tableize(events, threshold):
     start_ids = [s.start for s in events]
     start_mets = [s.fermi['met'][s.start] for s in events]
     start_times = [s.fermi['timestamp'][s.start] for s in events]
+    start_times_offset = [s.fermi_offset['timestamp'][s.start_offset] for s in events]
     end_ids = [s.end for s in events]
     end_mets = [s.fermi['met'][s.end] for s in events]
+    durations = [s.fermi['met'][s.end] - s.fermi['met'][s.start] for s in events]
     end_times = [s.fermi['timestamp'][s.end] for s in events]
     trig_dets = [stringify(list(s.focus[s.focus > threshold].any()[s.focus[s.focus > threshold].any() == True].keys()))
                  for s in events]
+    quantile_cut = {'r0': [], 'r1': [], 'r2': []}
     # Calculate the significance per each event
     lst_sigma = {'r0': [], 'r1': [], 'r2': []}
     lst_det = ['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'na', 'nb']
     for i in range(0, len(events)):
         for rng in ['r0', 'r1', 'r2']:
             if rng in trig_dets[i]:
-                lst_det_trig = [d_t + '_' + rng for d_t in lst_det if d_t in trig_dets[i]]
-                lst_sigma[rng].append(
-                    (events[i].focus[lst_det_trig].sum(axis=1)/np.sqrt(len(lst_det_trig))).max()
-                )
+                if det_num is None:
+                    lst_det_trig = [d_t + '_' + rng for d_t in lst_det if d_t in trig_dets[i]]
+                else:
+                    lst_det_trig = np.argsort((events[i].fermi_offset[[d_t + '_' + rng for d_t in lst_det]] -
+                                               events[i].nn_offset[[d_t + '_' + rng for d_t in lst_det]]).sum(axis=0).
+                                              sort_values(ascending=False))[0:det_num].index
+                if sigma_type == 'focus':
+                    sigma_tmp = (events[i].focus[lst_det_trig].sum(axis=1) / np.sqrt(len(lst_det_trig))).max().round(2)
+                elif sigma_type == 'SC_focus':
+                    ev_focus = events[i].focus_offset.reset_index().loc[:, lst_det_trig].sum(axis=1)
+                    index_max = np.argmax(ev_focus)
+                    ev_offset = events[i].offset.reset_index().loc[index_max, lst_det_trig].min()
+                    ev_fermi_offset = events[i].fermi_offset.reset_index().loc[index_max+ev_offset+1:index_max,
+                                      lst_det_trig].sum(axis=1)
+                    ev_nn_offset = events[i].nn_offset.reset_index().loc[index_max+ev_offset+1:index_max,
+                                   lst_det_trig].sum(axis=1)
+                    sigma_tmp = (ev_fermi_offset - ev_nn_offset).sum() / np.sqrt(ev_nn_offset.sum()).round(2)
+                    if len(ev_fermi_offset) == 0 or len(ev_nn_offset) == 0:
+                        print('Warning, selected interval is empty.')
+                        sigma_tmp = 0
+                elif sigma_type == 'SC_poisson':
+                    # ev_fermi_offset = events[i].fermi_offset.reset_index()
+                    # ev_nn_offset = events[i].nn_offset.reset_index()
+                    ev_fermi_offset = events[i].fermi_offset.reset_index().loc[:, lst_det_trig].sum(axis=1)
+                    ev_nn_offset = events[i].nn_offset.reset_index().loc[:, lst_det_trig].sum(axis=1)
+                    sigma_tmp_max = 0
+                    qtl_max = 0
+                    for qtl in np.arange(0, 21)/20:
+                        index = np.where(ev_fermi_offset-ev_nn_offset >= np.quantile(ev_fermi_offset-ev_nn_offset, qtl,
+                                                                                     interpolation='linear'))[0]
+                        sigma_tmp = (ev_fermi_offset.loc[index] - ev_nn_offset.loc[index]).sum() / \
+                                    np.sqrt(ev_nn_offset.loc[index].sum()).round(2)
+                        if sigma_tmp > sigma_tmp_max:
+                            sigma_tmp_max = sigma_tmp
+                            qtl_max = qtl
+                    sigma_tmp = sigma_tmp_max
+                    quantile_cut[rng].append(qtl_max)
+                elif sigma_type == 'SC_residual' and sigma_r is not None:
+                    len_lst_det_trig = len(lst_det_trig)
+                    len_event = events[i].fermi_offset.shape[0]
+                    lst_sigma_tmp = [(events[i].fermi_offset[det_rng_tmp] - events[i].nn_offset[det_rng_tmp]).sum(axis=0) /
+                                     (sigma_r[det_rng_tmp]*np.sqrt(len_event)) for det_rng_tmp in lst_det_trig]
+                    sigma_tmp = np.sum(lst_sigma_tmp)/np.sqrt(len_lst_det_trig)
+                else:
+                    print('Warning: bad specification in sigma_type. Focus significance is used.')
+                    sigma_tmp = (events[i].focus[lst_det_trig].sum(axis=1) / np.sqrt(len(lst_det_trig))).max().round(2)
+                lst_sigma[rng].append(sigma_tmp)
             else:
                 lst_sigma[rng].append(0)
+                quantile_cut[rng].append(0)
 
+    if len(quantile_cut['r0']) != len(events) or len(quantile_cut['r1']) != len(events) or len(quantile_cut['r2']) != len(events):
+        quantile_cut = {'r0': [0]*len(events), 'r1': [0]*len(events), 'r2': [0]*len(events)}
+
+    # Build the catalog
     catalog_trigs = [stringify(s.get_catalog_triggers()) for s in events]
     trig_dic = {'trig_ids': trig_ids,
                 'start_index': start_ids,
                 'start_met': start_mets,
                 'start_times': start_times,
+                'start_times_offset': start_times_offset,
                 'end_index': end_ids,
                 'end_met': end_mets,
                 'end_times': end_times,
@@ -319,7 +426,11 @@ def tableize(events, threshold):
                 'trig_dets': trig_dets,
                 'sigma_r0': lst_sigma['r0'],
                 'sigma_r1': lst_sigma['r1'],
-                'sigma_r2': lst_sigma['r2']
+                'sigma_r2': lst_sigma['r2'],
+                'duration': durations,
+                'qtl_cut_r0': quantile_cut['r0'],
+                'qtl_cut_r1': quantile_cut['r1'],
+                'qtl_cut_r2': quantile_cut['r2'],
                 }
     out = pd.DataFrame(trig_dic)
     return out
@@ -336,9 +447,13 @@ def save_triggers_plots(events, threshold, folder):
 
         fig, ax = event.plot(triggered_dets, figsize=(7, 6), enlarge=100)
         for i in ranges:
-            ax[i].axvspan(fermi.met.iloc[event.start - 1], fermi.met.iloc[event.end], color='r', alpha=0.1)
+            ax[i].axvspan(fermi.met.iloc[event.start_offset - 1], fermi.met.iloc[event.end], color='r', alpha=0.1)
         fig.suptitle('{} ({},{}) '.format(event.fermi.timestamp.iloc[0][:-7], event.start, event.end), x=0.34)
-        fig.savefig(folder/'out{}.png'.format(n))
+
+        try:
+            fig.savefig(folder/'out{}.png'.format(n))
+        except:
+            print('Error saving image.')
         plt.close()
 
         fig, ax = event.plot(untriggered_dets, figsize=(7, 6), enlarge=100)
@@ -376,7 +491,10 @@ def save_gbmbursts_plots(threshold, folder):
                     linestyle = 'dashed',
                     label = 'GBM trigger time'
                 )
-            fig.savefig(folder/'{}_{}.png'.format(row['name'], string))
+            try:
+                fig.savefig(folder/'{}_{}.png'.format(row['name'], string))
+            except:
+                print('Error saving image.')
             plt.close()
     return
 
@@ -414,7 +532,7 @@ def save_greenred_plot(detected, undetected, missing, folder, type_time=None, ty
                     label="undetected" if i == 0 else "",
                 )
         if missing:
-            ax.scatter(missing_t90s, missing_fluences, c='lightgrey', label='missing')
+            ax.scatter(missing_t90s, missing_fluences, c='lightgrey', label='no data')
         ax.axvspan(0.01, 4, color='grey', alpha=0.05)
         ax.semilogy()
         ax.semilogx()
@@ -653,10 +771,18 @@ class Segment(GenericDisplay):
         '''
         self.start = start
         self.end = end
+        offset_ev = offset.loc[self.start].fillna(0).min()
+        self.start_offset = int(max(start + offset_ev + 1, 0))
+        self.end_offset = end - 1
         self.fermi = fermi.loc[self.start:self.end][:]
         self.nn = nn.loc[self.start:self.end][:]
         self.focus = focus.loc[self.start:self.end][:]
         self.trigs = trigs.loc[self.start:self.end][:]
+        self.offset = offset.loc[self.start_offset:self.end_offset][:]
+        self.fermi_offset = fermi.loc[self.start_offset:self.end_offset][:]
+        self.nn_offset = nn.loc[self.start_offset:self.end_offset][:]
+        self.focus_offset = focus.loc[self.start_offset:self.end_offset][:]
+        self.trigs_offset = trigs.loc[self.start_offset:self.end_offset][:]
 
     def export(self, filepath, filename = 'timestamp'):
         if filename == 'timestamp':
@@ -668,6 +794,10 @@ class Segment(GenericDisplay):
         self.fermi.to_csv(filepath / "{}_fermi.csv".format(label))
         self.focus.to_csv(filepath / "{}_focus.csv".format(label))
         self.nn.to_csv(filepath / "{}_nn.csv".format(label))
+        self.offset.to_csv(filepath / "{}_offset.csv".format(label))
+        self.fermi_offset.to_csv(filepath / "{}_fermi_offset.csv".format(label))
+        self.focus_offset.to_csv(filepath / "{}_focus_offset.csv".format(label))
+        self.nn_offset.to_csv(filepath / "{}_nn_offset.csv".format(label))
 
 
     def get_catalog_triggers(self):
@@ -692,13 +822,14 @@ class Segment(GenericDisplay):
             return True
         return False
 
-    def plot(self, det:  List[str], enlarge=0, figsize=None, legend=True):
+    def plot(self, det:  List[str], enlarge=0, figsize=None, legend=True, bln_ylim=True):
         '''
         matplotlib is messy and so is this thing. handle mindfully
         :param det:
         :param enlarge:
         :param figsize:
         :param legend:
+        :param bln_ylim:
         :return:
         '''
 
@@ -751,14 +882,18 @@ class Segment(GenericDisplay):
                             fontsize=12)
 
         for i in range(3):
-            ax[i].set_ylim(bottom=0, top=None)
+            if bln_ylim:
+                ax[i].set_ylim(bottom=0, top=None)
             ax[i].set_ylabel('range {}'.format(str(i)))
         if legend and det:
             labels = ['n' + i for i in get_indeces(det)]
             lines = [custom_lines[i] for i in get_indeces(det)]
-            fig.legend(lines, labels, framealpha=1., ncol=ceil(len(labels) / 4),
-                       loc='upper right', bbox_to_anchor=(1.01, 1.005),
-                       fancybox=True, shadow=True)
+            if len(labels) > 0:
+                fig.legend(lines, labels, framealpha=1., ncol=ceil(len(labels) / 4),
+                           loc='upper right', bbox_to_anchor=(1.01, 1.005),
+                           fancybox=True, shadow=True)
+            else:
+                print("Warning, no labels to plot in image legend.")
         try:
             fig.supylabel('count rate')
             fig.supxlabel('time [MET]')
