@@ -82,6 +82,8 @@ This part of the pipeline considers the detectors triggered for each event and l
 > <img src=https://user-images.githubusercontent.com/93478548/228660171-4377aba6-8f51-43c1-831f-5605195545a7.JPG width="500">
 > 
 > Estimate of the candidate event’s source localization over the celestial sphere at 2019-04-20 22:32:56 UTC.
+> The plot is done thanks to the package **Fermi GBM Data Tools**.
+
 
 > |trig_ids |start_times      |duration      | catalog_triggers|trig_dets                                |sigma_r0    |sigma_r1    |sigma_r2    |ra     |dec    |
 > |---      |---              | ---          |---              |---                                      |---         |---         |---         |---    |---    |
@@ -94,4 +96,4 @@ This part of the pipeline considers the detectors triggered for each event and l
 > |  41 |2019-04-22 22:56:09  |183.299547    | GRB190422957    |      n6_r0 n6_r1 n7_r0 n7_r1 n8_r0 ...  | 8.826744    | 10.507945 |  0.000000 |  183.0 | -61.0 |
 > | 42  |2019-04-28 00:16:26  | 61.441057    |          NaN    |   n0_r0 n0_r1 n1_r0 n1_r1 n2_r1 ...     | 16.546931   | 21.319538 | 0.000000  | 51.0   | 55.0  |
 > 
-> A portion example of the catalog table.
+> A portion example of a catalog table.
