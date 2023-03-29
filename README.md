@@ -25,7 +25,7 @@ Python version: `3.6.8`
 
 ### Configuration
 
-In the config file `connections/utils/config.py` specify the path folder **`PATH_TO_SAVE`** in which you want to download the data and save the results. The other folder names inside it can be specified.
+In the config file `connections/utils/config.py` specify the path folder **`PATH_TO_SAVE`** in which you want to download the data and save the results. It is possible to provide the names of the other folders included within it.
 
 ### Quick start
 ```
@@ -71,9 +71,16 @@ Starting from the the observed count rates and the estimated count rates by the 
 
 The catalog table will be stored in the folder **`FOLD_RES`** along with trigger data, significance and plots of the event's lightcurves.
 
+> <img src=https://user-images.githubusercontent.com/93478548/228660136-bf62b826-022b-4c1d-a0d4-4f7823ebe995.JPG width="500">
+> 
+> Example of a transient event. Photon counts from each triggered detector are plotted with step lines, across three energy bands spanning 28 − 50 keV, 50 − 300 keV and 300 − 500 keV, with a resolution of 4.096 s. The neural network’s prediction of background count rates is represented by solid lines. Different detectors are identified using different colors. A red shaded area limits FOCuS-Poisson’s best guess of the transient duration. Times are expressed in units of seconds according Fermi’s standard mission elapsed time (MET).
+
+
 ### Localization
 This part of the pipeline considers the detectors triggered for each event and localizes the event in the instant of peak energy using simple geometric reasoning.
 
-
+> <img src=https://user-images.githubusercontent.com/93478548/228660171-4377aba6-8f51-43c1-831f-5605195545a7.JPG width="500">
+> 
+> Estimate of the candidate event’s source localization over the celestial sphere at 2019-04-20 22:32:56 UTC.
 
 
