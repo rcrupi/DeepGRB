@@ -57,7 +57,21 @@ Some hyperparameters can be set:
 
 
 One the NN class is trained the `predict` method can be used along the parameter `time_to_del` which define how many seconds to exclude before and after entering in the SAA.
-In the `plot` method can be selected a time period (`time_r` and/or `time_iso`) and a detector/range (`det_rng`) to plot the count rates observed and estimated by the NN.
+In the `plot` method can be selected a time period (`time_r` and/or `time_iso`) and a detector/range (`det_rng`) to plot the count rates observed and estimated by the NN. 
+The model is saved in the folder **`PATH_TO_SAVE\FOLD_NN`** and the background estimation as csv in **`PATH_TO_SAVE\FOLD_PRED`**.
+
+### FOCuS
+Now it's time for the trigger algorithm to shine. 
+Starting from the the observed count rates and the estimated count rates by the NN, FOCuS computes the segments where the excess of count rates is significant more than `threshold` sigma. So the parameters are: 
+- mu_min: multiplicative factor of the observed counts in relation to the integral of background values.
+- t_max: limits the choice of the best interval.
+- threshold: threshold parameter for the significance values exceed.
+
+The catalog table will be stored in the folder **`FOLD_RES`** along with trigger data, significance and plots of the event's lightcurves.
+
+### Localization
+This part of the pipeline considers the detectors triggered for each event and localizes the event in the instant of peak energy using simple geometric reasoning.
+
 
 
 
