@@ -38,5 +38,26 @@ python pipeline/pipeline_bkg.py
 4) perform FOCuS, build the catalog
 5) localize the events and update the catalog
 
+### Download
+Given the start and end month (e.g. '03-2019' and '07-2019'), `download_spec(start_month, end_month)` run the download of the CSPEC and POSHIST files in the folder **`PATH_TO_SAVE\FOLD_CSPEC_POS`** specified in the config file.
+
+### Preprocess
+`build_table` builds the table containing the information\features of the satellites and the detector (e.g. Fermi geographical latitude, longitude, velocity, detectors pointing, ...) and the count rates observed by the detectors (target variables for the Neural Network). The bin time is 4.096s the energy range can be specified in `erange` and the resulting csv file is saved in **`PATH_TO_SAVE\FOLD_BKG`**.
+
+### Train
+It is trained a Feed Forward Neural Network with input the features of the satellites and the detector and as output the observed count rates.
+`bool_del_trig` is a boolean option to delete in the training phase the events already present in the Fermi GBM catalog. 
+Some hyperparameters can be set:
+- loss_type: deafult loss function is 'mean', Mean Absolute Error.
+- units: number of nodes in the first and second layer, the third is halved.
+- epochs: number of epochs of the NN.
+- lr: learning rate of the NN during training.
+- bs: batch size of the NN during training.
+- do: parameters for the dropout between layers.
+
+
+One the NN class is trained the `predict` method can be used along the parameter `time_to_del` which define how many seconds to exclude before and after entering in the SAA.
+In the `plot` method can be selected a time period (`time_r` and/or `time_iso`) and a detector/range (`det_rng`) to plot the count rates observed and estimated by the NN.
+
 
 
