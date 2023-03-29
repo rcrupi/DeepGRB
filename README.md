@@ -8,7 +8,7 @@
 > **Riccardo Crupi**, **Giuseppe Dilillo**, Elisabetta Bissaldi, Fabrizio Fiore, Andrea Vacchi
 
 To know more about this research work, please refer to:
-- Searching for long faint astronomical high energy transients: a data driven approach. Riccardo Crupi, Giuseppe Dilillo, Elisabetta Bissaldi, Fabrizio Fiore, Andrea Vacchi. Work in progress
+- Searching for long faint astronomical high energy transients: a data driven approach. Riccardo Crupi, Giuseppe Dilillo, Elisabetta Bissaldi, Fabrizio Fiore, Andrea Vacchi. https://arxiv.org/abs/2303.15936
 - Poisson-FOCuS: An efficient online method for detecting count bursts with application to gamma ray burst detection. Kester Ward, Giuseppe Dilillo, Idris Eckley, Paul Fearnhead. https://arxiv.org/abs/2208.01494
 
 ## Installation
