@@ -19,6 +19,8 @@ cd DeepGRB
 pip install -r requirements.txt
 ```
 
+To install the library **Fermi GBM Data Tools** follow this [page](https://fermi.gsfc.nasa.gov/ssc/data/analysis/rmfit/gbm_data_tools/gdt-docs/).
+
 Python version: `3.6.8`
 
 ### Configuration
