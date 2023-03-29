@@ -62,6 +62,11 @@ One the NN class is trained the `predict` method can be used along the parameter
 In the `plot` method can be selected a time period (`time_r` and/or `time_iso`) and a detector/range (`det_rng`) to plot the count rates observed and estimated by the NN. 
 The model is saved in the folder **`PATH_TO_SAVE\FOLD_NN`** and the background estimation as csv in **`PATH_TO_SAVE\FOLD_PRED`**.
 
+> <img src=https://user-images.githubusercontent.com/93478548/228681065-9474304f-fb2b-4aa7-a923-97edecafa15e.PNG width="650">
+> 
+> The background estimation for the n6 detector, in the energy range 1, on three hours of data. The Fermi/GBM count rate observations are represented over time as a black line, whereas the neural network estimation is plotted as a red solid line. The lower panel shows the residuals between the two quantities, with a black solid line denoting the reference of null residual.
+
+
 ### FOCuS
 Now it's time for the trigger algorithm to shine. 
 Starting from the the observed count rates and the estimated count rates by the NN, FOCuS computes the segments where the excess of count rates is significant more than `threshold` sigma. So the parameters are: 
