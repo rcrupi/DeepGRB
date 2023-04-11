@@ -12,6 +12,8 @@ from pathlib import Path
 from gbm.data import HealPix, PosHist
 from gbm.plot import SkyPlot, EarthPlot
 from gbm.finder import ContinuousFtp
+from gbm.coords import get_sun_loc
+from astropy.coordinates import SkyCoord
 
 
 def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_folder=True, trig_id=None):
@@ -99,6 +101,7 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                     max_fin = max_tmp
                     ind_max = df_frg_bkg_event.loc[:, i].idxmax()
                     # high_detector = i
+                    met_event_loc = df_frg_bkg.loc[ind_max, 'met']
             print('The index of the peak is: ', ind_max)
 
             # # Select the interval of the period around the peak that has positive residuals
@@ -160,11 +163,12 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             # initialize plot
             skyplot = SkyPlot()
             # Plot the orientation of the detectors and Earth blockage at our time of interest
-            # Use the begin of the event (met_event) to diplay the detectors on the map
-            skyplot.add_poshist(poshist, trigtime=met_event)
+            # Use the time where the event is localized (met_event_loc) to diplay the detectors on the map
+            skyplot.add_poshist(poshist, trigtime=met_event_loc)
             gauss_map = HealPix.from_gaussian(np.round(res['ra']), np.round(res['dec']), std_sky_plot_gaussian)
             skyplot.add_healpix(gauss_map)
-            plt.title(str(row['start_times'])[:-7] + "\n" + str(np.unique(trig_dets)))
+            plt.title(str(row['start_times'])[:-7] + "\n" + str(np.unique(trig_dets)) + "\n" +
+                      str(met_event_loc))
             plt.xlabel(str(row['catalog_triggers']))
             plt.show()
             # Save localization sky plot
@@ -178,6 +182,22 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'dec_montecarlo'] = np.round(mean[1], 0)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'ra_std'] = np.round(cov[0][0], 0)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'dec_std'] = np.round(cov[1][1], 0)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'met_localisation'] = met_event_loc
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'ra_earth'] = poshist.get_geocenter_radec(met_event_loc)[0]
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'dec_earth'] = poshist.get_geocenter_radec(met_event_loc)[1]
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'earth_vis'] = \
+                poshist.location_visible(res['ra'], res['dec'], met_event_loc)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'sun_vis'] = poshist.get_sun_visibility(met_event_loc)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'ra_sun'] = get_sun_loc(met_event_loc)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'dec_sun'] = get_sun_loc(met_event_loc)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'l_galactic'] = SkyCoord(res['ra'], res['dec'], unit='deg', frame='icrs').galactic.l.deg
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'b_galactic'] = SkyCoord(res['ra'], res['dec'], unit='deg', frame='icrs').galactic.b.deg
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'lat_fermi'] = poshist.get_latitude(met_event_loc)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'lon_fermi'] = poshist.get_longitude(met_event_loc)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'alt_fermi'] = poshist.get_altitude(met_event_loc)
+
+
+
 
         except Exception as e:
             print(e)
