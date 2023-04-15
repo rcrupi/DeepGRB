@@ -188,16 +188,13 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'earth_vis'] = \
                 poshist.location_visible(res['ra'], res['dec'], met_event_loc)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'sun_vis'] = poshist.get_sun_visibility(met_event_loc)
-            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'ra_sun'] = get_sun_loc(met_event_loc)
-            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'dec_sun'] = get_sun_loc(met_event_loc)
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'ra_sun'] = get_sun_loc(met_event_loc)[0]
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'dec_sun'] = get_sun_loc(met_event_loc)[1]
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'l_galactic'] = SkyCoord(res['ra'], res['dec'], unit='deg', frame='icrs').galactic.l.deg
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'b_galactic'] = SkyCoord(res['ra'], res['dec'], unit='deg', frame='icrs').galactic.b.deg
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'lat_fermi'] = poshist.get_latitude(met_event_loc)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'lon_fermi'] = poshist.get_longitude(met_event_loc)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'alt_fermi'] = poshist.get_altitude(met_event_loc)
-
-
-
 
         except Exception as e:
             print(e)
