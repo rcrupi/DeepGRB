@@ -2,13 +2,9 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import pickle
-from tqdm import tqdm
 # Preprocess data downloaded from FTP
 from gbm.data import TTE
 from gbm.binning.unbinned import bin_by_time
-from gbm.plot import Lightcurve
-from gbm.finder import BurstCatalog
 from gbm.finder import ContinuousFtp
 from gbm.time import Met
 from gbm.background import BackgroundFitter
@@ -17,17 +13,8 @@ from gbm.plot import Lightcurve
 
 tte_path = '/beegfs/rcrupi/zzz_other/per_giovanni/'
 
-df_catalog = pd.DataFrame()
-for (start_month, end_month) in [
-    ("03-2019", "07-2019"),
-    ("01-2014", "03-2014"),
-    ("11-2010", "02-2011"),
-]:
-    df_catalog = df_catalog.append(
-        pd.read_csv(tte_path + 'events_table_loc_' + start_month[3:] + '.csv')
-    )
-
-df_catalog = df_catalog.reset_index(drop=True).dropna(axis=0, subset=['catalog_triggers'])
+# 2010, 2014, 2019
+df_catalog = pd.read_csv(tte_path + 'events_table_loc_2014' + '.csv')
 
 # For loop into the events catalog
 for idx, row in df_catalog.iterrows():
@@ -35,7 +22,7 @@ for idx, row in df_catalog.iterrows():
     # Initialise the Met time of the event
     starttime_met = Met(0).from_iso(row['start_times_offset'].replace(' ', 'T')).met
     cont_finder = ContinuousFtp(met=starttime_met)
-    # Download the TTE refering per each triggered detectors
+    # Download the TTE event per each triggered detectors
     lst_det_triggered = []
     for det_tmp in ['n0', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'na', 'nb']:
         list_tte = os.listdir(tte_path)
@@ -52,41 +39,54 @@ for idx, row in df_catalog.iterrows():
 
     # Load the TTE and a dictionary: {'n1': TTE_n1, 'n2': ...}
     dct_tte = {}
-    for det_tmp in lst_det_triggered:
-        try:
-            # Search in the file downloded the file
-            list_tte = os.listdir(tte_path)
-            file_to_load = [i for i in list_tte if 'glg_tte_' + det_tmp + '_' +
-                            row['start_times'][2:13].replace(' ', '_').replace('-', '') in i]
-            if len(file_to_load) == 1:
-                file_to_load = file_to_load[0]
-            # If not present continue to the next detector
-            elif len(file_to_load) == 0:
-                print('det not found: ', det_tmp)
-                continue
-            # read a tte file
-            dct_tte[det_tmp] = TTE.open(tte_path + file_to_load)
-            print(dct_tte[det_tmp])
-            # bin in time (0.256s)
-            flt_bin_time = 0.256
-            # Load the TTE integrating in energy
-            phaii = dct_tte[det_tmp].to_phaii(bin_by_time, flt_bin_time, time_range=(starttime_met-200, row['end_met']+200),
-                                              energy_range=(50, 300)) #, time_ref=starttime_met)
-
-            lcplot = Lightcurve(data=phaii.to_lightcurve())
-            plt.show()
-
-            bkgd_times = [(starttime_met - 20.0, starttime_met - 5.0), (row['end_met'] + 5, row['end_met'] + 20)]
-            backfitter = BackgroundFitter.from_phaii(phaii, Polynomial, time_ranges=bkgd_times)
-            backfitter.fit(order=1)
-
-
-            pdc = phaii.data.counts
-            lightcurve = pdc.sum(axis=1)
-            plt.plot(lightcurve)
-            plt.show()
-
-        except:
-            print('Can t find file of detector', det_tmp)
+    # Initialise residual array
+    # bin in time (ex. 0.256s)
+    lst_std = []
+    for flt_bin_time in [0.01, 0.02, 0.05, 0.1, 0.256, 0.5]:
+        res = 0
+        for det_tmp in lst_det_triggered:
+            try:
+                # Search in the file downloded the file
+                list_tte = os.listdir(tte_path)
+                file_to_load = [i for i in list_tte if 'glg_tte_' + det_tmp + '_' +
+                                row['start_times'][2:13].replace(' ', '_').replace('-', '') in i]
+                if len(file_to_load) == 1:
+                    file_to_load = file_to_load[0]
+                # If not present continue to the next detector
+                elif len(file_to_load) == 0:
+                    print('det not found: ', det_tmp)
+                    continue
+                # read a tte file
+                dct_tte[det_tmp] = TTE.open(tte_path + file_to_load)
+                print(dct_tte[det_tmp])
+                # filter erange
+                erange = (8.0, 900.0)
+                # filter time
+                time_before_after = max(row['duration']/2, 16)
+                # Load the TTE integrating in energy
+                phaii = dct_tte[det_tmp].to_phaii(bin_by_time, flt_bin_time,
+                                                  time_range=(starttime_met - time_before_after,
+                                                              row['end_met'] + time_before_after),
+                                                  time_ref=starttime_met)
+                # Lightcurve
+                lc_data = phaii.to_lightcurve(energy_range=erange)
+                # lcplot = Lightcurve(data=phaii.to_lightcurve(energy_range=erange))
+                # plt.show()
+                # Background fit
+                bkgd_times = [(starttime_met - time_before_after, starttime_met),
+                              (row['end_met'], row['end_met'] + time_before_after)]
+                backfitter = BackgroundFitter.from_phaii(phaii, Polynomial, time_ranges=bkgd_times)
+                backfitter.fit(order=1)
+                # Apply fit
+                bkgd = backfitter.interpolate_bins(phaii.data.tstart, phaii.data.tstop)
+                lc_bkgd = bkgd.integrate_energy(*erange)
+                # lcplot = Lightcurve(data=lc_data, background=lc_bkgd)
+                # Compute residual
+                res += lc_data.rates - lc_bkgd.rates
+            except:
+                print('Error in file of detector', det_tmp)
+        # TODO apply microvariability
+        lst_std.append(np.std(res))
+    plt.plot(lst_std, 'x-')
 
 pass
