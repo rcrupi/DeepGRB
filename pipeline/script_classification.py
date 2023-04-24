@@ -140,6 +140,18 @@ print(
     y_pred_unc.sum()
       )
 
-
+from gbm.data import PosHist
+from gbm.plot import EarthPlot
+from gbm.finder import ContinuousFtp
+import os
+earthplot = EarthPlot()
+cont_finder = ContinuousFtp(met=df_catalog.loc[132, 'start_met'])
+poshist_name = cont_finder.ls_poshist()[0]
+cont_finder.get_poshist('./tmp_pos')
+# open a poshist file
+poshist = PosHist.open('./tmp_pos/' + poshist_name)
+os.remove('./tmp_pos/' + poshist_name)
+earthplot.add_poshist(poshist, trigtime=df_catalog.loc[132, 'met_localisation'],
+                      time_range=(df_catalog.loc[132, 'start_met'], df_catalog.loc[132, 'end_met']))
 
 pass
