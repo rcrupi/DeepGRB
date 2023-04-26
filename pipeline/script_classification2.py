@@ -58,7 +58,8 @@ X = df_catalog[['trig_dets', 'sigma_r0', 'sigma_r1', 'sigma_r2', 'duration',
                 # 'l_galactic',
                 'b_galactic',
                 'lat_fermi', 'lon_fermi',
-                # 'alt_fermi'
+                # 'alt_fermi',
+                'l'
                 ]].copy()
 
 print(df_catalog[df_catalog['ra'].isna()])
