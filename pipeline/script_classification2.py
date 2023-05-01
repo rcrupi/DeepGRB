@@ -74,15 +74,15 @@ def prepare_X(df_catalog):
     X = df_catalog[['trig_dets', 'sigma_r0', 'sigma_r1', 'sigma_r2', 'duration',
                     # 'qtl_cut_r0', 'qtl_cut_r1', 'qtl_cut_r2',
                     'ra', 'dec',
-                    # 'ra_montecarlo', 'dec_montecarlo', 'ra_std', 'dec_std',
+                    'ra_montecarlo', 'dec_montecarlo', 'ra_std', 'dec_std',
                     'ra_earth', 'dec_earth',
                     'earth_vis',
                     'sun_vis',
                     'ra_sun', 'dec_sun',
-                    # 'l_galactic',
+                    'l_galactic',
                     'b_galactic',
                     'lat_fermi', 'lon_fermi',
-                    # 'alt_fermi',
+                    'alt_fermi',
                     'l'
                     ]].copy()
 
@@ -124,7 +124,7 @@ def prepare_X(df_catalog):
 X = prepare_X(df_catalog)
 
 # Train a DT
-for ev_type in ev_type_list:
+for ev_type in ['UNC(LP)'] : # ev_type_list
     print("Type of event analysed: ", ev_type)
     y = df_catalog[ev_type]
 
@@ -141,7 +141,7 @@ for ev_type in ev_type_list:
         return clf
 
     # Decision Tree
-    clf = DecisionTreeClassifier(random_state=0, max_depth=4, class_weight='balanced')
+    clf = DecisionTreeClassifier(random_state=0, max_depth=3, class_weight='balanced')
     clf = wrap_fit(clf, X, X_train, X_test, y, y_train, y_test)
     plt.figure(figsize=(16, 12))
     tree.plot_tree(clf, filled=True, feature_names=X_train.columns)
@@ -153,24 +153,6 @@ for ev_type in ev_type_list:
     clf = wrap_fit(clf, X, X_train, X_test, y, y_train, y_test)
     print(clf.rules_[0:3])
 
-    # from gosdt.model.gosdt import GOSDT
-    # hyperparameters = {
-    #     "balanced": True,
-    #     "rule_list": True,
-    #     "regularization": 0.01,
-    #     "time_limit": 240,
-    #     "verbose": True,
-    # }
-    # model = GOSDT(hyperparameters)
-    # model.fit(X_train, y_train)
-    # y_pred_tot = model.predict(X) == 'True'
-    # y_pred_train = model.predict(X_train) == 'True'
-    # y_pred_test = model.predict(X_test) == 'True'
-    # print(confusion_matrix(y, y_pred_tot))
-    # print(confusion_matrix(y_train, y_pred_train))
-    # print(confusion_matrix(y_test, y_pred_test))
-
-
 # # Plot Fermi position of earth when local particles occur
 # plt.figure()
 # plt.scatter(X.loc[df_catalog['UNC(LP)'], 'lon_fermi'].apply(lambda x: x if x < 180 else x-360),
@@ -179,22 +161,26 @@ for ev_type in ev_type_list:
 # plt.figure()
 # plt.boxplot(X.loc[df_catalog['UNC(LP)'], ['num_det', 'num_det_rng']])
 
-
 # Manual classification logic
 def classification_logic(df_catalog):
     y_pred = {}
     X = prepare_X(df_catalog)
-    y_pred['SF'] = (X['diff_sun'] < 50) & (X['sigma_r0'] > 0) & (df_catalog['sun_vis']) # & (X['mean_det_not_sol_face']<0.5)
+    y_pred['SF'] = (X['diff_sun'] < 41) & (X['sigma_r0'] > 0) & (df_catalog['sun_vis']) & \
+                   (1 - ((X['mean_det_not_sol_face'] >= 0.5) & (X['l'] >= 1.5)))
+    # (X['sigma_r0'] > 27)
     y_pred['TGF'] = (1-df_catalog['earth_vis']) | (X['diff_earth'] < 80)
     y_pred['GF'] = (abs(df_catalog['b_galactic']) < 10) & (df_catalog['earth_vis'])
-    y_pred['UNC(LP)'] = (((((15 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 30)) &
-                  ((220 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 275))) |
+    y_pred['UNC(LP)'] = \
+        (((((15 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 30)) &
+                  ((220 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 275)) ) |
                  (((-30 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 8)) &
-                 ((230 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 360))) |
-                ((df_catalog['lat_fermi'] < -10) & (df_catalog['lon_fermi'] > 0))) &\
-                        ((X['num_det'] >= 9) | (X['num_det_rng'] >= 12) | (X['l'] >= 1.45)) \
-                         # & (X['mean_det_not_sol_face']>=0.5)
-                         ) | (X['num_det'] == 12)
+                 ((230 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 360)) ) |
+                ((df_catalog['lat_fermi'] < -10) & (df_catalog['lon_fermi'] > 0))) & \
+         (1-y_pred['SF']) & (X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 11) & ((X['ra_std'] >= 100) | X['mean_det_not_sol_face'] >= X['mean_det_sol_face'])) & \
+        (X['num_det'] >= 9)
+                #(X['diff_sun'] >= 41)) & ((X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 50)) & (X['duration'] >= 41) &\
+    #((X['l'] >= 1.45) | (X['mean_det_not_sol_face'] >= 0.5) | (X['num_det'] >= 9))
+    # & (X['mean_det_not_sol_face']>=0.5)   | (X['l'] >= 1.45)
     y_pred['GRB'] = (df_catalog['earth_vis']) & (X['diff_sun'] >= 25) & (X['sigma_r1'] > 0) & \
                     (abs(df_catalog['b_galactic']) >= 0) & (X['num_det'] <= 6) & (X['sigma_r0'] <= 20)
     y_pred['UNC'] = 1 - (y_pred['SF'] | y_pred['TGF'] | y_pred['GF'] | y_pred['UNC(LP)'] | y_pred['GRB'])
@@ -202,17 +188,25 @@ def classification_logic(df_catalog):
 
 y_pred = classification_logic(df_catalog)
 
-for ev_type in ['SF', 'UNC(LP)', 'TGF', 'GF', 'GRB', 'UNC']:
+for ev_type in ['UNC(LP)', 'TGF', 'GF', 'GRB', 'UNC', 'SF']:
     print("Event: ", ev_type)
     print(confusion_matrix(df_catalog[ev_type], y_pred[ev_type]))
     # To remove
     print("True in catalog, False with new rule")
-    print(df_catalog[(df_catalog[ev_type] == 1) & (y_pred[ev_type] == 0)])
-    print(X[(df_catalog[ev_type] == 1) & (y_pred[ev_type] == 0)])
+    lst_col_show = ['trig_ids', 'start_times', 'sigma_r0', 'sigma_r1', 'sigma_r2', 'duration', 'ra', 'dec', 'ra_earth',
+                    'dec_earth', 'earth_vis', 'sun_vis', 'ra_sun', 'dec_sun', 'l_galactic', 'b_galactic',
+                    'lat_fermi', 'lon_fermi', 'alt_fermi', 'l', 'catalog_triggers', 'GRB', 'SF', 'UNC(LP)', 'TGF', 'GF',
+                    'UNC', 'trig_dets', 'ra_montecarlo', 'dec_montecarlo', 'ra_std', 'dec_std']
+    lst_X_col_show = ['num_det_rng', 'num_r0', 'num_r1', 'num_r2', 'num_det', 'num_n0', 'num_n1', 'num_n2', 'num_n3',
+                      'num_n4', 'num_n5', 'num_n6', 'num_n7', 'num_n8', 'num_n9', 'num_na', 'num_nb',
+                      'mean_det_sol_face', 'mean_det_not_sol_face', 'diff_sun', 'diff_earth']
+
+    print(df_catalog.loc[(df_catalog[ev_type] == 1) & (y_pred[ev_type] == 0), lst_col_show])
+    print(X.loc[(df_catalog[ev_type] == 1) & (y_pred[ev_type] == 0), lst_X_col_show])
     # To add
     print("False in catalog, True with new rule")
-    print(df_catalog[(df_catalog[ev_type] == 0) & (y_pred[ev_type] == 1)])
-    print(X[(df_catalog[ev_type] == 0) & (y_pred[ev_type] == 1)])
+    print(df_catalog.loc[(df_catalog[ev_type] == 0) & (y_pred[ev_type] == 1), lst_col_show])
+    print(X.loc[(df_catalog[ev_type] == 0) & (y_pred[ev_type] == 1), lst_X_col_show])
     pass
 
 pass
