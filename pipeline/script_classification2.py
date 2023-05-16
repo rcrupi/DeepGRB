@@ -172,15 +172,19 @@ def classification_logic(df_catalog):
     y_pred['GF'] = (abs(df_catalog['b_galactic']) < 10) & (df_catalog['earth_vis'])
     y_pred['UNC(LP)'] = \
         (((((15 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 30)) &
-                  ((220 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 275)) ) |
-                 (((-30 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 8)) &
-                 ((230 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 360)) ) |
-                ((df_catalog['lat_fermi'] < -10) & (df_catalog['lon_fermi'] > 0))) & \
-         (1-y_pred['SF']) & (X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 11) & ((X['ra_std'] >= 100) | X['mean_det_not_sol_face'] >= X['mean_det_sol_face'])) & \
+           ((220 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 275))) |
+          (((-30 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 8)) &
+           ((230 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 360))) |
+          ((df_catalog['lat_fermi'] < -10) & (df_catalog['lon_fermi'] > 0))) & \
+         (1 - y_pred['SF']) & (X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 11) & (
+                     (X['ra_std'] >= 100) | X['mean_det_not_sol_face'] >= X['mean_det_sol_face'])) & \
         (X['num_det'] >= 9)
-                #(X['diff_sun'] >= 41)) & ((X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 50)) & (X['duration'] >= 41) &\
-    #((X['l'] >= 1.45) | (X['mean_det_not_sol_face'] >= 0.5) | (X['num_det'] >= 9))
-    # & (X['mean_det_not_sol_face']>=0.5)   | (X['l'] >= 1.45)
+    # rule from Decision Tree
+    #     (X['num_det'] <= 8.5)*(df_catalog['l']<=1.551)*(df_catalog['dec_std']>=1179.5)+\
+    #     (X['num_det'] <= 8.5)*(df_catalog['l']>1.551)*(df_catalog['ra']>110.5)+\
+    #     (X['num_det'] > 8.5)*(df_catalog['ra_std']<=100)*(df_catalog['alt_fermi']<=528117.969)+\
+    #     (X['num_det'] > 8.5)*(df_catalog['ra_std']>100)*(df_catalog['l']>1.11)
+
     y_pred['GRB'] = (df_catalog['earth_vis']) & (X['diff_sun'] >= 25) & (X['sigma_r1'] > 0) & \
                     (abs(df_catalog['b_galactic']) >= 0) & (X['num_det'] <= 6) & (X['sigma_r0'] <= 20)
     y_pred['UNC'] = 1 - (y_pred['SF'] | y_pred['TGF'] | y_pred['GF'] | y_pred['UNC(LP)'] | y_pred['GRB'])
