@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -28,15 +29,21 @@ time_r = df_ori[
     (pd.to_datetime(df_ori.timestamp) < pd.to_datetime(time_r_max))
 ].index
 
+
+
 # Plot frg, bkg and residual for det_rng
 with sns.plotting_context("talk"):
-    fig, axs = plt.subplots(2, 1, sharex=True, figsize=(24, 12))
+    fig, axs = plt.subplots(3, 1, sharex=True, figsize=(24, 12))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
     fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
 
+    # Set NaN non nominal count rates
+    hhh = df_ori.loc[time_r, det_rng].copy()
+    hhh.loc[hhh < 250] = None
+
     # Plot each graph, and manually set the y tick values
-    axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), df_ori.loc[time_r, det_rng], 'k-.')
+    axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), hhh, 'k-.')
     axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], 'r-')
 
     # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
@@ -46,14 +53,25 @@ with sns.plotting_context("talk"):
     axs[0].set_ylabel('Count Rate')
 
     axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
-                df_ori.loc[time_r, det_rng] - y_pred.loc[time_r, det_rng], 'k-.')
+                hhh - y_pred.loc[time_r, det_rng],
+                'k-.')
     axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
                 df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
     # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
     # axs[1].set_ylim(0, 1)
     axs[1].set_xlabel('time (month-day hour)')
     axs[1].set_ylabel('Residuals')
-plt.savefig(PATH_TO_SAVE + 'n4_r1_2019_05_21.png')
+
+    axs[2].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
+                (hhh - y_pred.loc[time_r, det_rng]) / y_pred.loc[time_r, det_rng], # sqrt
+                 'k-.')
+    axs[2].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
+                df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
+    # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
+    # axs[1].set_ylim(0, 1)
+    axs[2].set_xlabel('time (month-day hour)')
+    axs[2].set_ylabel('Residuals %') #
+plt.savefig(PATH_TO_SAVE + 'n4_r1_2019_05_21_S.png')
 
 # # # bkg_est.png \label{fig:bkg_est}
 # Plot y_pred vs y_true

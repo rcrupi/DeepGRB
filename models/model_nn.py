@@ -26,7 +26,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.models import load_model
 # Custom losses
-from models.utils.losses import loss_median, loss_max
+from models.utils.losses import loss_quantile, loss_max
 # Explainability
 import shap
 
@@ -232,8 +232,11 @@ class ModelNN:
             elif loss_type == 'median':
                 logging.info('Loss chosen: Median Absolute Error.')
                 # Define Loss as average of Median Absolute Error for each detector_range
-                loss = loss_median
-
+                loss = loss_quantile(0.5)
+            elif isinstance(loss_type, float):
+                logging.info(f'Loss chosen: quantile{loss_type} Absolute Error.')
+                # Define Loss as average of Median Absolute Error for each detector_range
+                loss = loss_quantile(loss_type)
             elif loss_type == 'mean' or loss_type == 'mae':
                 # Define Loss as average of Mean Absolute Error for each detector_range
                 logging.info('Loss chosen: Mean Absolute Error.')
@@ -245,15 +248,6 @@ class ModelNN:
                 # Define Loss as average of Mean Squared Error for each detector_range
                 logging.info('Loss chosen: Mean Squared Error.')
                 loss = 'mse'
-
-            # Load pretrain model if specified
-            if model_pretrain is not None:
-                logging.info("Pretrained model: " + model_pretrain)
-                try:
-                    nn_r = load_model(PATH_TO_SAVE + FOLD_NN + '/' + model_pretrain, compile=False)
-                except Exception as e:
-                    logging.error(e)
-                    logging.warning("Can't import model " + model_pretrain + ". Train a NN from scratch.")
 
             # Compile nn model
             nn_r.compile(loss=loss, loss_weights=1, optimizer=opt)
@@ -278,15 +272,27 @@ class ModelNN:
                     es = EarlyStopping(monitor='val_loss', mode='min', min_delta=0.01, patience=32,
                                        restore_best_weights=True)
 
-                logging.info("Fitting the model.")
-                # callbacks=[es, mc]
-                if modelcheck:
-                    history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
-                                       validation_split=0.3, callbacks=[es, mc, call_lr])
-                    nn_r = load_model(db_path + '/m_check/saved_model.ckpt')
+                # Load pretrain model if specified TODO put this down
+                if model_pretrain is not None:
+                    logging.info("Pretrained model: " + model_pretrain)
+                    try:
+                        nn_r = load_model(PATH_TO_SAVE + FOLD_NN + '/' + model_pretrain, compile=False,
+                                          custom_objects={'loss': loss})
+                        nn_r.compile(loss=loss, loss_weights=1, optimizer=opt)
+                    except Exception as e:
+                        logging.error(e)
+                        logging.warning("Can't import model " + model_pretrain + ". Train a NN from scratch.")
                 else:
-                    history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
-                                       validation_split=0.3, callbacks=[es, call_lr])
+                    logging.info("Fitting the model.")
+                    # callbacks=[es, mc]
+                    if modelcheck:
+                        history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
+                                           validation_split=0.3, callbacks=[es, mc, call_lr])
+                        nn_r = load_model(db_path + '/m_check/saved_model.ckpt',
+                                          custom_objects={'loss': loss})
+                    else:
+                        history = nn_r.fit(X_train, y_train, epochs=epochs, batch_size=bs,
+                                           validation_split=0.3, callbacks=[es, call_lr])
             else:
                 tuner = kt.Hyperband(self.build_model_hype,
                                      objective='val_loss',
@@ -344,8 +350,13 @@ class ModelNN:
                 idx = idx + 1
 
             # plot training history
-            plt.plot(history.history['loss'][4:], label='train')
-            plt.plot(history.history['val_loss'][4:], label='test')
+            len_ep = len(history.history['loss'])
+            plt.plot(range(4, len_ep), history.history['loss'][4:], label='train')
+            # plt.plot(range(5, 5+len(history.history['loss'][4:])), history.history['loss'][4:], label='train')
+            plt.xlabel('Epochs')
+            plt.plot(range(4, len_ep), history.history['val_loss'][4:], label='val')
+            # plt.plot(range(5, 5+len(history.history['val_loss'][4:])), history.history['val_loss'][4:], label='test')
+            plt.ylabel('Loss')
             plt.legend()
 
             logging.info("Saving model with name: " + name_model)

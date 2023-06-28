@@ -5,19 +5,19 @@ import matplotlib.pyplot as plt
 from gbm.data import PosHist
 from gbm.plot import SkyPlot
 from gbm.finder import ContinuousFtp
-bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_09-2009_12-2009.csv')
-frg = pd.read_csv('/beegfs/rcrupi/pred/frg_09-2009_12-2009.csv')
+# bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_09-2009_12-2009.csv')
+# frg = pd.read_csv('/beegfs/rcrupi/pred/frg_09-2009_12-2009.csv')
 # bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_01-2015_03-2015.csv')
 # frg = pd.read_csv('/beegfs/rcrupi/pred/frg_01-2015_03-2015.csv')
-# bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_01-2019_06-2019.csv')
-# frg = pd.read_csv('/beegfs/rcrupi/pred/frg_01-2019_06-2019.csv')
+bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_01-2019_07-2019_current.csv')
+frg = pd.read_csv('/beegfs/rcrupi/pred/frg_01-2019_07-2019_current.csv')
 
-start_time = pd.to_datetime('2009-10-24 07:55:00')
-end_time = pd.to_datetime('2009-10-24 10:15:00')
+# start_time = pd.to_datetime('2009-10-24 07:55:00')
+# end_time = pd.to_datetime('2009-10-24 10:15:00')
 # start_time = pd.to_datetime('2015-01-26 00:00:01')
 # end_time = pd.to_datetime('2015-01-26 23:59:59')
-# start_time = pd.to_datetime('2019-05-21 00:01:00')
-# end_time = pd.to_datetime('2019-05-21 23:59:00')
+start_time = pd.to_datetime('2019-02-08 21:34:00')
+end_time = pd.to_datetime('2019-02-08 21:54:00')
 # Filter event time
 bkg_e = bkg.loc[
     (pd.to_datetime(frg['timestamp']) >= start_time) &
@@ -51,7 +51,7 @@ for col in ['n0_r0', 'n6_r0', 'n8_r0',
     axs[1].set_xlabel('met')
     axs[1].set_ylabel('Residuals')
 
-met_event = bkg_e['met'].mean()
+met_event = int(bkg_e['met'].mean())
 cont_finder = ContinuousFtp(met=met_event)
 cont_finder.get_poshist('tmp')
 # open a poshist file
@@ -64,3 +64,12 @@ skyplot = SkyPlot()
 # plot the orientation of the detectors and Earth blockage at our time of interest
 skyplot.add_poshist(poshist, trigtime=met_event)
 
+from gbm.plot import EarthPlot
+
+# initialize plot
+earthplot = EarthPlot()
+
+# let's show the orbital path for +/-1000 s around our t0
+earthplot.add_poshist(poshist, trigtime=met_event, time_range=(met_event-500.0, met_event+500.0))
+
+pass

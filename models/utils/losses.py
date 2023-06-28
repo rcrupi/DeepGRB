@@ -5,21 +5,24 @@ from tensorflow.python.ops import math_ops
 from tensorflow.python.framework import ops
 
 
-def loss_median(y_t, f):
-    """
-    Median Absolute Error. If q=0.5 the metric is Median Absolute Error.
-    :param y_t: target value
-    :param f: predicted value
-    :return: Median Absolute Error
-    """
-    q = 0.50
-    y_pred = ops.convert_to_tensor_v2_with_dispatch(f)
-    y_true = math_ops.cast(y_t, y_pred.dtype)
-    err = (y_true - y_pred)
-    # err = (math_ops.pow(y_true, 1.5) - math_ops.pow(y_pred, 1.5))
-    # return K.mean(K.maximum(q * err, (q - 1) * err), axis=-1)
-    return K.mean(math_ops.maximum(q * err, (q - 1) * err), axis=-1) # + \
-          # math_ops.sqrt(K.mean(math_ops.squared_difference(y_pred, y_true), axis=-1))
+def loss_quantile(q=0.5):
+
+    def loss(y_t, f):
+        """
+        Median Absolute Error. If q=0.5 the metric is Median Absolute Error.
+        :param y_t: target value
+        :param f: predicted value
+        :return: Median Absolute Error
+        """
+        # q = 0.50
+        y_pred = ops.convert_to_tensor_v2_with_dispatch(f)
+        y_true = math_ops.cast(y_t, y_pred.dtype)
+        err = (y_true - y_pred)
+        # err = (math_ops.pow(y_true, 1.5) - math_ops.pow(y_pred, 1.5))
+        # return K.mean(K.maximum(q * err, (q - 1) * err), axis=-1)
+        return K.mean(math_ops.maximum(q * err, (q - 1) * err), axis=-1)
+
+    return loss
 
 
 def loss_max(y_true, y_predict):
