@@ -63,7 +63,7 @@ with sns.plotting_context("talk"):
     axs[1].set_ylabel('Residuals')
 
     axs[2].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
-                (hhh - y_pred.loc[time_r, det_rng]) / y_pred.loc[time_r, det_rng], # sqrt
+                (hhh - y_pred.loc[time_r, det_rng]) / y_pred.loc[time_r, det_rng] * 100, # sqrt
                  'k-.')
     axs[2].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
                 df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
@@ -365,3 +365,62 @@ for det_rng in ['n0_r0', 'n0_r1', 'n0_r2', 'n6_r0', 'n6_r1', 'n6_r2', 'n8_r0', '
         axs[1].set_xlabel('met')
         axs[1].set_ylabel('Residuals')
         plt.savefig(PATH_TO_SAVE + det_rng + '.png')
+
+# # # GRB 190507970
+start_month = "01-2019"
+end_month = "07-2019"
+orbit_bin = None
+
+# Plot a particular zone and det_rng
+df_ori = pd.read_csv(PATH_TO_FOLD + "/" + 'frg_' + start_month + '_' + end_month + '_MAE' + '.csv')
+y_pred = pd.read_csv(PATH_TO_FOLD + "/" + 'bkg_' + start_month + '_' + end_month + '_MAE' + '.csv')
+
+det_rng = 'n8_r1'
+time_r_min = '2019-05-07 22:55:00'
+time_r_max = '2019-05-07 23:52:59'
+time_r = df_ori[
+    (pd.to_datetime(df_ori.timestamp) >= pd.to_datetime(time_r_min)) &
+    (pd.to_datetime(df_ori.timestamp) < pd.to_datetime(time_r_max))
+].index
+
+# Plot frg, bkg and residual for det_rng
+with sns.plotting_context("talk"):
+    fig, axs = plt.subplots(3, 1, sharex=True, figsize=(24, 12))
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+    fig.suptitle(det_rng + " " + str(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).iloc[0]))
+
+    # Set NaN non nominal count rates
+    hhh = df_ori.loc[time_r, det_rng].copy()
+    hhh.loc[hhh < 250] = None
+
+    # Plot each graph, and manually set the y tick values
+    axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), hhh, 'k-.')
+    axs[0].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']), y_pred.loc[time_r, det_rng], 'r-')
+
+    # axs[0].set_yticks(np.arange(-0.9, 1.0, 0.4))
+    # axs[0].set_ylim(-1, 1)
+    axs[0].set_title('foreground and background')
+    axs[0].set_xlabel('time')
+    axs[0].set_ylabel('Count Rate')
+
+    axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
+                hhh - y_pred.loc[time_r, det_rng],
+                'k-.')
+    axs[1].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
+                df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
+    # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
+    axs[1].set_ylim(-27, 87)
+    axs[1].set_xlabel('time (month-day hour)')
+    axs[1].set_ylabel('Residuals')
+
+    axs[2].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']),
+                (hhh - y_pred.loc[time_r, det_rng]) / y_pred.loc[time_r, det_rng] * 100, # sqrt
+                 'k-.')
+    axs[2].plot(pd.to_datetime(df_ori.loc[time_r, 'timestamp']).fillna(method='ffill'),
+                df_ori.loc[time_r, 'met'].fillna(0) * 0, 'k-')
+    # axs[1].set_yticks(np.arange(0.1, 1.0, 0.2))
+    # axs[1].set_ylim(0, 1)
+    axs[2].set_xlabel('time (month-day hour)')
+    axs[2].set_ylabel('Residuals %') #
+plt.savefig(PATH_TO_SAVE + 'residuals_GRB190507970.png')
