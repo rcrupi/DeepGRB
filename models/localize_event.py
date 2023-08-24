@@ -175,6 +175,16 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             if trig_id is None:
                 plt.savefig(folder_result + "plots/loc/out" + str(row['trig_ids']) + '_loc.png')
                 plt.close('all')
+            # Save Fermi loc Earth plot
+            earthplot = EarthPlot()
+            plt.title(str(row['start_times'])[:-7] + "\n" + str(np.unique(trig_dets)) + "\n" +
+                      str(met_event_loc))
+            plt.xlabel(str(row['catalog_triggers']), labelpad=24)
+            if trig_id is None:
+                earthplot.add_poshist(poshist, trigtime=met_event_loc, time_range=(met_event - 4, met_event_end))
+                plt.savefig(folder_result + "plots/loc/out" + str(row['trig_ids']) + '_loc_Fermi.png')
+                plt.close('all')
+
             # Update catalog for event trig_ids
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'ra'] = np.round(res['ra'], 0)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'dec'] = np.round(res['dec'], 0)
