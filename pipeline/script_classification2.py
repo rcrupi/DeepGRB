@@ -72,7 +72,7 @@ print(df_catalog[ev_type_list].sum())
 # Prepare the dataset
 def prepare_X(df_catalog):
     X = df_catalog[['trig_dets', 'sigma_r0', 'sigma_r1', 'sigma_r2', 'duration',
-                    # 'qtl_cut_r0', 'qtl_cut_r1', 'qtl_cut_r2',
+                    'qtl_cut_r0', 'qtl_cut_r1', 'qtl_cut_r2',
                     'ra', 'dec',
                     'ra_montecarlo', 'dec_montecarlo', 'ra_std', 'dec_std',
                     'ra_earth', 'dec_earth',
@@ -119,23 +119,53 @@ def prepare_X(df_catalog):
                     np.minimum(abs(X['dec'] - X['dec_earth']), 180 - abs(X['dec'] - X['dec_earth']))
     del X['ra_sun'], X['dec_sun'], X['ra_earth'], X['dec_earth'], X['ra'], X['dec']
 
-    X['HR10'] = np.minimum(X['sigma_r1']/X['sigma_r0'], 10)
-    X['HR21'] = np.minimum(X['sigma_r2']/X['sigma_r1'], 10)
+    X['HR10'] = np.minimum(X['sigma_r1'] / X['sigma_r0'], 10)
+    X['HR21'] = np.minimum(X['sigma_r2'] / X['sigma_r1'], 10)
+
+    X['sigma_r0_ratio'] = X['sigma_r0'] / X['duration']
+    X['sigma_r1_ratio'] = X['sigma_r1'] / X['duration']
+    X['sigma_r2_ratio'] = X['sigma_r2'] / X['duration']
+
+    X['num_anti_coincidence'] = (X['num_n1'] & X['num_n8']) + (X['num_n2'] & X['num_n7']) + \
+                                 (X['num_n3'] & X['num_nb']) + (X['num_n4'] & X['num_na']) + \
+                                (X['num_n5'] & X['num_nb'])
 
     X['lon_fermi_shift'] = X['lon_fermi'].apply(lambda x: x if x <= 180 else -(360-x))
     lst_point_saa = [(30, -30), (15, -22.5), (0, -15), (-15, -7.5), (-30, 0), (-45, 3), (-60, 0), (-80, -3),
-                     (-90, -7.5), (-95, -15), (-90, -22.5), (-85, -30)]
+                     (-90, -7.5), (-95, -15),
+                     # (-90, -22.5), (-85, -30)
+                     (-115, -22.5), (-135, -30),
+                     # (-100, 30), (100, - 30)
+                     ]
     # lst_point_saa_lon = [i[0] for i in lst_point_saa]
     # lst_point_saa_lat = [i[1] for i in lst_point_saa]
-    X['dist_saa'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-        lambda x: min([abs(x[0]-i[0])+abs(x[1]-i[1]) for i in lst_point_saa]), axis=1)
+    # X['dist_saa'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+    #      lambda x: min([abs(x[0]-i[0])+abs(x[1]-i[1]) for i in lst_point_saa]), axis=1)
+    X['dist_saa_lon'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+        lambda x: min([abs(x[0] - i[0]) for i in lst_point_saa]), axis=1)
+    X['dist_saa_lat'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+        lambda x: min([abs(x[1] - i[1]) for i in lst_point_saa]), axis=1)
+
+    X['dist_polo_nord_lon'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+        lambda x: abs(x[0] - (-100)), axis=1)
+    X['dist_polo_nord_lat'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+        lambda x: abs(x[1] - 30), axis=1)
+    X['dist_polo_sud_lon'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+        lambda x: abs(x[0] - 100), axis=1)
+    X['dist_polo_sud_lat'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+        lambda x: abs(x[1] - (-30)), axis=1)
+
+    # plt.figure()
+    # plt.scatter(X['lon_fermi_shift'], X['lat_fermi'], c=(X['dist_saa'] < 15))
+    # plt.figure()
+    # plt.scatter(X['lon_fermi_shift'], X['lat_fermi'], c=(df_catalog['UNC(LP)']))
 
     return X
 
 X = prepare_X(df_catalog)
 
 # Train a DT
-for ev_type in ['UNC(LP)']:  # ev_type_list 'GRB', 'SF',
+for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     print("Type of event analysed: ", ev_type)
     y = df_catalog[ev_type]
 
@@ -156,18 +186,18 @@ for ev_type in ['UNC(LP)']:  # ev_type_list 'GRB', 'SF',
         return clf
 
     # Decision Tree
-    clf = DecisionTreeClassifier(random_state=0, max_depth=8, class_weight='balanced', criterion="gini",
-                                 min_impurity_decrease=0.0, min_samples_leaf=1) #0.01, 3
+    clf = DecisionTreeClassifier(random_state=0, max_depth=3, class_weight='balanced', criterion="gini",
+                                 min_impurity_decrease=0.01, min_samples_leaf=2, splitter="best") #0.01, 3
     clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
     plt.figure(figsize=(16, 12))
     tree.plot_tree(clf, filled=True, feature_names=X_train.columns, class_names=[f'NON {ev_type}', f'{ev_type}'])
     plt.title(ev_type)
     plt.show()
-    # # imodels
-    # clf = SkopeRulesClassifier()
-    # # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
-    # clf = wrap_fit(clf, X, X_train, X_test, y, y_train, y_test)
-    # print(clf.rules_[0:3])
+    # imodels
+    clf = SkopeRulesClassifier()
+    # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
+    clf = wrap_fit(clf, X, X_train, X_test, y, y_train, y_test)
+    print(clf.rules_[0:3])
 
 # # Plot Fermi position of earth when local particles occur
 # plt.figure()
@@ -187,29 +217,44 @@ def classification_logic(df_catalog):
     # (X['sigma_r0'] > 27)
     y_pred['TGF'] = (1-df_catalog['earth_vis']) | (X['diff_earth'] < 80)
     y_pred['GF'] = (abs(df_catalog['b_galactic']) < 10) & (df_catalog['earth_vis'])
-    y_pred['UNC(LP)'] = \
-        (((((15 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 30)) &
-           ((220 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 275))) |
-          (((-30 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 8)) &
-           ((230 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 360))) |
-          ((df_catalog['lat_fermi'] < -10) & (df_catalog['lon_fermi'] > 0))) & \
-         (1 - y_pred['SF']) & (X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 11) & (
-                     (X['ra_std'] >= 100) | X['mean_det_not_sol_face'] >= X['mean_det_sol_face'])) & \
-        (X['num_det'] >= 9)
+    # y_pred['UNC(LP)'] = \
+    #     (((((15 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 30)) &
+    #        ((220 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 275))) |
+    #       (((-30 < df_catalog['lat_fermi']) & (df_catalog['lat_fermi'] < 8)) &
+    #        ((230 < df_catalog['lon_fermi']) & (df_catalog['lon_fermi'] < 360))) |
+    #       ((df_catalog['lat_fermi'] < -10) & (df_catalog['lon_fermi'] > 0))) & \
+    #      (1 - y_pred['SF']) & (X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 11) & (
+    #                  (X['ra_std'] >= 100) | X['mean_det_not_sol_face'] >= X['mean_det_sol_face'])) & \
+    #     (X['num_det'] >= 9)
+    y_pred['UNC(LP)'] = ((((X['dist_saa_lon'] <= 15) & (X['dist_saa_lat'] <= 3.6)) |
+                         ((X['dist_polo_nord_lon'] <= 19) & (X['dist_polo_nord_lat'] <= 7.6)) |
+                         ((X['dist_polo_sud_lon'] <= 19) & (X['dist_polo_sud_lat'] <= 7.6)) |
+                         ((X['l'] >= 1.55))
+                         ) & (((X['num_det'] >= 9) | (X['sigma_r0'] >= 100))) &
+                         ((X['diff_sun'] > 11) | (np.maximum(X['ra_std'], X['dec_std']) > 100)))
+
     # rule from Decision Tree
     #     (X['num_det'] <= 8.5)*(df_catalog['l']<=1.551)*(df_catalog['dec_std']>=1179.5)+\
     #     (X['num_det'] <= 8.5)*(df_catalog['l']>1.551)*(df_catalog['ra']>110.5)+\
     #     (X['num_det'] > 8.5)*(df_catalog['ra_std']<=100)*(df_catalog['alt_fermi']<=528117.969)+\
     #     (X['num_det'] > 8.5)*(df_catalog['ra_std']>100)*(df_catalog['l']>1.11)
 
-    y_pred['GRB'] = (df_catalog['earth_vis']) & (X['diff_sun'] >= 25) & (X['sigma_r1'] > 0) & \
-                    (abs(df_catalog['b_galactic']) >= 0) & (X['num_det'] <= 6) & (X['sigma_r0'] <= 20)
+    # y_pred['GRB'] = (df_catalog['earth_vis']) & (X['diff_sun'] >= 25) & (X['sigma_r1'] > 0) & \
+    #                 (abs(df_catalog['b_galactic']) >= 0) & (X['num_det'] <= 6) & (X['sigma_r0'] <= 20)
+
+    y_pred['GRB'] = ((X['HR10'] > 0.64433) &
+                     ((X['sigma_r0'] <= 17.389) | (X['qtl_cut_r1'] > 0.325) | ((X['qtl_cut_r1'] <= 0.325) &
+                                                                               (X['num_anti_coincidence'] <= 1)))
+                     & (~y_pred['UNC(LP)']))
+
+            #(X['diff_sun'] > 10.57662) & (X['HR10'] > 0.64433) & (X['HR21'] <= 0.37867) & (X['sigma_r0'] <= 50.74399) & (X['sigma_r2'] <= 12.71737))
+
     y_pred['UNC'] = 1 - (y_pred['SF'] | y_pred['TGF'] | y_pred['GF'] | y_pred['UNC(LP)'] | y_pred['GRB'])
     return y_pred
 
 y_pred = classification_logic(df_catalog)
 
-for ev_type in ['UNC(LP)', 'GRB', 'SF']:  # 'TGF', 'GF',  'UNC'
+for ev_type in ['SF', 'UNC(LP)', 'GRB']: #,  'SF', 'UNC(LP)'  # 'TGF', 'GF',  'UNC'
     print("Event: ", ev_type)
     print(confusion_matrix(df_catalog[ev_type], y_pred[ev_type]))
     print(classification_report(df_catalog[ev_type], y_pred[ev_type]))
