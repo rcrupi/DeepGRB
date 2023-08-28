@@ -16,3 +16,4 @@ sqlalchemy==1.4.18
 pyswarms==1.3.0
 # ruptures==1.1.6
 keras_tuner==1.1.0
+tsfel==0.1.4

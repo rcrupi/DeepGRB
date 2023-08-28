@@ -7,6 +7,7 @@ from models.loc.localization_class import localization
 from connections.utils.config import PATH_TO_SAVE, FOLD_PRED, FOLD_BKG, FOLD_RES, FOLD_POSHIST
 from gbm.time import Met
 from pathlib import Path
+import tsfel
 
 # Fermi SkyPlot
 from gbm.data import HealPix, PosHist
@@ -91,6 +92,42 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             df_frg_bkg_event = df_frg_bkg.loc[(df_frg_bkg['met'] > met_event - pre_delay) &
                                               (df_frg_bkg['met'] < met_event_end),
                                               col_det]
+            # Extract some features
+            try:
+                df_frg_bkg_event_summed_triggered = df_frg_bkg_event[trig_dets].mean(axis=1).\
+                    interpolate('linear', limit_direction='both')
+                fe_wam = tsfel.feature_extraction.wavelet_abs_mean(df_frg_bkg_event_summed_triggered)
+                fe_wen = tsfel.feature_extraction.wavelet_energy(df_frg_bkg_event_summed_triggered)
+                fe_wet = tsfel.feature_extraction.wavelet_entropy(df_frg_bkg_event_summed_triggered)
+                fe_wstd = tsfel.feature_extraction.wavelet_std(df_frg_bkg_event_summed_triggered)
+                fe_np = tsfel.feature_extraction.neighbourhood_peaks(df_frg_bkg_event_summed_triggered)
+                fe_pp = tsfel.feature_extraction.pk_pk_distance(df_frg_bkg_event_summed_triggered)
+                fe_kur = tsfel.feature_extraction.kurtosis(df_frg_bkg_event_summed_triggered)
+                fe_skw = tsfel.feature_extraction.skewness(df_frg_bkg_event_summed_triggered)
+                fe_max = tsfel.feature_extraction.calc_max(df_frg_bkg_event_summed_triggered)
+                fe_min = tsfel.feature_extraction.calc_min(df_frg_bkg_event_summed_triggered)
+                fe_med = tsfel.feature_extraction.calc_median(df_frg_bkg_event_summed_triggered)
+                fe_mea = tsfel.feature_extraction.calc_mean(df_frg_bkg_event_summed_triggered)
+                fe_std = tsfel.feature_extraction.calc_std(df_frg_bkg_event_summed_triggered)
+                fe_ff = tsfel.feature_extraction.fundamental_frequency(df_frg_bkg_event_summed_triggered, fs=1)
+            except Exception as e:
+                print(e)
+                print("Warning. Cannot compute Wavelet transform and other features. A NaN will be displayed.")
+                fe_wam = [np.nan]*9
+                fe_wen = [np.nan]*9
+                fe_wet = np.nan
+                fe_wstd = [np.nan]*9
+                fe_np = np.nan
+                fe_pp = np.nan
+                fe_kur = np.nan
+                fe_skw = np.nan
+                fe_max = np.nan
+                fe_min = np.nan
+                fe_med = np.nan
+                fe_mea = np.nan
+                fe_std = np.nan
+                fe_ff = np.nan
+
             # Find the peak of energy of the event. From that index localization is computed
             max_fin = 0
             ind_max = None
@@ -140,7 +177,10 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             mean, cov = loc.plot()
             # Download and load poshist files
             if bln_folder:
-                cont_finder = ContinuousFtp(met=int(met_event))
+                try:
+                    cont_finder = ContinuousFtp(met=int(met_event))
+                except:
+                    cont_finder = ContinuousFtp(met=int(met_event))
                 poshist_name = cont_finder.ls_poshist()[0]
                 if poshist_name not in os.listdir(PATH_TO_SAVE + FOLD_POSHIST):
                     try:
@@ -210,6 +250,22 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'lon_fermi'] = poshist.get_longitude(met_event_loc)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'alt_fermi'] = poshist.get_altitude(met_event_loc)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'l'] = poshist.get_mcilwain_l(met_event_loc)
+            # feature for ts
+            for f_tmp in range(0, 9):
+                ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_wam'+str(f_tmp+1)] = fe_wam[f_tmp]
+                ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_wen'+str(f_tmp+1)] = fe_wen[f_tmp]
+                ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_wstd'+str(f_tmp+1)] = fe_wstd[f_tmp]
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_wet'] = fe_wet
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_np'] = fe_np
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_pp'] = fe_pp
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_kur'] = fe_kur
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_skw'] = fe_skw
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_max'] = fe_max
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_min'] = fe_min
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_med'] = fe_med
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_mea'] = fe_mea
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_std'] = fe_std
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_ff'] = fe_ff
 
         except Exception as e:
             print(e)
