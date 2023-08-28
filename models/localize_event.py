@@ -221,7 +221,11 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                       str(met_event_loc))
             plt.xlabel(str(row['catalog_triggers']), labelpad=24)
             if trig_id is None:
-                earthplot.add_poshist(poshist, trigtime=met_event_loc, time_range=(met_event - 4, met_event_end))
+                try:
+                    earthplot.add_poshist(poshist, trigtime=met_event_loc, time_range=(met_event - 4, met_event_end))
+                except:
+                    print("Warning. Time ranges in earth plot could not be specified.")
+                    earthplot.add_poshist(poshist, trigtime=met_event_loc)
                 plt.savefig(folder_result + "plots/loc/out" + str(row['trig_ids']) + '_loc_Fermi.png')
                 plt.close('all')
 
