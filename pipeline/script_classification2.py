@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import tree
-from imodels import SkopeRulesClassifier # , RuleFitClassifier,  HSTreeClassifierCV
+from imodels import SkopeRulesClassifier, RuleFitClassifier,  HSTreeClassifierCV
 # local utils
 from connections.utils.config import FOLD_RES
 
@@ -27,7 +27,7 @@ for (start_month, end_month) in [
     ("11-2010", "02-2011"),
 ]:
     df_catalog = df_catalog.append(
-        pd.read_csv(FOLD_RES + 'frg_' + start_month + '_' + end_month + '/events_table_loc.csv')
+        pd.read_csv(FOLD_RES + 'frg_' + start_month + '_' + end_month + '/events_table_loc_wavelet.csv')
     )
 # drop index and define datetime
 df_catalog = df_catalog.reset_index(drop=True)
@@ -42,7 +42,6 @@ idx_unknown = df_catalog['catalog_triggers'].str.contains("UNKNOWN")
 df_catalog_unk = df_catalog[df_catalog['catalog_triggers'].str.contains("UNKNOWN")].copy()
 print(df_catalog_unk['catalog_triggers'].unique())
 del df_catalog_unk
-
 
 # # # Target variable in the paper
 # GRB: Gamma-Ray burst
@@ -68,6 +67,7 @@ for ev_type in ev_type_list:
         lambda x: ev_type == dct_ev[x[0:3]]).values
 
 print(df_catalog[ev_type_list].sum())
+print(df_catalog[['GRB', 'SF', 'UNC(LP)', 'TGF', 'GF', 'UNC']].mean())
 
 # Prepare the dataset
 def prepare_X(df_catalog):
@@ -83,7 +83,12 @@ def prepare_X(df_catalog):
                     'b_galactic',
                     'lat_fermi', 'lon_fermi',
                     'alt_fermi',
-                    'l'
+                    'l',
+                    'fe_wam1', 'fe_wen1', 'fe_wstd1', 'fe_wam2', 'fe_wen2', 'fe_wstd2', 'fe_wam3', 'fe_wen3',
+                    'fe_wstd3', 'fe_wam4', 'fe_wen4', 'fe_wstd4', 'fe_wam5', 'fe_wen5', 'fe_wstd5', 'fe_wam6',
+                    'fe_wen6', 'fe_wstd6', 'fe_wam7', 'fe_wen7', 'fe_wstd7', 'fe_wam8', 'fe_wen8', 'fe_wstd8',
+                    'fe_wam9', 'fe_wen9', 'fe_wstd9', 'fe_wet',
+                    'fe_np', 'fe_pp', 'fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_med', 'fe_mea', 'fe_std'  # , 'fe_ff'
                     ]].copy()
 
     print(df_catalog[df_catalog['ra'].isna()])
@@ -160,6 +165,9 @@ def prepare_X(df_catalog):
     # plt.figure()
     # plt.scatter(X['lon_fermi_shift'], X['lat_fermi'], c=(df_catalog['UNC(LP)']))
 
+    # for col_stat in ['fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_mea', 'fe_std']:
+    #     X[col_stat + '_norm'] = X[col_stat] / X['fe_med']
+
     return X
 
 X = prepare_X(df_catalog)
@@ -169,7 +177,15 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     print("Type of event analysed: ", ev_type)
     y = df_catalog[ev_type]
 
-    # lst_select_col = ['dist_saa', 'l', 'num_det_rng', 'mean_det_sol_face', 'diff_sun', 'mean_det_not_sol_face']
+    # lst_select_col = ['fe_wam1', 'fe_wen1', 'fe_wstd1', 'fe_wam2', 'fe_wen2', 'fe_wstd2', 'fe_wam3', 'fe_wen3',
+    #                 'fe_wstd3', 'fe_wam4', 'fe_wen4', 'fe_wstd4', 'fe_wam5', 'fe_wen5', 'fe_wstd5', 'fe_wam6',
+    #                 'fe_wen6', 'fe_wstd6', 'fe_wam7', 'fe_wen7', 'fe_wstd7', 'fe_wam8', 'fe_wen8', 'fe_wstd8',
+    #                 'fe_wam9', 'fe_wen9', 'fe_wstd9', 'fe_wet',
+    #                 'fe_np', 'fe_pp', 'fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_med', 'fe_mea', 'fe_std',
+    #                   'dist_polo_sud_lat', 'fe_kur_norm', 'fe_skw_norm', 'fe_max_norm', 'fe_min_norm', 'fe_mea_norm',
+    #                   'fe_std_norm'
+    #                   ]
+    # lst_select_col = [i for i in X.columns if i not in ['HR10', 'sigma_r0', 'dec_montecarlo', 'sigma_r2_ratio', 'sigma_r1_ratio']]
     lst_select_col = X.columns
 
     X_train, X_test, y_train, y_test = train_test_split(X[lst_select_col], y, test_size=0.15, random_state=42, stratify=y)
@@ -194,9 +210,9 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     plt.title(ev_type)
     plt.show()
     # imodels
-    clf = SkopeRulesClassifier()
+    clf = RuleFitClassifier() #SkopeRulesClassifier()
     # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
-    clf = wrap_fit(clf, X, X_train, X_test, y, y_train, y_test)
+    clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
     print(clf.rules_[0:3])
 
 # # Plot Fermi position of earth when local particles occur
@@ -230,7 +246,7 @@ def classification_logic(df_catalog):
                          ((X['dist_polo_nord_lon'] <= 19) & (X['dist_polo_nord_lat'] <= 7.6)) |
                          ((X['dist_polo_sud_lon'] <= 19) & (X['dist_polo_sud_lat'] <= 7.6)) |
                          ((X['l'] >= 1.55))
-                         ) & (((X['num_det'] >= 9) | (X['sigma_r0'] >= 100))) &
+                         ) & (((X['num_det'] >= 9) | (X['fe_wet'] < 2))) &   #   (X['sigma_r0'] >= 100)
                          ((X['diff_sun'] > 11) | (np.maximum(X['ra_std'], X['dec_std']) > 100)))
 
     # rule from Decision Tree
@@ -242,10 +258,12 @@ def classification_logic(df_catalog):
     # y_pred['GRB'] = (df_catalog['earth_vis']) & (X['diff_sun'] >= 25) & (X['sigma_r1'] > 0) & \
     #                 (abs(df_catalog['b_galactic']) >= 0) & (X['num_det'] <= 6) & (X['sigma_r0'] <= 20)
 
-    y_pred['GRB'] = ((X['HR10'] > 0.64433) &
-                     ((X['sigma_r0'] <= 17.389) | (X['qtl_cut_r1'] > 0.325) | ((X['qtl_cut_r1'] <= 0.325) &
-                                                                               (X['num_anti_coincidence'] <= 1)))
-                     & (~y_pred['UNC(LP)']))
+    # y_pred['GRB'] = ((X['HR10'] > 0.64433) &
+    #                  ((X['sigma_r0'] <= 17.389) | (X['qtl_cut_r1'] > 0.325) | ((X['qtl_cut_r1'] <= 0.325) &
+    #                                                                            (X['num_anti_coincidence'] <= 1)))
+    #                  & (~y_pred['UNC(LP)']))
+    y_pred['GRB'] = (((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001) & (X['fe_wam5'] > 0.724)))  #|
+                     #((X['HR10'] <= 0.64433) & (X['fe_wstd6'] <= 10.662))) & (~y_pred['UNC(LP)'])
 
             #(X['diff_sun'] > 10.57662) & (X['HR10'] > 0.64433) & (X['HR21'] <= 0.37867) & (X['sigma_r0'] <= 50.74399) & (X['sigma_r2'] <= 12.71737))
 
