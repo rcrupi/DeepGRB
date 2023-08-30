@@ -212,7 +212,12 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     # imodels
     clf = RuleFitClassifier() #SkopeRulesClassifier()
     # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
-    clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
+    from sklearn.preprocessing import QuantileTransformer
+    qt = QuantileTransformer(n_quantiles=10, random_state=0)
+    X_train = pd.DataFrame(qt.fit_transform(X_train), columns=lst_select_col, index=X_train.index)
+    X_test = pd.DataFrame(qt.transform(X_test), columns=lst_select_col, index=X_test.index)
+    X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
+    clf = wrap_fit(clf, X_tot_norm, X_train, X_test, y, y_train, y_test)
     print(clf.rules_[0:3])
 
 # # Plot Fermi position of earth when local particles occur
@@ -247,7 +252,8 @@ def classification_logic(df_catalog):
                          ((X['dist_polo_sud_lon'] <= 19) & (X['dist_polo_sud_lat'] <= 7.6)) |
                          ((X['l'] >= 1.55))
                          ) & (((X['num_det'] >= 9) | (X['fe_wet'] < 2))) &   #   (X['sigma_r0'] >= 100)
-                         ((X['diff_sun'] > 11) | (np.maximum(X['ra_std'], X['dec_std']) > 100)))
+                         ((X['diff_sun'] > 35) | (np.maximum(X['ra_std'], X['dec_std']) > 100))
+                         )
 
     # rule from Decision Tree
     #     (X['num_det'] <= 8.5)*(df_catalog['l']<=1.551)*(df_catalog['dec_std']>=1179.5)+\
@@ -262,7 +268,7 @@ def classification_logic(df_catalog):
     #                  ((X['sigma_r0'] <= 17.389) | (X['qtl_cut_r1'] > 0.325) | ((X['qtl_cut_r1'] <= 0.325) &
     #                                                                            (X['num_anti_coincidence'] <= 1)))
     #                  & (~y_pred['UNC(LP)']))
-    y_pred['GRB'] = (((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001) & (X['fe_wam5'] > 0.724)))  #|
+    y_pred['GRB'] = (((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001)))# & (X['fe_wam5'] > 0.724)))  #|
                      #((X['HR10'] <= 0.64433) & (X['fe_wstd6'] <= 10.662))) & (~y_pred['UNC(LP)'])
 
             #(X['diff_sun'] > 10.57662) & (X['HR10'] > 0.64433) & (X['HR21'] <= 0.37867) & (X['sigma_r0'] <= 50.74399) & (X['sigma_r2'] <= 12.71737))
