@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import tree
+from sklearn.ensemble import RandomForestClassifier
 from imodels import SkopeRulesClassifier, RuleFitClassifier,  HSTreeClassifierCV
 # local utils
 from connections.utils.config import FOLD_RES
@@ -165,8 +166,8 @@ def prepare_X(df_catalog):
     # plt.figure()
     # plt.scatter(X['lon_fermi_shift'], X['lat_fermi'], c=(df_catalog['UNC(LP)']))
 
-    # for col_stat in ['fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_mea', 'fe_std']:
-    #     X[col_stat + '_norm'] = X[col_stat] / X['fe_med']
+    # for col_stat in ['fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_mea', 'fe_med', 'fe_std']:
+    #     X[col_stat + '_norm'] = X[col_stat] / X['fe_mea']
 
     return X
 
@@ -201,24 +202,30 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
         print(classification_report(y_test, y_pred_test))
         return clf
 
+    # Random Forest feature importance
+    clf = RandomForestClassifier(n_estimators=200, max_depth=3, class_weight='balanced', random_state=0)
+    clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
+    print("Feature Importance Random Forest.")
+    print(pd.Series(dict(zip(X.columns, clf.feature_importances_))).sort_values(ascending=False).head(10))
+
     # Decision Tree
     clf = DecisionTreeClassifier(random_state=0, max_depth=3, class_weight='balanced', criterion="gini",
-                                 min_impurity_decrease=0.01, min_samples_leaf=2, splitter="best") #0.01, 3
+                                 min_impurity_decrease=0.01, min_samples_leaf=3, splitter="best")
     clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
     plt.figure(figsize=(16, 12))
     tree.plot_tree(clf, filled=True, feature_names=X_train.columns, class_names=[f'NON {ev_type}', f'{ev_type}'])
     plt.title(ev_type)
     plt.show()
-    # imodels
-    clf = RuleFitClassifier() #SkopeRulesClassifier()
-    # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
-    from sklearn.preprocessing import QuantileTransformer
-    qt = QuantileTransformer(n_quantiles=10, random_state=0)
-    X_train = pd.DataFrame(qt.fit_transform(X_train), columns=lst_select_col, index=X_train.index)
-    X_test = pd.DataFrame(qt.transform(X_test), columns=lst_select_col, index=X_test.index)
-    X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
-    clf = wrap_fit(clf, X_tot_norm, X_train, X_test, y, y_train, y_test)
-    print(clf.rules_[0:3])
+    # # imodels
+    # clf = RuleFitClassifier() #SkopeRulesClassifier()
+    # # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
+    # from sklearn.preprocessing import QuantileTransformer
+    # qt = QuantileTransformer(n_quantiles=10, random_state=0)
+    # X_train = pd.DataFrame(qt.fit_transform(X_train), columns=lst_select_col, index=X_train.index)
+    # X_test = pd.DataFrame(qt.transform(X_test), columns=lst_select_col, index=X_test.index)
+    # X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
+    # clf = wrap_fit(clf, X_tot_norm, X_train, X_test, y, y_train, y_test)
+    # print(clf.rules_[0:3])
 
 # # Plot Fermi position of earth when local particles occur
 # plt.figure()
@@ -268,7 +275,7 @@ def classification_logic(df_catalog):
     #                  ((X['sigma_r0'] <= 17.389) | (X['qtl_cut_r1'] > 0.325) | ((X['qtl_cut_r1'] <= 0.325) &
     #                                                                            (X['num_anti_coincidence'] <= 1)))
     #                  & (~y_pred['UNC(LP)']))
-    y_pred['GRB'] = (((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001)))# & (X['fe_wam5'] > 0.724)))  #|
+    y_pred['GRB'] = (((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001))) # (X['fe_wam5'] > 0.724)))  #|
                      #((X['HR10'] <= 0.64433) & (X['fe_wstd6'] <= 10.662))) & (~y_pred['UNC(LP)'])
 
             #(X['diff_sun'] > 10.57662) & (X['HR10'] > 0.64433) & (X['HR21'] <= 0.37867) & (X['sigma_r0'] <= 50.74399) & (X['sigma_r2'] <= 12.71737))
