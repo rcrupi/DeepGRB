@@ -5,7 +5,7 @@
 **DeepGRB** is a framework for serching astronomical events. Is composed by a background estimator, performed with a Neural Network, and on top applied an efficent trigger algorithm called FOCuS.
 
 > ### Authors & contributors:
-> **Riccardo Crupi**, **Giuseppe Dilillo**, Elisabetta Bissaldi, Fabrizio Fiore, Andrea Vacchi
+> **Riccardo Crupi**, **Giuseppe Dilillo**, Elisabetta Bissaldi, Kester Ward, Fabrizio Fiore, Andrea Vacchi
 
 To know more about this research work, please refer to:
 - **Searching for long faint astronomical high energy transients: a data driven approach**. Riccardo Crupi, Giuseppe Dilillo, Elisabetta Bissaldi, Fabrizio Fiore, Andrea Vacchi. https://arxiv.org/abs/2303.15936
