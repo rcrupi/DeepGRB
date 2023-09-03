@@ -18,9 +18,9 @@ pd.set_option("display.width", 1000)
 pd.set_option("display.max_rows", 500)
 pd.set_option("display.max_columns", 500)
 
-# Load catalog from paper
+# # # Load catalog from paper
 df_class = pd.read_csv(Path(os.getcwd()).parent / "data/DeepGRB_catalog.csv", index_col=0)
-# Load raw catalogs
+# # # Load raw catalogs
 df_catalog = pd.DataFrame()
 for (start_month, end_month) in [
     ("03-2019", "07-2019"),
@@ -67,10 +67,15 @@ for ev_type in ev_type_list:
     df_catalog.loc[~idx_unknown, ev_type] = df_catalog.loc[~idx_unknown, 'catalog_triggers'].apply(
         lambda x: ev_type == dct_ev[x[0:3]]).values
 
+print('Statistics total:')
 print(df_catalog[ev_type_list].sum())
 print(df_catalog[['GRB', 'SF', 'UNC(LP)', 'TGF', 'GF', 'UNC']].mean())
+print('Statistics unknown:')
+print(df_catalog.loc[df_catalog.catalog_triggers.str.contains('UNKNOWN'), ev_type_list].sum())
+print(df_catalog.loc[df_catalog.catalog_triggers.str.contains('UNKNOWN'),
+['GRB', 'SF', 'UNC(LP)', 'TGF', 'GF', 'UNC']].mean())
 
-# Prepare the dataset
+# # # Prepare the dataset
 def prepare_X(df_catalog):
     X = df_catalog[['trig_dets', 'sigma_r0', 'sigma_r1', 'sigma_r2', 'duration',
                     'qtl_cut_r0', 'qtl_cut_r1', 'qtl_cut_r2',
@@ -84,13 +89,7 @@ def prepare_X(df_catalog):
                     'b_galactic',
                     'lat_fermi', 'lon_fermi',
                     'alt_fermi',
-                    'l',
-                    'fe_wam1', 'fe_wen1', 'fe_wstd1', 'fe_wam2', 'fe_wen2', 'fe_wstd2', 'fe_wam3', 'fe_wen3',
-                    'fe_wstd3', 'fe_wam4', 'fe_wen4', 'fe_wstd4', 'fe_wam5', 'fe_wen5', 'fe_wstd5', 'fe_wam6',
-                    'fe_wen6', 'fe_wstd6', 'fe_wam7', 'fe_wen7', 'fe_wstd7', 'fe_wam8', 'fe_wen8', 'fe_wstd8',
-                    'fe_wam9', 'fe_wen9', 'fe_wstd9', 'fe_wet',
-                    'fe_np', 'fe_pp', 'fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_med', 'fe_mea', 'fe_std'  # , 'fe_ff'
-                    ]].copy()
+                    'l'] + [i for i in df_catalog.columns if 'fe_' in i]].copy()
 
     print(df_catalog[df_catalog['ra'].isna()])
     X = X.fillna(0)
@@ -145,21 +144,21 @@ def prepare_X(df_catalog):
                      ]
     # lst_point_saa_lon = [i[0] for i in lst_point_saa]
     # lst_point_saa_lat = [i[1] for i in lst_point_saa]
-    # X['dist_saa'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-    #      lambda x: min([abs(x[0]-i[0])+abs(x[1]-i[1]) for i in lst_point_saa]), axis=1)
-    X['dist_saa_lon'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-        lambda x: min([abs(x[0] - i[0]) for i in lst_point_saa]), axis=1)
-    X['dist_saa_lat'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-        lambda x: min([abs(x[1] - i[1]) for i in lst_point_saa]), axis=1)
+    X['dist_saa'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
+         lambda x: min([abs(x[0]-i[0])+abs(x[1]-i[1]) for i in lst_point_saa]), axis=1)
+    X['dist_saa_lon'] = X['lon_fermi_shift'].apply(
+        lambda x: min([abs(x - i[0]) for i in lst_point_saa]))
+    X['dist_saa_lat'] = X['lat_fermi'].apply(
+        lambda x: min([abs(x - i[1]) for i in lst_point_saa]))
 
-    X['dist_polo_nord_lon'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-        lambda x: abs(x[0] - (-100)), axis=1)
-    X['dist_polo_nord_lat'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-        lambda x: abs(x[1] - 30), axis=1)
-    X['dist_polo_sud_lon'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-        lambda x: abs(x[0] - 100), axis=1)
-    X['dist_polo_sud_lat'] = X[['lon_fermi_shift', 'lat_fermi']].apply(
-        lambda x: abs(x[1] - (-30)), axis=1)
+    X['dist_polo_nord_lon'] = X['lon_fermi_shift'].apply(
+        lambda x: abs(x - (-100)))
+    X['dist_polo_nord_lat'] = X['lat_fermi'].apply(
+        lambda x: abs(x - 30))
+    X['dist_polo_sud_lon'] = X['lon_fermi_shift'].apply(
+        lambda x: abs(x - 100))
+    X['dist_polo_sud_lat'] = X['lat_fermi'].apply(
+        lambda x: abs(x - (-30)))
 
     # plt.figure()
     # plt.scatter(X['lon_fermi_shift'], X['lat_fermi'], c=(X['dist_saa'] < 15))
@@ -203,18 +202,19 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
         return clf
 
     # Random Forest feature importance
-    clf = RandomForestClassifier(n_estimators=200, max_depth=3, class_weight='balanced', random_state=0)
-    clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
+    clf = RandomForestClassifier(n_estimators=200, max_depth=4, class_weight='balanced', random_state=0)
+    clf = wrap_fit(clf, X[lst_select_col], X_train[lst_select_col], X_test[lst_select_col], y, y_train, y_test)
     print("Feature Importance Random Forest.")
-    best_10_col = pd.Series(dict(zip(X.columns, clf.feature_importances_))).sort_values(ascending=False).head(10)
+    best_10_col = pd.Series(dict(zip(X[lst_select_col].columns, clf.feature_importances_))).sort_values(ascending=False).head(10)
     print(best_10_col)
 
     # Decision Tree
-    clf = DecisionTreeClassifier(random_state=0, max_depth=3, class_weight='balanced', criterion="gini",
-                                 min_impurity_decrease=0.02, min_samples_leaf=2, splitter="best")
-    clf = wrap_fit(clf, X[best_10_col.index], X_train[best_10_col.index], X_test[best_10_col.index], y, y_train, y_test)
+    lst_select_col_dt = lst_select_col #  best_10_col.index
+    clf = DecisionTreeClassifier(random_state=0, max_depth=4, class_weight='balanced', criterion="gini",
+                                 min_impurity_decrease=0.01, min_samples_leaf=2, splitter="best")
+    clf = wrap_fit(clf, X[lst_select_col_dt], X_train[lst_select_col_dt], X_test[lst_select_col_dt], y, y_train, y_test)
     plt.figure(figsize=(16, 12))
-    tree.plot_tree(clf, filled=True, feature_names=X_train[best_10_col.index].columns, class_names=[f'NON {ev_type}', f'{ev_type}'])
+    tree.plot_tree(clf, filled=True, feature_names=lst_select_col_dt, class_names=[f'NON {ev_type}', f'{ev_type}'])
     plt.title(ev_type)
     plt.show()
     # # imodels
@@ -276,7 +276,9 @@ def classification_logic(df_catalog):
     #                  ((X['sigma_r0'] <= 17.389) | (X['qtl_cut_r1'] > 0.325) | ((X['qtl_cut_r1'] <= 0.325) &
     #                                                                            (X['num_anti_coincidence'] <= 1)))
     #                  & (~y_pred['UNC(LP)']))
-    y_pred['GRB'] = ((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001)) # (X['fe_wen1'] > 7.889) & (X['HR21'] <= 0.492))
+    # y_pred['GRB'] = ((X['HR10'] > 0.64433) & (X['fe_wen4'] > 7.889) & (X['dist_saa'] > 9.687))#  & (~y_pred['UNC(LP)']) & (~ y_pred['SF'])
+    y_pred['GRB'] = ((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001) & (X['dist_saa'] > 9.687))
+    # (X['fe_wen1'] > 7.889) & (X['HR21'] <= 0.492))
     # y_pred['GRB'] = ((X['fe_mea'] <= 48.119) & (X['fe_wen1'] > 7.889) & (X['fe_wet'] > 2.001))
 
 
