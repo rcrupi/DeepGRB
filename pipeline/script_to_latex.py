@@ -111,12 +111,12 @@ idx_unknown = df_tmp2_class['catalog_triggers'] == 'UNKNOWN'
 df_tmp2_class.loc[idx_unknown, 'catalog_triggers'] = 'UNKNOWN: ' + df_tmp2_class['class']
 del df_tmp2_class['class']
 
-if not bln_to_latex:
-    df_tmp2_class.to_csv(DEEP_GRB_CSV)
-
 # add * to the seven events
 for trig_ids_tmp in the_events:
     df_tmp2_class.loc[df_tmp2_class['trig_ids'] == trig_ids_tmp, 'trig_ids'] = trig_ids_tmp + '*'
+
+if not bln_to_latex:
+    df_tmp2_class.to_csv(DEEP_GRB_CSV)
 
 # print latex tables
 print(df_tmp2_class[idx_unknown].to_latex())
