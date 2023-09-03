@@ -85,8 +85,7 @@ for col_sigma in ['sigma_r0', 'sigma_r1', 'sigma_r2']:
         df_tmp2.loc[df_tmp2[col_sigma] < 0, col_sigma] = 0
     # Set a symbol to avoid enormous standard score
     #df_tmp2[col_sigma] = df_tmp2[col_sigma].astype('str')
-    if bln_to_latex:
-        df_tmp2.loc[df_tmp2[col_sigma] > 10, col_sigma] = '$>10$'
+    df_tmp2.loc[df_tmp2[col_sigma] > 10, col_sigma] = '$>10$'
 
 df_tmp_sorted = df_tmp.sort_values(by=['sigma_max'])
 print(df_tmp2[df_tmp2['datetime'].isin(selected_trig_eve)])
