@@ -29,3 +29,4 @@ else:
     FOLD_RES = Path(db_path).parent.parent / 'results/'
 GBM_BURST_DB = Path(db_path).parent.parent / 'data/gbm_burst_catalog.db'
 GBM_TRIG_DB = Path(db_path).parent.parent / 'data/gbm_trig_catalog.csv'
+DEEP_GRB_CSV = Path(db_path).parent.parent / 'data/DeepGRB_catalog.csv'

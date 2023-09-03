@@ -166,8 +166,8 @@ def prepare_X(df_catalog):
     # plt.figure()
     # plt.scatter(X['lon_fermi_shift'], X['lat_fermi'], c=(df_catalog['UNC(LP)']))
 
-    # for col_stat in ['fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_mea', 'fe_med', 'fe_std']:
-    #     X[col_stat + '_norm'] = X[col_stat] / X['fe_mea']
+    for col_stat in ['fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_mea', 'fe_med', 'fe_std']:
+        X[col_stat + '_norm'] = X[col_stat] / X['fe_mea']
 
     return X
 
@@ -186,10 +186,10 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     #                   'dist_polo_sud_lat', 'fe_kur_norm', 'fe_skw_norm', 'fe_max_norm', 'fe_min_norm', 'fe_mea_norm',
     #                   'fe_std_norm'
     #                   ]
-    # lst_select_col = [i for i in X.columns if i not in ['HR10', 'sigma_r0', 'dec_montecarlo', 'sigma_r2_ratio', 'sigma_r1_ratio']]
+    # lst_select_col = [i for i in X.columns if 'fe_' in i]
     lst_select_col = X.columns
 
-    X_train, X_test, y_train, y_test = train_test_split(X[lst_select_col], y, test_size=0.15, random_state=42, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(X[lst_select_col], y, test_size=0.3, random_state=42, stratify=y)
     def wrap_fit(clf, X, X_train, X_test, y, y_train, y_test):
         clf.fit(X_train, y_train)
         y_pred_tot = clf.predict(X)
@@ -206,14 +206,15 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     clf = RandomForestClassifier(n_estimators=200, max_depth=3, class_weight='balanced', random_state=0)
     clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
     print("Feature Importance Random Forest.")
-    print(pd.Series(dict(zip(X.columns, clf.feature_importances_))).sort_values(ascending=False).head(10))
+    best_10_col = pd.Series(dict(zip(X.columns, clf.feature_importances_))).sort_values(ascending=False).head(10)
+    print(best_10_col)
 
     # Decision Tree
     clf = DecisionTreeClassifier(random_state=0, max_depth=3, class_weight='balanced', criterion="gini",
-                                 min_impurity_decrease=0.01, min_samples_leaf=3, splitter="best")
-    clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
+                                 min_impurity_decrease=0.02, min_samples_leaf=2, splitter="best")
+    clf = wrap_fit(clf, X[best_10_col.index], X_train[best_10_col.index], X_test[best_10_col.index], y, y_train, y_test)
     plt.figure(figsize=(16, 12))
-    tree.plot_tree(clf, filled=True, feature_names=X_train.columns, class_names=[f'NON {ev_type}', f'{ev_type}'])
+    tree.plot_tree(clf, filled=True, feature_names=X_train[best_10_col.index].columns, class_names=[f'NON {ev_type}', f'{ev_type}'])
     plt.title(ev_type)
     plt.show()
     # # imodels
@@ -254,11 +255,11 @@ def classification_logic(df_catalog):
     #      (1 - y_pred['SF']) & (X['sigma_r0'] + X['sigma_r1'] + X['sigma_r2'] >= 11) & (
     #                  (X['ra_std'] >= 100) | X['mean_det_not_sol_face'] >= X['mean_det_sol_face'])) & \
     #     (X['num_det'] >= 9)
-    y_pred['UNC(LP)'] = ((((X['dist_saa_lon'] <= 15) & (X['dist_saa_lat'] <= 3.6)) |
+    y_pred['UNC(LP)'] = ((((X['dist_saa_lon'] <= 9) & (X['dist_saa_lat'] <= 3.6)) |
                          ((X['dist_polo_nord_lon'] <= 19) & (X['dist_polo_nord_lat'] <= 7.6)) |
-                         ((X['dist_polo_sud_lon'] <= 19) & (X['dist_polo_sud_lat'] <= 7.6)) |
-                         ((X['l'] >= 1.55))
-                         ) & (((X['num_det'] >= 9) | (X['fe_wet'] < 2))) &   #   (X['sigma_r0'] >= 100)
+                         ((X['dist_polo_sud_lon'] <= 19) & (X['dist_polo_sud_lat'] <= 7.6)) #|
+                         # ((X['l'] >= 1.55))
+                         ) & ((X['num_det'] >= 9) | (X['fe_std_norm'] < 0.4)) &  #  (X['fe_wstd1'] <= 10.365) (X['fe_wet'] < 2))
                          ((X['diff_sun'] > 35) | (np.maximum(X['ra_std'], X['dec_std']) > 100))
                          )
 
@@ -275,10 +276,9 @@ def classification_logic(df_catalog):
     #                  ((X['sigma_r0'] <= 17.389) | (X['qtl_cut_r1'] > 0.325) | ((X['qtl_cut_r1'] <= 0.325) &
     #                                                                            (X['num_anti_coincidence'] <= 1)))
     #                  & (~y_pred['UNC(LP)']))
-    y_pred['GRB'] = (((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001))) # (X['fe_wam5'] > 0.724)))  #|
-                     #((X['HR10'] <= 0.64433) & (X['fe_wstd6'] <= 10.662))) & (~y_pred['UNC(LP)'])
+    y_pred['GRB'] = ((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001)) # (X['fe_wen1'] > 7.889) & (X['HR21'] <= 0.492))
+    # y_pred['GRB'] = ((X['fe_mea'] <= 48.119) & (X['fe_wen1'] > 7.889) & (X['fe_wet'] > 2.001))
 
-            #(X['diff_sun'] > 10.57662) & (X['HR10'] > 0.64433) & (X['HR21'] <= 0.37867) & (X['sigma_r0'] <= 50.74399) & (X['sigma_r2'] <= 12.71737))
 
     y_pred['UNC'] = 1 - (y_pred['SF'] | y_pred['TGF'] | y_pred['GF'] | y_pred['UNC(LP)'] | y_pred['GRB'])
     return y_pred

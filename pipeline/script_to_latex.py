@@ -2,11 +2,13 @@ import pandas as pd
 import numpy as np
 from pipeline.manual_label import p_manual_2011, p_manual_2014, p_manual_2019, selected_trig_eve, event_2010, \
     event_2014, event_2019, the_events
-from connections.utils.config import FOLD_RES
+from connections.utils.config import FOLD_RES, DEEP_GRB_CSV
 
 pd.options.display.max_rows = 100
 pd.options.display.max_columns = 100
 pd.options.display.width = 1000
+
+bln_to_latex = True  # If False save to csv
 
 path_1 = FOLD_RES
 p_2014 = "frg_01-2014_03-2014/"
@@ -83,7 +85,8 @@ for col_sigma in ['sigma_r0', 'sigma_r1', 'sigma_r2']:
         df_tmp2.loc[df_tmp2[col_sigma] < 0, col_sigma] = 0
     # Set a symbol to avoid enormous standard score
     #df_tmp2[col_sigma] = df_tmp2[col_sigma].astype('str')
-    df_tmp2.loc[df_tmp2[col_sigma] > 10, col_sigma] = '$>10$'
+    if bln_to_latex:
+        df_tmp2.loc[df_tmp2[col_sigma] > 10, col_sigma] = '$>10$'
 
 df_tmp_sorted = df_tmp.sort_values(by=['sigma_max'])
 print(df_tmp2[df_tmp2['datetime'].isin(selected_trig_eve)])
@@ -109,12 +112,15 @@ idx_unknown = df_tmp2_class['catalog_triggers'] == 'UNKNOWN'
 df_tmp2_class.loc[idx_unknown, 'catalog_triggers'] = 'UNKNOWN: ' + df_tmp2_class['class']
 del df_tmp2_class['class']
 
+if not bln_to_latex:
+    df_tmp2_class.to_csv(DEEP_GRB_CSV)
+
 # add * to the seven events
 for trig_ids_tmp in the_events:
     df_tmp2_class.loc[df_tmp2_class['trig_ids'] == trig_ids_tmp, 'trig_ids'] = trig_ids_tmp + '*'
 
 # print latex tables
 print(df_tmp2_class[idx_unknown].to_latex())
-print(df_tmp2_class[(idx_unknown!=True)].to_latex())
+print(df_tmp2_class[~idx_unknown].to_latex())
 
 pass

@@ -445,7 +445,7 @@ def save_triggers_plots(events, threshold, folder):
 
         ranges = list(set([int(t[-1]) for t in triggered_dets]))
 
-        fig, ax = event.plot(triggered_dets, figsize=(7, 6), enlarge=100)
+        fig, ax = event.plot(triggered_dets, figsize=(7, 6), enlarge=100, bln_ylim=True)
         for i in ranges:
             ax[i].axvspan(fermi.met.iloc[event.start_offset - 1], fermi.met.iloc[event.end], color='r', alpha=0.1)
         fig.suptitle('{} ({},{}) '.format(event.fermi.timestamp.iloc[0][:-7], event.start, event.end), x=0.34)
