@@ -96,10 +96,12 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             try:
                 df_frg_bkg_event_summed_triggered = df_frg_bkg_event[trig_dets].mean(axis=1).\
                     interpolate('linear', limit_direction='both')
-                fe_wam = tsfel.feature_extraction.wavelet_abs_mean(df_frg_bkg_event_summed_triggered)
-                fe_wen = tsfel.feature_extraction.wavelet_energy(df_frg_bkg_event_summed_triggered)
-                fe_wet = tsfel.feature_extraction.wavelet_entropy(df_frg_bkg_event_summed_triggered)
-                fe_wstd = tsfel.feature_extraction.wavelet_std(df_frg_bkg_event_summed_triggered)
+                widths = np.arange(1, 10)  # [2.0**i for i in np.arange(-3, 11)]
+                len_widths = len(widths)
+                fe_wam = tsfel.feature_extraction.wavelet_abs_mean(df_frg_bkg_event_summed_triggered, widths=widths)
+                fe_wen = tsfel.feature_extraction.wavelet_energy(df_frg_bkg_event_summed_triggered, widths=widths)
+                fe_wet = tsfel.feature_extraction.wavelet_entropy(df_frg_bkg_event_summed_triggered, widths=widths)
+                fe_wstd = tsfel.feature_extraction.wavelet_std(df_frg_bkg_event_summed_triggered, widths=widths)
                 fe_np = tsfel.feature_extraction.neighbourhood_peaks(df_frg_bkg_event_summed_triggered)
                 fe_pp = tsfel.feature_extraction.pk_pk_distance(df_frg_bkg_event_summed_triggered)
                 fe_kur = tsfel.feature_extraction.kurtosis(df_frg_bkg_event_summed_triggered)
@@ -113,10 +115,10 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             except Exception as e:
                 print(e)
                 print("Warning. Cannot compute Wavelet transform and other features. A NaN will be displayed.")
-                fe_wam = [np.nan]*9
-                fe_wen = [np.nan]*9
+                fe_wam = [np.nan]*len_widths
+                fe_wen = [np.nan]*len_widths
                 fe_wet = np.nan
-                fe_wstd = [np.nan]*9
+                fe_wstd = [np.nan]*len_widths
                 fe_np = np.nan
                 fe_pp = np.nan
                 fe_kur = np.nan
@@ -255,7 +257,7 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'alt_fermi'] = poshist.get_altitude(met_event_loc)
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'l'] = poshist.get_mcilwain_l(met_event_loc)
             # feature for ts
-            for f_tmp in range(0, 9):
+            for f_tmp in range(0, len_widths):
                 ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_wam'+str(f_tmp+1)] = fe_wam[f_tmp]
                 ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_wen'+str(f_tmp+1)] = fe_wen[f_tmp]
                 ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_wstd'+str(f_tmp+1)] = fe_wstd[f_tmp]
