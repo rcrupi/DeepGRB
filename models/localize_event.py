@@ -94,14 +94,24 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                                               col_det]
             # Extract some features
             try:
-                df_frg_bkg_event_summed_triggered = df_frg_bkg_event[trig_dets].mean(axis=1).\
+                time_witdh = 0  # 64
+                bln_normalize = False
+                df_frg_bkg_event_fe = df_frg_bkg.loc[(df_frg_bkg['met'] > met_event - pre_delay - time_witdh) &
+                                                  (df_frg_bkg['met'] < met_event_end + time_witdh),
+                                                  col_det]
+                df_frg_bkg_event_summed_triggered = df_frg_bkg_event_fe[trig_dets].mean(axis=1).\
                     interpolate('linear', limit_direction='both')
                 widths = np.arange(1, 10)  # [2.0**i for i in np.arange(-3, 11)]
                 len_widths = len(widths)
-                fe_wam = tsfel.feature_extraction.wavelet_abs_mean(df_frg_bkg_event_summed_triggered, widths=widths)
-                fe_wen = tsfel.feature_extraction.wavelet_energy(df_frg_bkg_event_summed_triggered, widths=widths)
-                fe_wet = tsfel.feature_extraction.wavelet_entropy(df_frg_bkg_event_summed_triggered, widths=widths)
-                fe_wstd = tsfel.feature_extraction.wavelet_std(df_frg_bkg_event_summed_triggered, widths=widths)
+                if bln_normalize:
+                    df_frg_bkg_e_s_t_norm = (df_frg_bkg_event_summed_triggered - df_frg_bkg_event_summed_triggered.min()) / \
+                    (df_frg_bkg_event_summed_triggered.max() - df_frg_bkg_event_summed_triggered.min())
+                else:
+                    df_frg_bkg_e_s_t_norm = df_frg_bkg_event_summed_triggered
+                fe_wam = tsfel.feature_extraction.wavelet_abs_mean(df_frg_bkg_e_s_t_norm, widths=widths)
+                fe_wen = tsfel.feature_extraction.wavelet_energy(df_frg_bkg_e_s_t_norm, widths=widths)
+                fe_wet = tsfel.feature_extraction.wavelet_entropy(df_frg_bkg_e_s_t_norm, widths=widths)
+                fe_wstd = tsfel.feature_extraction.wavelet_std(df_frg_bkg_e_s_t_norm, widths=widths)
                 fe_np = tsfel.feature_extraction.neighbourhood_peaks(df_frg_bkg_event_summed_triggered)
                 fe_pp = tsfel.feature_extraction.pk_pk_distance(df_frg_bkg_event_summed_triggered)
                 fe_kur = tsfel.feature_extraction.kurtosis(df_frg_bkg_event_summed_triggered)
