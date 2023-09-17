@@ -28,7 +28,7 @@ for (start_month, end_month) in [
     ("11-2010", "02-2011"),
 ]:
     df_catalog = df_catalog.append(
-        pd.read_csv(FOLD_RES + 'frg_' + start_month + '_' + end_month + '/events_table_loc_wavelet.csv')
+        pd.read_csv(FOLD_RES + 'frg_' + start_month + '_' + end_month + '/events_table_loc_wavelet_norm_ext.csv')
     )
 # drop index and define datetime
 df_catalog = df_catalog.reset_index(drop=True)
@@ -70,6 +70,10 @@ for ev_type in ev_type_list:
 print('Statistics total:')
 print(df_catalog[ev_type_list].sum())
 print(df_catalog[['GRB', 'SF', 'UNC(LP)', 'TGF', 'GF', 'UNC']].mean())
+print('Statistics GBM:')
+print(df_catalog.loc[~df_catalog.catalog_triggers.str.contains('UNKNOWN'), ev_type_list].sum())
+print(df_catalog.loc[~df_catalog.catalog_triggers.str.contains('UNKNOWN'),
+['GRB', 'SF', 'UNC(LP)', 'TGF', 'GF', 'UNC']].mean())
 print('Statistics unknown:')
 print(df_catalog.loc[df_catalog.catalog_triggers.str.contains('UNKNOWN'), ev_type_list].sum())
 print(df_catalog.loc[df_catalog.catalog_triggers.str.contains('UNKNOWN'),
@@ -122,7 +126,7 @@ def prepare_X(df_catalog):
                     np.minimum(abs(X['dec'] - X['dec_sun']), 180 - abs(X['dec'] - X['dec_sun']))
     X['diff_earth'] = np.minimum(abs(X['ra'] - X['ra_earth']), 360 - abs(X['ra'] - X['ra_earth'])) +\
                     np.minimum(abs(X['dec'] - X['dec_earth']), 180 - abs(X['dec'] - X['dec_earth']))
-    del X['ra_sun'], X['dec_sun'], X['ra_earth'], X['dec_earth'], X['ra'], X['dec']
+    # del X['ra_sun'], X['dec_sun'], X['ra_earth'], X['dec_earth'], X['ra'], X['dec']
 
     X['HR10'] = np.minimum(X['sigma_r1'] / X['sigma_r0'], 10)
     X['HR21'] = np.minimum(X['sigma_r2'] / X['sigma_r1'], 10)
@@ -166,29 +170,49 @@ def prepare_X(df_catalog):
     # plt.scatter(X['lon_fermi_shift'], X['lat_fermi'], c=(df_catalog['UNC(LP)']))
 
     for col_stat in ['fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_mea', 'fe_med', 'fe_std']:
-        X[col_stat + '_norm'] = X[col_stat] / X['fe_mea']
+        X[col_stat + '_norm'] = X[col_stat] / X['fe_med']  # fe_std
 
     return X
 
 X = prepare_X(df_catalog)
 
-# Train a DT
+# # # Train a DT
+# lst_select_col = ['fe_wam1', 'fe_wen1', 'fe_wstd1', 'fe_wam2', 'fe_wen2', 'fe_wstd2', 'fe_wam3', 'fe_wen3',
+#                 'fe_wstd3', 'fe_wam4', 'fe_wen4', 'fe_wstd4', 'fe_wam5', 'fe_wen5', 'fe_wstd5', 'fe_wam6',
+#                 'fe_wen6', 'fe_wstd6', 'fe_wam7', 'fe_wen7', 'fe_wstd7', 'fe_wam8', 'fe_wen8', 'fe_wstd8',
+#                 'fe_wam9', 'fe_wen9', 'fe_wstd9', 'fe_wet',
+#                 'fe_np', 'fe_pp', 'fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_med', 'fe_mea', 'fe_std',
+#                   'dist_polo_sud_lat', 'fe_kur_norm', 'fe_skw_norm', 'fe_max_norm', 'fe_min_norm', 'fe_mea_norm',
+#                   'fe_std_norm'
+#                   ]
+# lst_select_col = [i for i in X.columns if 'fe_w' in i]
+lst_select_col = X.columns
+# lst_select_col = ['HR10', 'fe_wet', 'dist_saa']
+
+y_tmp = 3*df_catalog['SF'].copy()
+y_tmp.loc[y_tmp != 3] = 2*df_catalog.loc[y_tmp != 3, 'UNC(LP)']
+y_tmp.loc[(y_tmp != 3) & (y_tmp != 2)] = 1*df_catalog.loc[(y_tmp != 3) & (y_tmp != 2), 'GRB']
+y_tmp.loc[(y_tmp != 3) & (y_tmp != 2) & (y_tmp != 1)] = 0
+
+X = X.astype('float32')
+
+if X[lst_select_col].isna().sum().sum() > 0 or np.isinf(X).sum().sum() > 0:
+    print("Warning. NaN found in feature table. Filled with -1.")
+    print(X[lst_select_col].isna().sum())
+    X = X.fillna(-1)
+    X = X.replace(np.inf, -1)
+    X = X.replace(-np.inf, -1)
+
+
+X_train, X_test, _, _ = train_test_split(X[lst_select_col], y_tmp, test_size=0.2, random_state=42,
+                                         stratify=y_tmp)
+
 for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     print("Type of event analysed: ", ev_type)
     y = df_catalog[ev_type]
+    y_train = y[X_train.index]
+    y_test = y[X_test.index]
 
-    # lst_select_col = ['fe_wam1', 'fe_wen1', 'fe_wstd1', 'fe_wam2', 'fe_wen2', 'fe_wstd2', 'fe_wam3', 'fe_wen3',
-    #                 'fe_wstd3', 'fe_wam4', 'fe_wen4', 'fe_wstd4', 'fe_wam5', 'fe_wen5', 'fe_wstd5', 'fe_wam6',
-    #                 'fe_wen6', 'fe_wstd6', 'fe_wam7', 'fe_wen7', 'fe_wstd7', 'fe_wam8', 'fe_wen8', 'fe_wstd8',
-    #                 'fe_wam9', 'fe_wen9', 'fe_wstd9', 'fe_wet',
-    #                 'fe_np', 'fe_pp', 'fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_med', 'fe_mea', 'fe_std',
-    #                   'dist_polo_sud_lat', 'fe_kur_norm', 'fe_skw_norm', 'fe_max_norm', 'fe_min_norm', 'fe_mea_norm',
-    #                   'fe_std_norm'
-    #                   ]
-    # lst_select_col = [i for i in X.columns if 'fe_' in i]
-    lst_select_col = X.columns
-
-    X_train, X_test, y_train, y_test = train_test_split(X[lst_select_col], y, test_size=0.3, random_state=42, stratify=y)
     def wrap_fit(clf, X, X_train, X_test, y, y_train, y_test):
         clf.fit(X_train, y_train)
         y_pred_tot = clf.predict(X)
@@ -202,16 +226,17 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
         return clf
 
     # Random Forest feature importance
-    clf = RandomForestClassifier(n_estimators=200, max_depth=4, class_weight='balanced', random_state=0)
+    clf = RandomForestClassifier(n_estimators=200, max_depth=4, class_weight='balanced', random_state=0,
+                                 min_impurity_decrease=0.01)
     clf = wrap_fit(clf, X[lst_select_col], X_train[lst_select_col], X_test[lst_select_col], y, y_train, y_test)
     print("Feature Importance Random Forest.")
     best_10_col = pd.Series(dict(zip(X[lst_select_col].columns, clf.feature_importances_))).sort_values(ascending=False).head(10)
     print(best_10_col)
 
     # Decision Tree
-    lst_select_col_dt = lst_select_col #  best_10_col.index
-    clf = DecisionTreeClassifier(random_state=0, max_depth=4, class_weight='balanced', criterion="gini",
-                                 min_impurity_decrease=0.01, min_samples_leaf=2, splitter="best")
+    lst_select_col_dt = lst_select_col #  best_10_col.index, lst_select_col
+    clf = DecisionTreeClassifier(random_state=0, max_depth=3, class_weight='balanced', criterion="gini",
+                                 min_impurity_decrease=0.02, min_samples_leaf=2, splitter="best")
     clf = wrap_fit(clf, X[lst_select_col_dt], X_train[lst_select_col_dt], X_test[lst_select_col_dt], y, y_train, y_test)
     plt.figure(figsize=(16, 12))
     tree.plot_tree(clf, filled=True, feature_names=lst_select_col_dt, class_names=[f'NON {ev_type}', f'{ev_type}'])
@@ -226,7 +251,7 @@ for ev_type in ['GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     # X_test = pd.DataFrame(qt.transform(X_test), columns=lst_select_col, index=X_test.index)
     # X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
     # clf = wrap_fit(clf, X_tot_norm, X_train, X_test, y, y_train, y_test)
-    # print(clf.rules_[0:3])
+    # print(clf.rules_[0:4])
 
 # # Plot Fermi position of earth when local particles occur
 # plt.figure()
@@ -259,7 +284,7 @@ def classification_logic(df_catalog):
                          ((X['dist_polo_nord_lon'] <= 19) & (X['dist_polo_nord_lat'] <= 7.6)) |
                          ((X['dist_polo_sud_lon'] <= 19) & (X['dist_polo_sud_lat'] <= 7.6)) #|
                          # ((X['l'] >= 1.55))
-                         ) & ((X['num_det'] >= 9) | (X['fe_std_norm'] < 0.4)) &  #  (X['fe_wstd1'] <= 10.365) (X['fe_wet'] < 2))
+                         ) & ((X['num_det'] >= 9) | (X['fe_skw'] <= 0.345)) &  #  (X['fe_std_norm'] < 0.4) (X['fe_wstd1'] <= 10.365) (X['fe_wet'] < 2))
                          ((X['diff_sun'] > 35) | (np.maximum(X['ra_std'], X['dec_std']) > 100))
                          )
 
@@ -277,7 +302,13 @@ def classification_logic(df_catalog):
     #                                                                            (X['num_anti_coincidence'] <= 1)))
     #                  & (~y_pred['UNC(LP)']))
     # y_pred['GRB'] = ((X['HR10'] > 0.64433) & (X['fe_wen4'] > 7.889) & (X['dist_saa'] > 9.687))#  & (~y_pred['UNC(LP)']) & (~ y_pred['SF'])
-    y_pred['GRB'] = ((X['HR10'] > 0.64433) & (X['fe_wet'] > 2.001) & (X['dist_saa'] > 9.687))
+    y_pred['GRB'] = ((X['HR10'] > 0.735) & (X['dist_saa'] > 10.225) & (X['fe_wet'] > 1.982))
+    # y_pred['GRB'] = ((X['fe_skw_norm'] > 0.045) & (X['fe_min_norm'] <= -0.015) & (X['HR10'] > 0.404))
+    # y_pred['GRB'] = ((X['HR10'] > 0.404) & (X['fe_wet'] > 2.06)) # fe_wet > 2.12, fe_std_norm > 0.753, fe_mea <= 52.291 (X['fe_min_norm'] < -0.015)
+    # y_pred['GRB'] = ((X['diff_earth'] <= 0.17014) & (X['fe_mea'] <= 0.48646) | (X['HR10'] > 0.35691)) & ((X['b_galactic'] <= 0.81454) & (X['fe_max_norm'] > 0.11102) & (X['fe_med_norm'] > 0.62616) & (X['lon_fermi_shift'] <= 0.83409)) &\
+    #                 ((X['fe_max_norm'] <= 0.8501) & (X['fe_med_norm'] <= 0.88899) & (X['fe_skw_norm'] <= 0.50918)) & \
+    #                 ((X['HR10'] > 0.36701) & (X['dist_saa_lat'] <= 0.30618) & (X['fe_med_norm'] > 0.60515))
+    # X['fe_wstd2'] <= 9.194 (X['fe_wet'] > 2.001) (X['fe_skw_norm'] >= 0.069) (X['HR10'] > 0.64433)
     # (X['fe_wen1'] > 7.889) & (X['HR21'] <= 0.492))
     # y_pred['GRB'] = ((X['fe_mea'] <= 48.119) & (X['fe_wen1'] > 7.889) & (X['fe_wet'] > 2.001))
 
@@ -289,8 +320,12 @@ y_pred = classification_logic(df_catalog)
 
 for ev_type in ['SF', 'UNC(LP)', 'GRB']: #,  'SF', 'UNC(LP)'  # 'TGF', 'GF',  'UNC'
     print("Event: ", ev_type)
+    print("Total data")
     print(confusion_matrix(df_catalog[ev_type], y_pred[ev_type]))
     print(classification_report(df_catalog[ev_type], y_pred[ev_type]))
+    print("Test data")
+    print(confusion_matrix(df_catalog.loc[X_test.index, ev_type], y_pred[ev_type].loc[X_test.index]))
+    print(classification_report(df_catalog.loc[X_test.index, ev_type], y_pred[ev_type].loc[X_test.index]))
     # To remove
     print("True in catalog, False with new rule")
     lst_col_show = ['trig_ids', 'start_times', 'sigma_r0', 'sigma_r1', 'sigma_r2', 'duration', 'ra', 'dec', 'ra_earth',
@@ -302,11 +337,11 @@ for ev_type in ['SF', 'UNC(LP)', 'GRB']: #,  'SF', 'UNC(LP)'  # 'TGF', 'GF',  'U
                       'mean_det_sol_face', 'mean_det_not_sol_face', 'diff_sun', 'diff_earth']
 
     print(df_catalog.loc[(df_catalog[ev_type] == 1) & (y_pred[ev_type] == 0), lst_col_show])
-    print(X.loc[(df_catalog[ev_type] == 1) & (y_pred[ev_type] == 0), lst_X_col_show])
+    print(X.loc[(df_catalog[ev_type] == 1) & (y_pred[ev_type] == 0), lst_X_col_show + [i for i in X.columns if 'fe_' in i]])
     # To add
     print("False in catalog, True with new rule")
     print(df_catalog.loc[(df_catalog[ev_type] == 0) & (y_pred[ev_type] == 1), lst_col_show])
-    print(X.loc[(df_catalog[ev_type] == 0) & (y_pred[ev_type] == 1), lst_X_col_show])
+    print(X.loc[(df_catalog[ev_type] == 0) & (y_pred[ev_type] == 1), lst_X_col_show + [i for i in X.columns if 'fe_' in i]])
     pass
 
 pass
