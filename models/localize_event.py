@@ -94,12 +94,17 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                                               col_det]
             # Extract some features
             try:
-                time_witdh = 0  # 64
-                bln_normalize = False
+                time_witdh = 64  # 0, 64
+                bln_normalize = True  # normalize lightcurve
                 df_frg_bkg_event_fe = df_frg_bkg.loc[(df_frg_bkg['met'] > met_event - pre_delay - time_witdh) &
                                                   (df_frg_bkg['met'] < met_event_end + time_witdh),
                                                   col_det]
                 df_frg_bkg_event_summed_triggered = df_frg_bkg_event_fe[trig_dets].mean(axis=1).\
+                    interpolate('linear', limit_direction='both')
+                df_bkg_event_fe = pd.DataFrame(df_frg_bkg.loc[(df_frg_bkg['met'] > met_event - pre_delay - time_witdh) &
+                                                  (df_frg_bkg['met'] < met_event_end + time_witdh),
+                                                  col_count_bkg].values, columns=col_det)
+                df_bkg_event_summed_triggered = df_bkg_event_fe[trig_dets].mean(axis=1).\
                     interpolate('linear', limit_direction='both')
                 widths = np.arange(1, 10)  # [2.0**i for i in np.arange(-3, 11)]
                 len_widths = len(widths)
@@ -108,6 +113,7 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                     (df_frg_bkg_event_summed_triggered.max() - df_frg_bkg_event_summed_triggered.min())
                 else:
                     df_frg_bkg_e_s_t_norm = df_frg_bkg_event_summed_triggered
+                # Extract feature for lightcurve
                 fe_wam = tsfel.feature_extraction.wavelet_abs_mean(df_frg_bkg_e_s_t_norm, widths=widths)
                 fe_wen = tsfel.feature_extraction.wavelet_energy(df_frg_bkg_e_s_t_norm, widths=widths)
                 fe_wet = tsfel.feature_extraction.wavelet_entropy(df_frg_bkg_e_s_t_norm, widths=widths)
@@ -122,6 +128,19 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                 fe_mea = tsfel.feature_extraction.calc_mean(df_frg_bkg_event_summed_triggered)
                 fe_std = tsfel.feature_extraction.calc_std(df_frg_bkg_event_summed_triggered)
                 fe_ff = tsfel.feature_extraction.fundamental_frequency(df_frg_bkg_event_summed_triggered, fs=1)
+                # Extract feature from background
+                fe_bkg_np = tsfel.feature_extraction.neighbourhood_peaks(df_bkg_event_summed_triggered)
+                fe_bkg_pp = tsfel.feature_extraction.pk_pk_distance(df_bkg_event_summed_triggered)
+                fe_bkg_kur = tsfel.feature_extraction.kurtosis(df_bkg_event_summed_triggered)
+                fe_bkg_skw = tsfel.feature_extraction.skewness(df_bkg_event_summed_triggered)
+                fe_bkg_max = tsfel.feature_extraction.calc_max(df_bkg_event_summed_triggered)
+                fe_bkg_min = tsfel.feature_extraction.calc_min(df_bkg_event_summed_triggered)
+                fe_bkg_med = tsfel.feature_extraction.calc_median(df_bkg_event_summed_triggered)
+                fe_bkg_mea = tsfel.feature_extraction.calc_mean(df_bkg_event_summed_triggered)
+                fe_bkg_std = tsfel.feature_extraction.calc_std(df_bkg_event_summed_triggered)
+                fe_bkg_step_max = df_bkg_event_summed_triggered.diff().max()
+                fe_bkg_step_min = df_bkg_event_summed_triggered.diff().min()
+                fe_bkg_step_med = df_bkg_event_summed_triggered.diff().median()
             except Exception as e:
                 print(e)
                 print("Warning. Cannot compute Wavelet transform and other features. A NaN will be displayed.")
@@ -129,16 +148,9 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
                 fe_wen = [np.nan]*len_widths
                 fe_wet = np.nan
                 fe_wstd = [np.nan]*len_widths
-                fe_np = np.nan
-                fe_pp = np.nan
-                fe_kur = np.nan
-                fe_skw = np.nan
-                fe_max = np.nan
-                fe_min = np.nan
-                fe_med = np.nan
-                fe_mea = np.nan
-                fe_std = np.nan
-                fe_ff = np.nan
+                fe_np = fe_pp = fe_kur = fe_skw = fe_max = fe_min = fe_med = fe_mea = fe_std = fe_ff = np.nan
+                fe_bkg_np = fe_bkg_pp = fe_bkg_kur = fe_bkg_skw = fe_bkg_max = fe_bkg_min = fe_bkg_med = fe_bkg_mea = \
+                    fe_bkg_std = fe_bkg_step_max = fe_bkg_step_min = fe_bkg_step_med =np.nan
 
             # Find the peak of energy of the event. From that index localization is computed
             max_fin = 0
@@ -282,6 +294,19 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_mea'] = fe_mea
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_std'] = fe_std
             ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_ff'] = fe_ff
+            # feature for bkg ts
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_np'] = fe_bkg_np
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_pp'] = fe_bkg_pp
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_kur'] = fe_bkg_kur
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_skw'] = fe_bkg_skw
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_max'] = fe_bkg_max
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_min'] = fe_bkg_min
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_med'] = fe_bkg_med
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_mea'] = fe_bkg_mea
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_std'] = fe_bkg_std
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_step_max'] = fe_bkg_step_max
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_step_min'] = fe_bkg_step_min
+            ev_tab.loc[ev_tab['trig_ids'] == row['trig_ids'], 'fe_bkg_step_med'] = fe_bkg_step_med
 
         except Exception as e:
             print(e)
