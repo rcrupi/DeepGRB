@@ -10,7 +10,11 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import QuantileTransformer
+from sklearn.feature_selection import SequentialFeatureSelector
 from imodels import SkopeRulesClassifier, RuleFitClassifier,  HSTreeClassifierCV
+from sklearn.svm import LinearSVC
+from sklearn.feature_selection import SelectFromModel
 # local utils
 from connections.utils.config import FOLD_RES
 
@@ -28,7 +32,7 @@ for (start_month, end_month) in [
     ("11-2010", "02-2011"),
 ]:
     df_catalog = df_catalog.append(
-        pd.read_csv(FOLD_RES + 'frg_' + start_month + '_' + end_month + '/events_table_loc_wavelet_norm_ext_bkg.csv')
+        pd.read_csv(FOLD_RES + 'frg_' + start_month + '_' + end_month + '/events_table_loc_wavelet_norm_ext_bkg2.csv')
     )
 # drop index and define datetime
 df_catalog = df_catalog.reset_index(drop=True)
@@ -176,13 +180,15 @@ def prepare_X(df_catalog):
     for col_stat in ['fe_kur', 'fe_skw', 'fe_max', 'fe_min', 'fe_mea', 'fe_med', 'fe_std']:
         X[col_stat + '_ratio_med'] = X[col_stat] / X['fe_med']
         X[col_stat + '_ratio_std'] = X[col_stat] / X['fe_std']
+        X[col_stat + '_ratio_bkg_int'] = X[col_stat] / (abs(X['fe_bkg_max']) - abs(X['fe_bkg_min']))
+        X[col_stat + '_ratio_int'] = X[col_stat] / (abs(X['fe_max']) - abs(X['fe_min']))
         # X[col_stat + '_norm_med_bkg'] = X[col_stat] / X['fe_bkg_med']
         # X[col_stat + '_norm_all'] = X[col_stat] / np.maximum(abs(X['fe_bkg_max']), abs(X['fe_bkg_min']))
 
 
     X['fe_bkg_step'] = np.maximum(abs(X['fe_bkg_step_min']), abs(X['fe_bkg_step_max']))
     for col_stat in ['fe_bkg_np', 'fe_bkg_pp', 'fe_bkg_kur', 'fe_bkg_skw', 'fe_bkg_max', 'fe_bkg_min', 'fe_bkg_step',
-                     'fe_bkg_med', 'fe_bkg_mea', 'fe_bkg_std', 'fe_bkg_step_max', 'fe_bkg_step_min']:
+                     'fe_bkg_med', 'fe_bkg_mea', 'fe_bkg_std', 'fe_bkg_step_max', 'fe_bkg_step_min', 'fe_bkg_step_med']:
         # X[col_stat + '_norm1'] = X[col_stat] / abs(X['fe_bkg_med'])
         # X[col_stat + '_norm2'] = X[col_stat] / abs(X['fe_max'])
         # X[col_stat + '_norm3'] = X[col_stat] / X['fe_std']
@@ -208,7 +214,7 @@ X = prepare_X(df_catalog)
 #                   'dist_polo_sud_lat', 'fe_kur_norm', 'fe_skw_norm', 'fe_max_norm', 'fe_min_norm', 'fe_mea_norm',
 #                   'fe_std_norm'
 #                   ]
-# lst_select_col = [i for i in X.columns if 'fe_w' in i]
+# lst_select_col = [i for i in X.columns if 'fe_w' in i] + ['HR10', 'HR21']
 lst_select_col = X.columns
 # lst_select_col = ['HR10', 'fe_wet', 'dist_saa']
 
@@ -230,8 +236,12 @@ if X[lst_select_col].isna().sum().sum() > 0 or np.isinf(X).sum().sum() > 0:
 
 X_train, X_test, _, _ = train_test_split(X[lst_select_col], y_tmp, test_size=0.2, random_state=42,
                                          stratify=y_tmp)
+lst_select_col_old = lst_select_col
+
+bln_feature_selection = True
 
 for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
+    lst_select_col = lst_select_col_old
     print("Type of event analysed: ", ev_type)
     y = df_catalog[ev_type].copy()
     y_train = y[X_train.index].copy()
@@ -249,10 +259,25 @@ for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC
         print(classification_report(y_test, y_pred_test))
         return clf
 
+    # Random Forest with feature selection
+    # clf = DecisionTreeClassifier(random_state=0, max_depth=None, class_weight='balanced', criterion="gini",
+    #                              min_impurity_decrease=0.0, min_samples_leaf=2, splitter="best")
+    # sfs = SequentialFeatureSelector(clf, n_features_to_select=20, n_jobs=-1, cv=2, direction="forward")
+    # sfs.fit(X_train, y_train)
+    # lst_select_col = list(X_train.columns[sfs.get_support()])
+    if bln_feature_selection:
+        qt = QuantileTransformer(n_quantiles=20, random_state=0)
+        X_train_normed = pd.DataFrame(qt.fit_transform(X_train), columns=lst_select_col, index=X_train.index)
+        lsvc = LinearSVC(C=20, penalty="l1", dual=False, class_weight='balanced', max_iter=100000).fit(
+            X_train_normed, y_train)
+        model_l1 = SelectFromModel(lsvc, prefit=True)
+        lst_select_col = list(X_train.columns[model_l1.get_support()])
+        print("Num. features selected: ", len(lst_select_col))
+
     # Random Forest feature importance
     clf = RandomForestClassifier(n_estimators=200, max_depth=4, class_weight='balanced', random_state=0,
                                  min_impurity_decrease=0.01)
-    clf = wrap_fit(clf, X[lst_select_col], X_train, X_test, y, y_train, y_test)
+    clf = wrap_fit(clf, X[lst_select_col], X_train[lst_select_col], X_test[lst_select_col], y, y_train, y_test)
     print("Feature Importance Random Forest.")
     best_10_col = pd.Series(dict(zip(lst_select_col, clf.feature_importances_))).sort_values(ascending=False).head(10)
     print(best_10_col)
@@ -266,16 +291,16 @@ for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC
     tree.plot_tree(clf, filled=True, feature_names=lst_select_col_dt, class_names=[f'NON {ev_type}', f'{ev_type}'])
     plt.title(ev_type)
     plt.show()
-    # # imodels
-    # clf = RuleFitClassifier() #SkopeRulesClassifier()
-    # # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
-    # from sklearn.preprocessing import QuantileTransformer
-    # qt = QuantileTransformer(n_quantiles=10, random_state=0)
-    # X_train_normed = pd.DataFrame(qt.fit_transform(X_train), columns=lst_select_col, index=X_train.index)
-    # X_test_normed = pd.DataFrame(qt.transform(X_test), columns=lst_select_col, index=X_test.index)
-    # X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
-    # clf = wrap_fit(clf, X_tot_norm, X_train_normed, X_test_normed, y, y_train, y_test)
-    # print(clf.rules_[0:4])
+    # imodels
+    clf = RuleFitClassifier(n_estimators=200, tree_size=4, max_rules=30, random_state=0) #SkopeRulesClassifier()
+    # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
+    from sklearn.preprocessing import QuantileTransformer
+    qt = QuantileTransformer(n_quantiles=20, random_state=0)
+    X_train_normed = pd.DataFrame(qt.fit_transform(X_train[lst_select_col]), columns=lst_select_col, index=X_train.index)
+    X_test_normed = pd.DataFrame(qt.transform(X_test[lst_select_col]), columns=lst_select_col, index=X_test.index)
+    X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
+    clf = wrap_fit(clf, X_tot_norm, X_train_normed, X_test_normed, y, y_train, y_test)
+    print(clf.rules_[0:4])
     del y, y_train, y_test
     print('-----------------------------------------------------------------------------------------------------------')
 
@@ -341,7 +366,9 @@ def classification_logic(df_catalog):
     #                                                                            (X['num_anti_coincidence'] <= 1)))
     #                  & (~y_pred['UNC(LP)']))
     # y_pred['GRB'] = ((X['HR10'] > 0.64433) & (X['fe_wen4'] > 7.889) & (X['dist_saa'] > 9.687))#  & (~y_pred['UNC(LP)']) & (~ y_pred['SF'])
-    y_pred['GRB'] = ((X['HR10'] > 0.735) & (X['dist_saa'] > 10.225) & (X['fe_wet'] > 1.982) & (X['fe_skw_ratio_std'] > 0.03))  #(X['fe_med'] <= 11.221) (X['fe_skw_ratio_std'] > 0.045)
+    # y_pred['GRB'] = ((X['HR10'] > 0.735) & (X['dist_saa'] > 10.225) & (X['fe_wet'] > 1.982) & (X['fe_skw_ratio_std'] > 0.03))  #(X['fe_med'] <= 11.221) (X['fe_skw_ratio_std'] > 0.045)
+    # y_pred['GRB'] = ((X['HR10'] > 0.384) & (X['HR21'] <= 0.382) & (X['fe_wet'] > 1.982) & (X['fe_skw_ratio_std'] >= 0.045))  #(X['fe_med'] <= 11.221) (X['fe_skw_ratio_std'] > 0.045)
+    y_pred['GRB'] = ((X['HR10'] > 0.449) & (X['HR21'] <= 0.375) & (X['fe_wet'] > 2.054))
     # y_pred['GRB'] = ((X['fe_skw_norm'] > 0.045) & (X['fe_min_norm'] <= -0.015) & (X['HR10'] > 0.404))
     # y_pred['GRB'] = ((X['HR10'] > 0.404) & (X['fe_wet'] > 2.06)) # fe_wet > 2.12, fe_std_norm > 0.753, fe_mea <= 52.291 (X['fe_min_norm'] < -0.015)
     # y_pred['GRB'] = ((X['diff_earth'] <= 0.17014) & (X['fe_mea'] <= 0.48646) | (X['HR10'] > 0.35691)) & ((X['b_galactic'] <= 0.81454) & (X['fe_max_norm'] > 0.11102) & (X['fe_med_norm'] > 0.62616) & (X['lon_fermi_shift'] <= 0.83409)) &\
