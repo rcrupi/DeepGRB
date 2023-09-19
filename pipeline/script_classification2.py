@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # ML utils
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, balanced_accuracy_score
 from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import QuantileTransformer
@@ -15,6 +15,7 @@ from sklearn.feature_selection import SequentialFeatureSelector
 from imodels import SkopeRulesClassifier, RuleFitClassifier,  HSTreeClassifierCV
 from sklearn.svm import LinearSVC
 from sklearn.feature_selection import SelectFromModel
+from anchor import anchor_tabular
 # local utils
 from connections.utils.config import FOLD_RES
 
@@ -234,12 +235,22 @@ if X[lst_select_col].isna().sum().sum() > 0 or np.isinf(X).sum().sum() > 0:
     X = X.replace(np.inf, -1)
     X = X.replace(-np.inf, -1)
 
-X_train, X_test, _, _ = train_test_split(X[lst_select_col], y_tmp, test_size=0.2, random_state=42,
+X_train, X_test, y_tmp_train, y_tmp_test = train_test_split(X[lst_select_col], y_tmp, test_size=0.2, random_state=42,
                                          stratify=y_tmp)
+
+rf_mc = RandomForestClassifier(n_estimators=200, max_depth=4, class_weight='balanced', random_state=0,
+                                 min_impurity_decrease=0.01)
+rf_mc.fit(X_train[y_tmp_train!=0], y_tmp_train[y_tmp_train!=0])
+y_pred_mc_test = rf_mc.predict(X_test)
+y_pred_mc_train = rf_mc.predict(X_train)
+# print(confusion_matrix(y_tmp_train, y_pred_mc_train, normalize=None))
+# print(balanced_accuracy_score(y_tmp_train, y_pred_mc_train))
+print(confusion_matrix(y_tmp_test[y_tmp_test!=0], y_pred_mc_test[y_tmp_test!=0], normalize=None))
+print(balanced_accuracy_score(y_tmp_test[y_tmp_test!=0], y_pred_mc_test[y_tmp_test!=0]))
+
+dct_pred_rf = {'FP': [], 'GRB': [], 'SF': [], 'UNC(LP)': []}
 lst_select_col_old = lst_select_col
-
 bln_feature_selection = True
-
 for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC(LP)'
     lst_select_col = lst_select_col_old
     print("Type of event analysed: ", ev_type)
@@ -268,7 +279,7 @@ for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC
     if bln_feature_selection:
         qt = QuantileTransformer(n_quantiles=20, random_state=0)
         X_train_normed = pd.DataFrame(qt.fit_transform(X_train), columns=lst_select_col, index=X_train.index)
-        lsvc = LinearSVC(C=20, penalty="l1", dual=False, class_weight='balanced', max_iter=100000).fit(
+        lsvc = LinearSVC(C=20, penalty="l1", dual=False, class_weight='balanced', max_iter=100000, random_state=0).fit(
             X_train_normed, y_train)
         model_l1 = SelectFromModel(lsvc, prefit=True)
         lst_select_col = list(X_train.columns[model_l1.get_support()])
@@ -278,9 +289,26 @@ for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC
     clf = RandomForestClassifier(n_estimators=200, max_depth=4, class_weight='balanced', random_state=0,
                                  min_impurity_decrease=0.01)
     clf = wrap_fit(clf, X[lst_select_col], X_train[lst_select_col], X_test[lst_select_col], y, y_train, y_test)
+    dct_pred_rf[ev_type] = clf.predict_proba(X_test[lst_select_col])[:, 1]
     print("Feature Importance Random Forest.")
     best_10_col = pd.Series(dict(zip(lst_select_col, clf.feature_importances_))).sort_values(ascending=False).head(10)
     print(best_10_col)
+
+    # Anchor explainer
+    if ev_type:
+        explainer = anchor_tabular.AnchorTabularExplainer([0, 1], lst_select_col, X_train[lst_select_col].values)
+        for idx in [17, 160, 337, 37, 72]:  # 160, 337
+            np.random.seed(1)
+            print('Prediction: ', clf.predict(X.loc[idx, lst_select_col].values.reshape(1, -1))[0],
+                  'Proba: ', clf.predict_proba(X.loc[idx, lst_select_col].values.reshape(1, -1))[:, 1][0],
+                  ', idx: ', idx)
+            # def wrap_predict_rf(X):
+            #     X = pd.DataFrame(X, columns=lst_select_col)
+            #     return clf.predict(X)
+            # exp = explainer.explain_instance(X.loc[idx, lst_select_col].values.reshape(1, -1), wrap_predict_rf, threshold=0.95)
+            # print('Anchor: %s' % (' AND '.join(exp.names())))
+            # print('Precision: %.2f' % exp.precision())
+            # print('Coverage: %.2f' % exp.coverage())
 
     # Decision Tree
     lst_select_col_dt = lst_select_col  # list(best_10_col.index), lst_select_col
@@ -291,18 +319,30 @@ for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC
     tree.plot_tree(clf, filled=True, feature_names=lst_select_col_dt, class_names=[f'NON {ev_type}', f'{ev_type}'])
     plt.title(ev_type)
     plt.show()
-    # imodels
-    clf = RuleFitClassifier(n_estimators=200, tree_size=4, max_rules=30, random_state=0) #SkopeRulesClassifier()
-    # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
-    from sklearn.preprocessing import QuantileTransformer
-    qt = QuantileTransformer(n_quantiles=20, random_state=0)
-    X_train_normed = pd.DataFrame(qt.fit_transform(X_train[lst_select_col]), columns=lst_select_col, index=X_train.index)
-    X_test_normed = pd.DataFrame(qt.transform(X_test[lst_select_col]), columns=lst_select_col, index=X_test.index)
-    X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
-    clf = wrap_fit(clf, X_tot_norm, X_train_normed, X_test_normed, y, y_train, y_test)
-    print(clf.rules_[0:4])
+    # # imodels
+    # clf = RuleFitClassifier(n_estimators=200, tree_size=4, max_rules=30, random_state=0) #SkopeRulesClassifier()
+    # # clf = HSTreeClassifierCV(DecisionTreeClassifier(), reg_param=1, shrinkage_scheme_='node_based')
+    # from sklearn.preprocessing import QuantileTransformer
+    # qt = QuantileTransformer(n_quantiles=20, random_state=0)
+    # X_train_normed = pd.DataFrame(qt.fit_transform(X_train[lst_select_col]), columns=lst_select_col, index=X_train.index)
+    # X_test_normed = pd.DataFrame(qt.transform(X_test[lst_select_col]), columns=lst_select_col, index=X_test.index)
+    # X_tot_norm = pd.DataFrame(qt.transform(X[lst_select_col]), columns=lst_select_col, index=X.index)
+    # clf = wrap_fit(clf, X_tot_norm, X_train_normed, X_test_normed, y, y_train, y_test)
+    # print(clf.rules_[0:4])
     del y, y_train, y_test
     print('-----------------------------------------------------------------------------------------------------------')
+
+pred1vsall = pd.DataFrame(dct_pred_rf).idxmax(axis=1)
+pred1vsall = pred1vsall.replace({'SF': 3, 'UNC(LP)': 2, 'GRB': 1, 'FP': 4})
+# print(confusion_matrix(y_tmp_test, pred1vsall, normalize=None))
+# print(balanced_accuracy_score(y_tmp_test, pred1vsall))
+print(confusion_matrix(y_tmp_test[y_tmp_test != 0], pred1vsall[y_tmp_test.values != 0], normalize=None))
+print(balanced_accuracy_score(y_tmp_test[y_tmp_test != 0], pred1vsall[y_tmp_test.values != 0]))
+
+# # False positive
+# aaa = y_tmp_test[y_tmp_test != 0]
+# bbb = pred1vsall[y_tmp_test.values != 0]
+# print(y_tmp_test[y_tmp_test.values != 0].loc[(aaa==1).values & (bbb!=1).values])
 
 # # Plot Fermi position of earth when local particles occur
 # plt.figure()
