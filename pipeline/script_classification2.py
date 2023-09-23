@@ -289,7 +289,7 @@ for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC
     clf = RandomForestClassifier(n_estimators=200, max_depth=4, class_weight='balanced', random_state=0,
                                  min_impurity_decrease=0.01)
     clf = wrap_fit(clf, X[lst_select_col], X_train[lst_select_col], X_test[lst_select_col], y, y_train, y_test)
-    dct_pred_rf[ev_type] = clf.predict_proba(X_test[lst_select_col])[:, 1]
+    dct_pred_rf[ev_type] = clf.predict_proba(X[lst_select_col])[:, 1]
     print("Feature Importance Random Forest.")
     best_10_col = pd.Series(dict(zip(lst_select_col, clf.feature_importances_))).sort_values(ascending=False).head(10)
     print(best_10_col)
@@ -336,13 +336,20 @@ pred1vsall = pd.DataFrame(dct_pred_rf).idxmax(axis=1)
 pred1vsall = pred1vsall.replace({'SF': 3, 'UNC(LP)': 2, 'GRB': 1, 'FP': 4})
 # print(confusion_matrix(y_tmp_test, pred1vsall, normalize=None))
 # print(balanced_accuracy_score(y_tmp_test, pred1vsall))
-print(confusion_matrix(y_tmp_test[y_tmp_test != 0], pred1vsall[y_tmp_test.values != 0], normalize=None))
-print(balanced_accuracy_score(y_tmp_test[y_tmp_test != 0], pred1vsall[y_tmp_test.values != 0]))
+# print(confusion_matrix(y_tmp_test[y_tmp_test != 0], pred1vsall[y_tmp_test.values != 0], normalize=None))
+# print(balanced_accuracy_score(y_tmp_test[y_tmp_test != 0], pred1vsall[y_tmp_test.values != 0]))
+print(confusion_matrix(y_tmp_test[y_tmp_test != 0], pred1vsall[X_test.index][y_tmp_test.values != 0], normalize=None))
+print(balanced_accuracy_score(y_tmp_test[y_tmp_test != 0], pred1vsall[X_test.index][y_tmp_test.values != 0]))
+print(confusion_matrix(y_tmp[y_tmp != 0], pred1vsall[y_tmp.values != 0], normalize=None))
+print(balanced_accuracy_score(y_tmp[y_tmp != 0], pred1vsall[y_tmp.values != 0]))
 
 # # False positive
 # aaa = y_tmp_test[y_tmp_test != 0]
 # bbb = pred1vsall[y_tmp_test.values != 0]
 # print(y_tmp_test[y_tmp_test.values != 0].loc[(aaa==1).values & (bbb!=1).values])
+# aaa = y_tmp[y_tmp != 0]
+# bbb = pred1vsall[y_tmp.values != 0]
+# print(y_tmp[y_tmp.values != 0].loc[(aaa==1).values & (bbb!=1).values])
 
 # # Plot Fermi position of earth when local particles occur
 # plt.figure()
