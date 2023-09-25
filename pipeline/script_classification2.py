@@ -297,7 +297,10 @@ for ev_type in ['FP', 'GRB', 'SF', 'UNC(LP)']:  # ev_type_list 'GRB', 'SF', 'UNC
     # Anchor explainer
     if ev_type:
         explainer = anchor_tabular.AnchorTabularExplainer([0, 1], lst_select_col, X_train[lst_select_col].values)
-        for idx in [17, 160, 337, 37, 72]:  # 160, 337
+        for idx in [ # 17, 337, 37, 72,
+                    301, 302,  # False positive GRB for RF
+                    293, 160, 236  # False negative GRB for RF
+                    ]:  # 160, 337
             np.random.seed(1)
             print('Prediction: ', clf.predict(X.loc[idx, lst_select_col].values.reshape(1, -1))[0],
                   'Proba: ', clf.predict_proba(X.loc[idx, lst_select_col].values.reshape(1, -1))[:, 1][0],
@@ -345,7 +348,7 @@ print(balanced_accuracy_score(y_tmp[y_tmp != 0], pred1vsall[y_tmp.values != 0]))
 
 # # False positive
 # aaa = y_tmp_test[y_tmp_test != 0]
-# bbb = pred1vsall[y_tmp_test.values != 0]
+# bbb = pred1vsall[X_test.index][y_tmp_test.values != 0]
 # print(y_tmp_test[y_tmp_test.values != 0].loc[(aaa==1).values & (bbb!=1).values])
 # aaa = y_tmp[y_tmp != 0]
 # bbb = pred1vsall[y_tmp.values != 0]

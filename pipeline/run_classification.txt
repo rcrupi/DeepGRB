@@ -62,7 +62,6 @@ Index: []
  [ 3  2 16  0]
  [ 0  0  1  9]]
 0.8287826420890937
-Backend TkAgg is interactive backend. Turning interactive mode on.
 Type of event analysed:  FP
 Num. features selected:  68
 [[315   9]
@@ -93,6 +92,30 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
+Prediction:  False Proba:  0.19411806835332907 , idx:  301
+Anchor: fe_skw_ratio_bkg_int > 0.64 AND ra_sun <= 227.87
+Precision: 0.99
+Coverage: 0.09
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  False Proba:  0.019293109962426277 , idx:  302
+Anchor: dec_std <= 153.00 AND diff_sun <= 32.58
+Precision: 1.00
+Coverage: 0.22
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  False Proba:  0.2347241367205492 , idx:  293
+Anchor: fe_bkg_step_max_ratio_bkg_int <= 0.06 AND fe_bkg_step_med_ratio_bkg_int > 0.01
+Precision: 0.97
+Coverage: 0.15
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
 Prediction:  False Proba:  0.010602086670686451 , idx:  160
 Anchor: dec_std <= 153.00 AND HR10 <= 0.27
 Precision: 1.00
@@ -101,10 +124,10 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
-Prediction:  False Proba:  0.13874055290531773 , idx:  337
-Anchor: dec_std <= 949.50 AND qtl_cut_r1 > 0.75
-Precision: 1.00
-Coverage: 0.23
+Prediction:  True Proba:  0.8476661245055911 , idx:  236
+Anchor: qtl_cut_r1 <= 0.35 AND fe_bkg_step_max_ratio_std > 0.07 AND fe_max <= 78.94 AND fe_bkg_step_max_ratio_bkg_std > 0.07 AND dec_std > 153.00 AND fe_bkg_med_ratio_bkg_max <= 0.98 AND fe_bkg_step_max_ratio_bkg_int > 0.20
+Precision: 0.99
+Coverage: 0.07
 [[283  41]
  [  0  52]]
 [[227  31]
@@ -148,6 +171,30 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
+Prediction:  True Proba:  0.779216310071278 , idx:  301
+Anchor: HR21 <= 0.27 AND fe_min_ratio_std <= -0.40 AND fe_skw_ratio_bkg_int > 0.64
+Precision: 1.00
+Coverage: 0.07
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  True Proba:  0.6319805276539362 , idx:  302
+Anchor: fe_wstd3 > 0.21 AND fe_wet > 2.12 AND fe_min_ratio_std <= -0.06
+Precision: 0.95
+Coverage: 0.16
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  False Proba:  0.29008405960028283 , idx:  293
+Anchor: fe_min_ratio_std > -0.06 AND fe_med_ratio_int > 0.54
+Precision: 0.99
+Coverage: 0.22
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
 Prediction:  False Proba:  0.09911980963049948 , idx:  160
 Anchor: sigma_tot > 47.52 AND sigma_r0 > 66.56
 Precision: 0.99
@@ -156,10 +203,10 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
-Prediction:  True Proba:  0.7171422096052912 , idx:  337
-Anchor: sigma_r0_ratio <= 0.06 AND fe_kur_ratio_med > 1.13 AND fe_bkg_min > 253.10
-Precision: 0.96
-Coverage: 0.04
+Prediction:  False Proba:  0.10322049046309294 , idx:  236
+Anchor: fe_min_ratio_bkg_int > -1.70 AND fe_med_ratio_std > 2.00
+Precision: 0.99
+Coverage: 0.25
 [[201  18]
  [ 11 146]]
 [[162  12]
@@ -203,6 +250,30 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
+Prediction:  False Proba:  0.05212558184531041 , idx:  301
+Anchor: diff_sun > 32.58 AND HR10 > 1.29
+Precision: 1.00
+Coverage: 0.48
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  True Proba:  0.6131654346538817 , idx:  302
+Anchor: diff_sun <= 32.58 AND HR10 <= 0.27
+Precision: 1.00
+Coverage: 0.19
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  False Proba:  0.04803899425133674 , idx:  293
+Anchor: HR10 > 1.29 AND fe_bkg_kur_ratio_max_val <= -0.02
+Precision: 1.00
+Coverage: 0.17
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
 Prediction:  True Proba:  0.9675854086908964 , idx:  160
 Anchor: diff_sun <= 32.58 AND HR10 <= 0.27
 Precision: 1.00
@@ -211,10 +282,10 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
-Prediction:  False Proba:  0.09196940916125429 , idx:  337
-Anchor: diff_sun > 32.58 AND fe_mea <= 6.93
+Prediction:  False Proba:  0.09727119167012024 , idx:  236
+Anchor: diff_sun > 157.16 AND fe_skw_ratio_std > 0.14
 Precision: 1.00
-Coverage: 0.25
+Coverage: 0.06
 [[267   7]
  [  6  96]]
 [[217   2]
@@ -258,6 +329,30 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
+Prediction:  False Proba:  0.27904290130141196 , idx:  301
+Anchor: fe_wstd6 > 0.52 AND fe_mea_ratio_med > 1.22
+Precision: 0.96
+Coverage: 0.17
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  False Proba:  0.009929897191529842 , idx:  302
+Anchor: fe_skw > 1.41 AND dist_saa_lon > 83.01
+Precision: 1.00
+Coverage: 0.18
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Prediction:  True Proba:  0.5355398949436582 , idx:  293
+Anchor: ra_sun > 292.93 AND fe_med_ratio_std > 0.43 AND dist_saa_lon <= 24.27 AND fe_mea_ratio_std > 2.00 AND dec_sun > -13.01 AND fe_bkg_step_med_ratio_std > 0.00
+Precision: 1.00
+Coverage: 0.04
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
 Prediction:  False Proba:  0.038835043806741326 , idx:  160
 Anchor: fe_skw > 1.41 AND fe_bkg_min_ratio_max_val <= 0.96
 Precision: 1.00
@@ -266,10 +361,10 @@ C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.p
   warnings.warn(
 C:\Users\riccardo\Documents\GitHub\DeepGRB\venv\lib\site-packages\sklearn\base.py:439: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
   warnings.warn(
-Prediction:  False Proba:  0.12620090079600513 , idx:  337
-Anchor: fe_kur_ratio_std > 0.35 AND fe_mea_ratio_med > 2.73
-Precision: 1.00
-Coverage: 0.06
+Prediction:  False Proba:  0.25094891231895083 , idx:  236
+Anchor: fe_skw > 0.13 AND l <= 1.09
+Precision: 0.99
+Coverage: 0.22
 [[261  55]
  [  2  58]]
 [[210  42]
@@ -288,341 +383,124 @@ weighted avg       0.88      0.80      0.82        76
  [ 2  0 19  0]
  [ 0  0  1  9]]
 0.8644969278033794
-
-Empty DataFrame
-Columns: [trig_ids, start_index, start_met, start_times, start_times_offset, end_index, end_met, end_times, trig_dets, sigma_r0, sigma_r1, sigma_r2, duration, qtl_cut_r0, qtl_cut_r1, qtl_cut_r2, ra, dec, ra_montecarlo, dec_montecarlo, ra_std, dec_std, met_localisation, ra_earth, dec_earth, earth_vis, sun_vis, ra_sun, dec_sun, l_galactic, b_galactic, lat_fermi, lon_fermi, alt_fermi, l, fe_wam1, fe_wen1, fe_wstd1, fe_wam2, fe_wen2, fe_wstd2, fe_wam3, fe_wen3, fe_wstd3, fe_wam4, fe_wen4, fe_wstd4, fe_wam5, fe_wen5, fe_wstd5, fe_wam6, fe_wen6, fe_wstd6, fe_wam7, fe_wen7, fe_wstd7, fe_wam8, fe_wen8, fe_wstd8, fe_wam9, fe_wen9, fe_wstd9, fe_wet, fe_np, fe_pp, fe_kur, fe_skw, fe_max, fe_min, fe_med, fe_mea, fe_std, fe_ff, fe_bkg_np, fe_bkg_pp, fe_bkg_kur, fe_bkg_skw, fe_bkg_max, fe_bkg_min, fe_bkg_med, fe_bkg_mea, fe_bkg_std, fe_bkg_step_max, fe_bkg_step_min, fe_bkg_step_med, datetime, catalog_triggers, GRB, SF, UNC(LP), TGF, GF, UNC, FP]
-Index: []
-Event:  SF
-Total data
-[[269   5]
- [  8  94]]
-              precision    recall  f1-score   support
-       False       0.97      0.98      0.98       274
-        True       0.95      0.92      0.94       102
-    accuracy                           0.97       376
-   macro avg       0.96      0.95      0.96       376
-weighted avg       0.97      0.97      0.97       376
-Test data
-[[51  4]
- [ 1 20]]
-              precision    recall  f1-score   support
-       False       0.98      0.93      0.95        55
-        True       0.83      0.95      0.89        21
-    accuracy                           0.93        76
-   macro avg       0.91      0.94      0.92        76
-weighted avg       0.94      0.93      0.94        76
-True in catalog, False with new rule
-     trig_ids                 start_times       sigma_r0      sigma_r1     sigma_r2     duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l catalog_triggers    GRB    SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo  ra_std  dec_std
-24         24  2019-04-04 12:24:17.917832       9.186097     11.916627     0.000000    49.152806   17.0  27.0  179.308220 -15.762192       True     True   13.055115   5.592368  127.861707  -36.128499  15.762190  340.648151  538185.156928  1.110218  UNKNOWN: SF/GRB   True  True    False  False  False  False          n0_r1 n1_r0 n1_r1 n2_r1 n3_r1 n5_r0 n5_r1           27.0            23.0  2557.0    665.0
-132        32  2014-01-06 22:45:12.657926      56.422467     55.791470     7.234044   145.264164   34.0  65.0  174.775098 -25.487514       True     True  287.727186 -22.437208  131.523888    3.739517  25.487510  266.811846  538480.120356  1.673578   SFLARE14010694  False  True    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n3_r0 n3_r...           57.0            62.0  4404.0    186.0
-183        83  2014-01-28 01:28:34.063526       8.960948      4.514998     0.000000     4.096072  289.0  -4.0   33.668817 -25.628584       True     True  310.248922 -18.308215   31.984381   -7.264069  25.628581   64.286391  534122.624021  1.158002  UNKNOWN: SF/GRB   True  True    False  False  False  False                                  n4_r0 n4_r1 n5_r0          280.0             2.0  7064.0   2057.0
-189        89  2014-01-28 12:57:05.232091       0.000000     13.173893     9.716392    69.633233  152.0  30.0  113.140336  -2.783294      False     True  310.743502 -18.182620  197.659964   54.470323   2.783293  331.071204  545441.925061  1.108279   SFLARE14012853  False  True    False  False  False  False    n0_r1 n0_r2 n2_r2 n5_r2 n7_r2 n9_r2 nb_r1 nb_r2          156.0            32.0  9015.0   1707.0
-209       109  2014-02-13 19:33:55.362290      81.042224     97.233038    40.621904  1326.102613  325.0  -6.0   40.051054  13.913578       True     True  327.119076 -13.244022   48.845057  -40.143038 -13.913577  138.285776  535150.254716  1.212967   SFLARE14021382  False  True    False  False  False  False  n0_r0 n0_r1 n0_r2 n1_r0 n1_r1 n1_r2 n2_r0 n2_r...          325.0            -5.0     7.0     14.0
-255       155  2014-02-23 18:14:59.295163     355.704022     36.670286     9.672052   503.817110   33.0 -37.0   26.450126  25.413575      False    False  336.696793  -9.731416  247.557224  -70.775843 -25.413573  137.880449  547118.209600  1.572163      UNKNOWN: SF  False  True    False  False  False  False  n0_r0 n1_r0 n3_r0 n3_r1 n4_r0 n4_r1 n5_r0 n5_r...           32.0           -37.0     9.0      6.0
-268       168  2014-02-25 00:41:27.413314  170973.619878  90158.011325  1822.663935  1612.294583  359.0  -4.0  109.346858   1.676294       True     True  337.905979  -9.260966   91.698361  -63.301064  -1.676294  120.879832  531613.614920  1.015780   SFLARE14022502  False  True    False  False  False  False  n0_r0 n0_r1 n0_r2 n1_r0 n1_r1 n1_r2 n2_r0 n2_r...          359.0            -4.0     0.0      0.0
-301         6  2010-11-11 13:04:23.505145       4.286564      5.813135     0.000000    32.768534  279.0 -39.0   86.322434 -18.750037       True     True  226.422742 -17.435373  356.163343  -13.962862  18.750035   19.640591  553309.991900  1.092258   UNKNOWN: SF/GF  False  True    False  False   True  False                                        n2_r0 n2_r1          269.0           -27.0  5104.0   1741.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face    diff_sun  diff_earth
-24           8.0     1.0     1.0     0.0      5.0     1.0     1.0     1.0     1.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0           0.833333               0.000000   25.352516  205.070404
-132         26.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  193.710022  230.287582
-183          4.0     1.0     1.0     0.0      2.0     0.0     0.0     0.0     0.0     1.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0           0.333333               0.000000   35.557137  126.297401
-189          9.0     0.0     1.0     1.0      6.0     1.0     0.0     1.0     0.0     0.0     1.0     0.0     1.0     0.0     1.0     0.0     1.0           0.500000               0.500000  206.926117   71.642960
-209         37.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000    9.363098   94.964630
-255         11.0     1.0     1.0     1.0      7.0     1.0     1.0     0.0     1.0     1.0     1.0     0.0     0.0     1.0     1.0     0.0     0.0           0.833333               0.333333   83.571793   68.963448
-268         37.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000   26.354986  116.023155
-301          3.0     1.0     1.0     0.0      1.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000   74.141884  187.572403
-False in catalog, True with new rule
-     trig_ids                 start_times    sigma_r0    sigma_r1  sigma_r2    duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l  catalog_triggers    GRB     SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo  ra_std  dec_std
-81         81  2019-06-08 20:23:03.899968  738.984341  165.112217  0.000000  626.700815   86.0 -31.0  267.965804  18.065750       True     True   76.416388  22.849318  235.807651  -26.731625 -18.065750  243.627962  527861.257286  1.140423  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n3_r0 n3_r...           87.0           -31.0     3.0      2.0
-160        60  2014-01-13 15:04:12.936260  109.823157   12.611962  0.000000   40.960821  301.0 -26.0   97.770404 -22.004163       True     True  294.987286 -21.451995   15.615798  -26.819264  22.004160  298.702425  550050.874376  1.522969      GRB140113624   True  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n3_r0 n3_r1 n4_r...          301.0           -26.0     4.0      5.0
-247       147  2014-02-20 12:25:01.572277  180.520506   12.599529  0.000000   12.288210  295.0 -18.0   26.075560  22.960366       True    False  333.597269 -10.911442   21.370029  -18.258220 -22.960364  229.425075  543592.937053  1.208794  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n1_r0 n2_r0 n2_r1 n3_r0 n4_r0 n5_r0 n6_r...          292.0           -19.0   142.0     46.0
-256       156  2014-02-23 19:49:32.360510  148.192743   50.496922  0.000000  589.834447  351.0 -49.0   14.429662  24.560200       True    False  336.757856  -9.707789  335.263171  -62.645574 -24.560199  102.670912  548690.226922  1.567522  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r1 n1_r1 n2_r0 n2_r1 n3_r0 n3_r1 n4_r0 n4_r...          343.0           -46.0  1192.0    246.0
-362        67  2011-02-15 02:02:25.153060  227.021507   55.163249  0.014298  507.912956  322.0 -20.0  198.470171  -4.014734       True     True  328.123693 -12.895067   30.202131  -43.361355   4.014733  203.129789  549407.078226  1.061761       UNKNOWN: FP  False  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n3_r0 n3_r1 n3_r...          322.0           -20.0     1.0      1.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face   diff_sun  diff_earth
-81          25.0     1.0     1.0     0.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0                1.0               1.000000  63.432930  227.099945
-160         12.0     1.0     1.0     0.0      7.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     0.0     0.0                1.0               0.166667  10.560719  160.766235
-247         14.0     1.0     1.0     0.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0                1.0               1.000000  45.685825  132.035919
-256         15.0     1.0     1.0     0.0      8.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     1.0     1.0     0.0     0.0     0.0                1.0               0.333333  53.534355   96.989861
-362         13.0     1.0     1.0     1.0      8.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     0.0     1.0     1.0     0.0                1.0               0.333333  13.228626  139.515091
------------------------------------------------------------------------------------------------------------
-Event:  UNC(LP)
-Total data
-[[288  28]
- [  7  53]]
-              precision    recall  f1-score   support
-       False       0.98      0.91      0.94       316
-        True       0.65      0.88      0.75        60
-    accuracy                           0.91       376
-   macro avg       0.82      0.90      0.85       376
-weighted avg       0.92      0.91      0.91       376
-Test data
-[[60  4]
- [ 1 11]]
-              precision    recall  f1-score   support
-       False       0.98      0.94      0.96        64
-        True       0.73      0.92      0.81        12
-    accuracy                           0.93        76
-   macro avg       0.86      0.93      0.89        76
-weighted avg       0.94      0.93      0.94        76
-True in catalog, False with new rule
-     trig_ids                 start_times   sigma_r0   sigma_r1  sigma_r2    duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l  catalog_triggers    GRB     SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo  ra_std  dec_std
-0           0  2019-03-01 09:28:28.581015   0.000000   3.634195  0.000000    8.192132   30.0 -64.0  135.197405  19.401955       True     True  341.753547  -7.729691  291.247446  -51.468080 -19.401956   14.193478  530138.069453  1.449617  UNKNOWN: UNC(LP)  False  False     True  False  False  False                                              n6_r1           42.0           -55.0  4036.0   1204.0
-61         61  2019-05-14 13:45:47.179728  50.364376  19.042562  0.000000  569.352335  158.0 -57.0  151.692327 -12.837586      False     True   50.836512  18.578169  284.895023    0.892082  12.837586  251.535867  522047.744756  1.238464  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n0_r1 n1_r0 n2_r0 n2_r1 n3_r0 n3_r1 n4_r...          158.0           -57.0   106.0     22.0
-227       127  2014-02-16 03:28:45.672471   5.487795   8.093015  0.000000   40.960682  276.0 -52.0   30.818035  16.277555       True    False  329.378080 -12.452482  342.451282  -17.134016 -16.277553   12.474989  538028.663040  1.371025  UNKNOWN: UNC(LP)  False  False     True  False  False  False                                  n0_r0 n1_r1 n7_r1          261.0           -34.0  5296.0   1073.0
-228       128  2014-02-16 04:29:47.561215  73.729523  17.458890  0.000000   16.384308   59.0 -80.0  262.157754 -25.559559       True    False  329.418920 -12.437950  294.556071  -33.493788  25.559555  228.634865  549770.935776  1.407854  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n1_r0 n2_r0 n2_r1 n3_r0 n4_r0 n5_r0 n6_r...           77.0           -66.0  4900.0    746.0
-251       151  2014-02-21 22:39:25.128977   0.000000   3.282756  0.000000    4.096078  117.0  56.0  218.705717 -25.421916       True     True  334.962550 -10.396402  161.296335   29.889716  25.421913  267.102237  543975.067469  1.673110  UNKNOWN: UNC(LP)  False  False     True  False  False  False                                              n9_r1          122.0            42.0  4764.0    657.0
-259       159  2014-02-23 21:38:17.409513  59.134391  15.563072  0.000000   32.768572   63.0 -52.0   56.945630  23.140775       True     True  336.827605  -9.680785  260.841087  -45.115035 -23.140772  118.694854  542152.456079  1.497334  UNKNOWN: UNC(LP)  False  False     True  False  False  False                      n3_r0 n4_r0 n4_r1 n5_r0 n8_r0           64.0           -51.0  1745.0    199.0
-291       191  2014-02-27 23:25:46.852097  25.887002  17.883173  7.142265    8.192104   20.0  26.0  237.063546 -15.595272       True     True  340.680424  -8.161854  130.441797  -36.082263  15.595271  267.889712  540961.968979  1.372960  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n0_r2 n1_r0 n2_r0 n2_r1 n3_r0 n4_r0 n5_r...           52.0            14.0  7318.0   1540.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face    diff_sun  diff_earth
-0            2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0           0.000000               0.166667  104.516762  188.599365
-61          21.0     1.0     1.0     0.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  182.741653   50.470089
-227          4.0     1.0     1.0     0.0      3.0     1.0     1.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0           0.333333               0.166667   92.925598  183.095596
-228         14.0     1.0     1.0     0.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  157.143127  211.282684
-251          2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0           0.000000               0.166667  208.433853  183.127640
-259          6.0     1.0     1.0     0.0      4.0     0.0     0.0     0.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     0.0     0.0           0.500000               0.166667  128.491608   81.195145
-291         12.0     1.0     1.0     1.0      9.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     1.0     1.0           1.000000               0.500000   73.481430  184.531723
-False in catalog, True with new rule
-     trig_ids                 start_times     sigma_r0    sigma_r1   sigma_r2    duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l  catalog_triggers    GRB     SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo   ra_std  dec_std
-48         48  2019-05-06 13:53:21.368351    71.607254    3.004037   0.000000   49.152721   69.0  -4.0  158.610623   8.887928       True     True   43.030550  16.478757  200.379008  -31.963204  -8.887928  266.101721  523757.842201  1.110052    SFLARE19050657  False   True    False  False  False  False          n0_r0 n1_r0 n2_r0 n3_r0 n4_r0 n5_r0 n5_r1           69.0            -4.0      9.0      7.0
-109         9  2014-01-02 22:09:29.784760    32.077112   38.834822  15.929867  425.988234  132.0  26.0  285.694794  -3.267400       True    False  283.308926 -22.873445  198.917588   36.288839   3.267400   29.659182  535456.984527  1.060661       UNKNOWN: FP  False  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n3_r0 n3_r...          138.0            16.0   5264.0   1736.0
-128        28  2014-01-05 16:04:17.723484     0.000000   14.684007  12.911535   73.728730  327.0 -21.0   71.654012  10.250659       True     True  286.326040 -22.588955   31.284535  -47.424881 -10.250658  265.204279  552394.124932  1.110029      UNKNOWN: UNC  False  False    False  False  False   True  n0_r1 n0_r2 n1_r2 n2_r2 n3_r2 n4_r2 n5_r2 n6_r...          283.0           -16.0   8846.0   1604.0
-130        30  2014-01-06 01:04:11.935885     0.000000    5.900706   0.000000    8.192094  189.0  30.0  300.678310  13.124668       True    False  286.736607 -22.545779  175.984596   85.511717 -13.124666  359.105608  539202.459932  1.304819       UNKNOWN: FP  False  False    False  False  False  False                                              n0_r1          184.0            23.0   3581.0   1095.0
-132        32  2014-01-06 22:45:12.657926    56.422467   55.791470   7.234044  145.264164   34.0  65.0  174.775098 -25.487514       True     True  287.727186 -22.437208  131.523888    3.739517  25.487510  266.811846  538480.120356  1.673578    SFLARE14010694  False   True    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n3_r0 n3_r...           57.0            62.0   4404.0    186.0
-139        39  2014-01-08 13:55:44.828700     0.000000   12.747830   9.697620  480.334078  342.0 -21.0   42.636013  14.005799       True     True  289.510616 -22.226068   39.051780  -61.489688 -14.005798  265.608913  551541.977102  1.120311       UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n1_r2 n2_r2 n4_r2 n5_r2 n6_r2 n7_r2 n8_r...          281.0           -21.0  10168.0   1788.0
-144        44  2014-01-09 00:03:42.675359    16.765719   31.652095  13.204971  126.978009  229.0 -57.0  176.897482 -24.667092      False     True  289.971495 -22.168230  321.628023    0.432422  24.667089  247.326307  539715.234528  1.500696       UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r0 n1_r1 n1_r2 n2_r0 n2_r1 n2_r...          226.0           -50.0   3856.0    530.0
-159        59  2014-01-13 11:28:53.401630     0.000000   10.104356   7.417090    8.192149  249.0  46.0   10.757594  13.488787       True     True  294.825969 -21.477499   71.399839   42.145268 -13.488786  265.668394  543534.435420  1.118562       UNKNOWN: FP  False  False    False  False  False  False                n0_r2 n5_r2 n7_r1 n7_r2 n9_r2 nb_r2          238.0            23.0   5503.0   1365.0
-166        66  2014-01-18 09:01:46.853523     0.000000   14.571095   9.746079   28.672585  186.0   7.0  339.555515  12.715478       True    False  300.077652 -20.563369  283.358179   68.429430 -12.715476  266.364719  535856.180895  1.116941       UNKNOWN: FP  False  False    False  False  False  False  n0_r2 n1_r1 n1_r2 n2_r2 n5_r1 n5_r2 n9_r1 n9_r...          181.0            -3.0   7363.0   1952.0
-175        75  2014-01-23 06:34:47.558502     0.000000   21.571618  14.075264  325.501998  302.0 -31.0  307.679031  12.221551      False    False  305.258307 -19.493582   10.684930  -29.026531 -12.221550  266.441909  534784.065330  1.115702       UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n3_r2 n4_r...          263.0           -30.0   9544.0   1614.0
-184        84  2014-01-28 04:07:24.371667     0.000000   24.175924  15.395505  290.581872  109.0 -14.0  278.067632  10.779591       True    False  310.363668 -18.279205  228.426887   -1.266462 -10.779590  268.644382  540488.927620  1.115733       UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r2 n2_r2 n3_r2 n4_r1 n4_r2 n5_r...          121.0            -4.0   5773.0   1380.0
-189        89  2014-01-28 12:57:05.232091     0.000000   13.173893   9.716392   69.633233  152.0  30.0  113.140336  -2.783294      False     True  310.743502 -18.182620  197.659964   54.470323   2.783293  331.071204  545441.925061  1.108279    SFLARE14012853  False   True    False  False  False  False    n0_r1 n0_r2 n2_r2 n5_r2 n7_r2 n9_r2 nb_r1 nb_r2          156.0            32.0   9015.0   1707.0
-200       100  2014-02-01 01:48:52.414992     0.000000    8.282449   0.000000  456.072992   81.0 -12.0  243.468251  14.127281       True     True  314.375103 -17.216420  213.763047  -24.777793 -14.127279  265.069990  549624.277378  1.120222       UNKNOWN: FP  False  False    False  False  False  False                                  n0_r1 n5_r1 na_r1           93.0            -4.0   6693.0   1299.0
-223       123  2014-02-15 18:26:28.696655     0.000000   12.943785   7.562693  319.310122  229.0  38.0  149.982577  11.748190       True     True  329.012056 -12.582378   62.204048   58.168847 -11.748190  267.598560  539800.222467  1.116045       UNKNOWN: FP  False  False    False  False  False  False          n0_r2 n1_r2 n2_r1 n2_r2 n5_r1 n5_r2 nb_r1          228.0            21.0   6132.0   1309.0
-226       126  2014-02-16 03:16:11.995485     0.000000   18.237330   9.678945   65.537163  181.0  79.0  346.724605  -3.112728       True    False  329.369561 -12.455513  125.862847   38.302710   3.112727  331.547604  540932.603340  1.107134  UNKNOWN: GRB/UNC   True  False    False  False  False   True  n1_r1 n2_r1 n3_r1 n3_r2 n4_r2 n5_r2 n6_r2 n9_r...          185.0            48.0   6468.0    932.0
-237       137  2014-02-18 11:45:12.547655     0.000000    5.220067   4.984073    8.192149  200.0   1.0  170.259744  -6.115694      False     True  331.647186 -11.633489  318.321243   62.990685   6.115694   25.596299  538562.571241  1.053213       UNKNOWN: FP  False  False    False  False  False  False                                  n6_r1 n9_r2 nb_r2          195.0            -2.0   2677.0    856.0
-274       174  2014-02-25 13:30:34.474990     0.000000   22.110555  16.205751   73.729268  213.0 -17.0   87.004332  10.253362       True     True  338.403753  -9.065744  329.469514   41.181909 -10.253360  268.788274  535218.678380  1.115290       UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r2 n3_r2 n4_r2 n5_r...          220.0           -13.0   3820.0   1092.0
-278       178  2014-02-26 22:09:40.745917    12.157385   37.972521  24.885521  180.226523  148.0   8.0  280.150695   0.049832       True    False  339.689680  -8.557368  227.979708   43.550885  -0.049832  330.612186  548674.177314  1.119518       UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n3_r1 n3_r...          145.0             3.0   7090.0   1467.0
-279       179  2014-02-26 22:26:00.774507    35.455894   33.173058   9.749984  176.130339  228.0 -68.0  335.850251  21.537706       True    False  339.699842  -8.553327  315.544163   -8.376344 -21.537704   22.422475  554426.771382  1.505343       UNKNOWN: FP  False  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n3_r0 n3_r...          224.0           -53.0   3759.0    929.0
-284       184  2014-02-27 19:09:13.275247  1127.145321  154.906375  15.309895  942.091250   15.0 -33.0   17.795597  24.849171      False    False  340.518061  -8.226893  284.199850  -83.549532 -24.849170  110.900745  551571.949924  1.574076       UNKNOWN: SF  False   True    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n2_r2 n3_r...           15.0           -33.0      1.0      0.0
-285       185  2014-02-27 19:58:42.910134    18.778246   28.961296   0.000000  204.802486  320.0 -76.0  171.961697 -25.006270       True     True  340.545147  -8.216048  316.717820  -34.948322  25.006266  254.678889  532929.099438  1.566450  UNKNOWN: GRB/TGF   True  False    False   True  False  False  n1_r0 n2_r0 n2_r1 n4_r1 n7_r1 n8_r1 n9_r0 n9_r...          297.0           -57.0   5034.0   1215.0
-287       187  2014-02-27 20:50:23.621352   499.900192   65.657966  11.598039  593.926907   19.0 -32.0   31.009020  22.939963      False    False  340.582538  -8.201075  258.668487  -82.838889 -22.939960   99.385011  549097.500604  1.502040       UNKNOWN: SF  False   True    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n3_r0 n3_r1 n4_r...           19.0           -32.0      2.0      2.0
-288       188  2014-02-27 21:42:04.329558    13.758159   11.093828   4.790284    8.192096   59.0  17.0  204.255005 -24.010978       True     True  340.612565  -8.189047  173.656543  -27.643201  24.010974  261.113536  536491.999200  1.580156       UNKNOWN: FP  False  False    False  False  False  False                      n1_r2 n2_r0 n5_r0 na_r0 nb_r1           72.0             3.0   6041.0   2211.0
-294       194  2014-02-28 23:50:24.030184   140.541981  190.982896   8.597533  219.138241  282.0 -37.0    0.761644  25.410859       True    False  341.636314  -7.777233  359.017957  -15.014000 -25.410856   24.421834  554732.379530  1.627847       UNKNOWN: FP  False  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n2_r2 n3_r...          282.0           -37.0      3.0      2.0
-307        12  2010-11-14 17:53:19.875419    23.524750   27.840022   0.000000  229.380051   41.0 -25.0  165.201116  21.535340       True     True  229.685835 -18.291746  215.011499  -65.093688 -21.535337   22.701843  548310.445677  1.504889    TRANSNT1011147  False  False    False  False  False   True  n2_r0 n4_r0 n5_r0 n5_r1 n6_r0 n6_r1 n7_r0 n9_r...           50.0           -23.0   3129.0    907.0
-333        38  2011-01-07 04:51:06.657582    60.460436   17.827656   0.000000   94.209741  136.0  26.0  279.215094   4.792385       True    False  287.750994 -22.434731  199.874935   39.297193  -4.792385  279.992192  559261.656874  1.149060       UNKNOWN: FP  False  False    False  False  False  False  n1_r0 n2_r0 n2_r1 n5_r0 n6_r0 n6_r1 n7_r0 n7_r...          133.0            27.0     63.0      7.0
-337        42  2011-01-19 22:20:59.655731    10.936924   24.590621   0.000000  214.532148  347.0  -6.0  195.877801   3.674336       True     True  301.486851 -20.288969   68.403463  -57.653782  -3.674336  281.545802  540537.887131  1.156800      GRB110119931   True  False    False  False  False  False  n0_r1 n1_r1 n2_r1 n3_r0 n3_r1 n4_r0 n4_r1 n5_r...          346.0            -7.0     94.0    102.0
-342        47  2011-01-23 20:08:05.399210     9.928932   31.168152  18.088261  338.616178  194.0  36.0  153.905783  10.726373      False     True  305.610333 -19.415290  114.907999   81.034984 -10.726371  268.715052  543116.251855  1.115759       UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n3_r1 n3_r...          208.0            35.0   2782.0    743.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face    diff_sun  diff_earth
-48           8.0     1.0     1.0     0.0      6.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0           1.000000               0.000000   46.448208  102.498550
-109         29.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  200.182373  182.962189
-128         13.0     0.0     1.0     1.0     10.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0           1.000000               0.666667   42.262917  135.904678
-130          2.0     0.0     1.0     0.0      1.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000  150.282379  128.553635
-132         26.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  193.710022  230.287582
-139         11.0     0.0     1.0     1.0      9.0     1.0     1.0     1.0     0.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0           0.833333               0.666667   53.715450   95.641815
-144         29.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000   95.803268   84.435425
-159          7.0     0.0     1.0     1.0      5.0     1.0     0.0     0.0     0.0     0.0     1.0     0.0     1.0     0.0     1.0     0.0     1.0           0.333333               0.500000  113.303467  154.268814
-166         13.0     0.0     1.0     1.0      7.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     0.0     0.0     1.0     1.0     1.0           0.666667               0.500000  141.641022  159.270996
-175         20.0     0.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000   14.764725   48.900581
-184         21.0     0.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  162.915543  193.847229
-189          9.0     0.0     1.0     1.0      6.0     1.0     0.0     1.0     0.0     0.0     1.0     0.0     1.0     0.0     1.0     0.0     1.0           0.500000               0.500000  206.926117   71.642960
-200          4.0     0.0     1.0     0.0      3.0     1.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     1.0     0.0           0.333333               0.166667  131.841324  188.595535
-223          8.0     0.0     1.0     1.0      5.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     1.0           0.666667               0.166667  150.594437  105.269234
-226         11.0     0.0     1.0     1.0      8.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     1.0     0.0           0.833333               0.500000  236.914047  247.837326
-237          4.0     0.0     1.0     1.0      3.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     1.0     0.0     1.0           0.000000               0.500000  144.280670   36.855949
-274         18.0     0.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  133.338013  153.249023
-278         26.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  184.867691  140.100861
-279         20.0     1.0     1.0     1.0      9.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     1.0     1.0     1.0     0.0           0.833333               0.666667  171.146515  197.387955
-284         23.0     1.0     1.0     1.0      9.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     0.0           1.000000               0.500000   59.255047   60.644768
-285         13.0     1.0     1.0     0.0      8.0     0.0     1.0     1.0     0.0     1.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0           0.500000               0.833333   88.329102  199.032028
-287         18.0     1.0     1.0     1.0      9.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     0.0           1.000000               0.500000   62.216385   66.948982
-288          6.0     1.0     1.0     1.0      5.0     0.0     1.0     1.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     1.0     1.0           0.500000               0.333333  103.576485  186.265991
-294         29.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000   88.859077  141.172501
-307         14.0     1.0     1.0     0.0      8.0     0.0     0.0     1.0     0.0     1.0     1.0     1.0     1.0     0.0     1.0     1.0     1.0           0.500000               0.833333  178.022415  170.736450
-333         15.0     1.0     1.0     0.0      8.0     0.0     1.0     1.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     0.0     1.0           0.500000               0.833333  200.185730  164.422714
-337         13.0     1.0     1.0     0.0      9.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0           1.000000               0.500000   59.802120  160.796539
-342         27.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  167.025620   65.367844
------------------------------------------------------------------------------------------------------------
-Event:  FP
-Total data
-[[301  23]
- [  8  44]]
-              precision    recall  f1-score   support
-       False       0.97      0.93      0.95       324
-        True       0.66      0.85      0.74        52
-    accuracy                           0.92       376
-   macro avg       0.82      0.89      0.85       376
-weighted avg       0.93      0.92      0.92       376
-Test data
-[[62  4]
- [ 0 10]]
-              precision    recall  f1-score   support
-       False       1.00      0.94      0.97        66
-        True       0.71      1.00      0.83        10
-    accuracy                           0.95        76
-   macro avg       0.86      0.97      0.90        76
-weighted avg       0.96      0.95      0.95        76
-True in catalog, False with new rule
-     trig_ids                 start_times   sigma_r0   sigma_r1   sigma_r2    duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l catalog_triggers    GRB     SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo  ra_std  dec_std
-110        10  2014-01-02 22:24:02.241263  33.310898  35.658057  15.179423  200.705847  250.0 -18.0  324.769653  14.277728       True    False  283.317546 -22.872715    0.343661   18.450861 -14.277726   65.910303  545484.673561  1.237756      UNKNOWN: FP  False  False    False  False  False  False  n0_r0 n0_r1 n0_r2 n1_r0 n1_r1 n1_r2 n2_r0 n2_r...          232.0           -11.0  6411.0   1903.0
-130        30  2014-01-06 01:04:11.935885   0.000000   5.900706   0.000000    8.192094  189.0  30.0  300.678310  13.124668       True    False  286.736607 -22.545779  175.984596   85.511717 -13.124666  359.105608  539202.459932  1.304819      UNKNOWN: FP  False  False    False  False  False  False                                              n0_r1          184.0            23.0  3581.0   1095.0
-141        41  2014-01-08 17:43:03.040776  16.403099  15.035834   6.213980   24.576372   89.0 -29.0  178.763072 -24.657756       True     True  289.682820 -22.204614  234.172985  -24.346049  24.657754  344.754500  539530.324801  1.193268      UNKNOWN: FP  False  False    False  False  False  False  n2_r0 n4_r0 n4_r1 n5_r0 n7_r0 n7_r1 n8_r2 n9_r...           90.0           -26.0  3686.0    814.0
-169        69  2014-01-19 06:35:13.485303   0.000000   7.097905   4.309688    8.192162    6.0 -72.0  176.233228  -2.575111       True     True  301.033017 -20.378562  306.012561  -45.457059   2.575111  138.864585  546923.883017  1.012375      UNKNOWN: FP  False  False    False  False  False  False                                        n4_r1 n8_r2           48.0           -52.0  7545.0   1725.0
-200       100  2014-02-01 01:48:52.414992   0.000000   8.282449   0.000000  456.072992   81.0 -12.0  243.468251  14.127281       True     True  314.375103 -17.216420  213.763047  -24.777793 -14.127279  265.069990  549624.277378  1.120222      UNKNOWN: FP  False  False    False  False  False  False                                  n0_r1 n5_r1 na_r1           93.0            -4.0  6693.0   1299.0
-261       161  2014-02-24 00:03:50.241583   0.000000   5.501604   3.774916    4.096078   26.0 -55.0  246.941650 -20.841783       True     True  336.923647  -9.643571  288.118980  -60.416672  20.841781  272.204448  545585.088657  1.539991      UNKNOWN: FP  False  False    False  False  False  False                                        n2_r2 n8_r1           68.0           -30.0  8936.0   2268.0
-278       178  2014-02-26 22:09:40.745917  12.157385  37.972521  24.885521  180.226523  148.0   8.0  280.150695   0.049832       True    False  339.689680  -8.557368  227.979708   43.550885  -0.049832  330.612186  548674.177314  1.119518      UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n3_r1 n3_r...          145.0             3.0  7090.0   1467.0
-342        47  2011-01-23 20:08:05.399210   9.928932  31.168152  18.088261  338.616178  194.0  36.0  153.905783  10.726373      False     True  305.610333 -19.415290  114.907999   81.034984 -10.726371  268.715052  543116.251855  1.115759      UNKNOWN: FP  False  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n3_r1 n3_r...          208.0            35.0  2782.0    743.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face    diff_sun  diff_earth
-110         31.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000   38.190262  107.047379
-130          2.0     0.0     1.0     0.0      1.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000  150.282379  128.553635
-141         12.0     1.0     1.0     1.0      8.0     0.0     0.0     1.0     0.0     1.0     1.0     0.0     1.0     1.0     1.0     1.0     1.0           0.500000               0.833333  166.112564   94.105316
-169          3.0     0.0     1.0     1.0      2.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0           0.166667               0.166667  116.588417  239.658112
-200          4.0     0.0     1.0     0.0      3.0     1.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     1.0     0.0           0.333333               0.166667  131.841324  188.595535
-261          3.0     0.0     1.0     1.0      2.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0           0.166667               0.166667   94.432785  173.216568
-278         26.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  184.867691  140.100861
-342         27.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  167.025620   65.367844
-False in catalog, True with new rule
-     trig_ids                 start_times    sigma_r0   sigma_r1   sigma_r2    duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l  catalog_triggers    GRB     SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo   ra_std  dec_std
-32         32  2019-04-11 09:45:46.549222    0.000000  13.392206  10.789603   22.016376  285.0 -58.0  251.514721  25.413580       True     True   19.365337   8.179685  338.451591  -23.843934 -25.413576   85.722138  543191.812079  1.605391      GRB190411407   True  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n6_r1 n6_r...          279.0           -55.0   1312.0    145.0
-61         61  2019-05-14 13:45:47.179728   50.364376  19.042562   0.000000  569.352335  158.0 -57.0  151.692327 -12.837586      False     True   50.836512  18.578169  284.895023    0.892082  12.837586  251.535867  522047.744756  1.238464  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n0_r1 n1_r0 n2_r0 n2_r1 n3_r0 n3_r1 n4_r...          158.0           -57.0    106.0     22.0
-100         0  2014-01-01 03:21:00.290295    0.000000  26.444717  16.340525  147.456784  113.0  13.0  300.503559  -1.998545       True    False  281.337962 -23.028090  205.824874   14.416443   1.998545  329.358610  539139.997120  1.111696  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r1 n0_r2 n1_r2 n2_r1 n2_r2 n3_r1 n3_r2 n4_r...          129.0             7.0   7216.0   1626.0
-128        28  2014-01-05 16:04:17.723484    0.000000  14.684007  12.911535   73.728730  327.0 -21.0   71.654012  10.250659       True     True  286.326040 -22.588955   31.284535  -47.424881 -10.250658  265.204279  552394.124932  1.110029      UNKNOWN: UNC  False  False    False  False  False   True  n0_r1 n0_r2 n1_r2 n2_r2 n3_r2 n4_r2 n5_r2 n6_r...          283.0           -16.0   8846.0   1604.0
-129        29  2014-01-06 00:53:53.433194   21.222758  38.819214  20.154906  593.926441  138.0  16.0  269.176040  -1.079343       True    False  286.729693 -22.546515  213.220731   38.564729   1.079343  329.879436  532567.107009  1.114492  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n3_r1 n3_r...          144.0            19.0   5634.0   1011.0
-154        54  2014-01-10 22:26:58.963778    0.000000  26.311429  19.632244  126.978404   98.0 -20.0  235.552036  -1.253716       True    False  292.074086 -21.887322  228.858039  -13.527506   1.253716  328.292125  533187.809862  1.115080  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r1 n0_r2 n1_r2 n2_r2 n3_r1 n3_r2 n4_r2 n5_r...          101.0           -14.0   3908.0   1179.0
-161        61  2014-01-13 20:37:08.044433    9.516641  11.633344   0.000000   45.056953  340.0 -28.0  273.679622  21.434813       True    False  295.236582 -21.412258   24.324825  -60.582047 -21.434809   31.154155  537378.088438  1.489186  UNKNOWN: UNC(LP)  False  False     True  False  False  False                      n3_r0 n3_r1 n4_r0 na_r0 na_r1          317.0           -41.0   7464.0   1475.0
-162        62  2014-01-14 20:08:58.799428   11.394219  22.507797  14.912254  143.363046   96.0  25.0  204.006907  -3.651592       True     True  296.292293 -21.239656  187.430940    5.425370   3.651592  327.519353  539649.069522  1.110303  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r2 n2_r2 n3_r1 n3_r2 n4_r2 n5_r2 n6_r1 n6_r...          107.0            21.0   4385.0   1249.0
-164        64  2014-01-16 08:34:49.717277   12.016099  11.968758   6.705992   16.384353  269.0 -18.0  171.753669 -13.295823       True     True  297.921246 -20.959611   10.388529    3.207924  13.295823  107.342023  545444.752131  1.004492       UNKNOWN: GF  False  False    False  False   True  False  n0_r0 n1_r0 n3_r0 n3_r2 n4_r1 n4_r2 n8_r2 n9_r...          272.0           -16.0   1854.0    624.0
-167        67  2014-01-18 17:51:57.508641    0.000000   5.518109   4.390897    8.192162  190.0 -38.0  176.968992  -3.923908      False     True  300.469424 -20.488270  300.326435   24.642141   3.923908  330.939355  546541.843207  1.105471  UNKNOWN: UNC(LP)  False  False     True  False  False  False                                        n2_r2 nb_r1          190.0           -25.0   6619.0   1290.0
-171        71  2014-01-19 17:41:35.876163    8.072367  25.821320  16.445510  114.690336   86.0  57.0  174.023975  -2.131666       True     True  301.525129 -20.281157  155.712286   13.704943   2.131666  329.349226  547604.353212  1.111296  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r1 n0_r2 n1_r2 n2_r1 n2_r2 n3_r2 n4_r2 n5_r...           97.0            39.0   6905.0   1130.0
-189        89  2014-01-28 12:57:05.232091    0.000000  13.173893   9.716392   69.633233  152.0  30.0  113.140336  -2.783294      False     True  310.743502 -18.182620  197.659964   54.470323   2.783293  331.071204  545441.925061  1.108279    SFLARE14012853  False   True    False  False  False  False    n0_r1 n0_r2 n2_r2 n5_r2 n7_r2 n9_r2 nb_r1 nb_r2          156.0            32.0   9015.0   1707.0
-193        93  2014-01-29 12:46:45.839755    8.717374  32.242379  22.191747  163.842860   61.0  64.0  112.728289   0.234243       True     True  311.768751 -17.917662  142.568382    8.391485  -0.234243  331.833531  545189.524666  1.120808  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n3_r1 n3_r...           81.0            42.0   7765.0   1397.0
-207       107  2014-02-13 19:21:29.915671   47.918769  64.960291  23.689773  562.698337   55.0 -77.0  288.894939 -25.255412       True    False  327.098419 -13.251147  292.085304  -36.247929  25.255410   34.751511  547978.578785  1.177973      GRB140213807   True  False    False  False  False  False  n0_r0 n0_r1 n0_r2 n1_r0 n1_r1 n1_r2 n2_r0 n2_r...           55.0           -77.0     32.0      2.0
-233       133  2014-02-17 03:06:02.641298    0.000000  28.385793  19.402067  151.554761  191.0  -0.0  344.841171  -0.802548       True    False  330.333244 -12.110584  299.792513   62.780254   0.802548  330.967726  542192.098099  1.115601  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r1 n0_r2 n1_r2 n2_r1 n2_r2 n3_r1 n3_r2 n4_r...          181.0            -4.0   7496.0   2020.0
-236       136  2014-02-18 10:08:43.209037   17.908970  30.865799  18.900968  449.544377  178.0  -3.0  166.844115  -4.315796      False     True  331.582598 -11.657121  275.748578   57.026278   4.315796   46.351845  538154.097352  1.039747      GRB140218427   True  False    False  False  False  False  n2_r2 n3_r0 n3_r1 n3_r2 n4_r0 n4_r1 n5_r0 n5_r...          177.0           -10.0   4324.0   1332.0
-249       149  2014-02-21 00:48:43.275230    0.000000  14.425569   9.668188   45.056858  132.0 -20.0  315.502428  -2.165261       True    False  334.092259 -10.725597  245.317309   14.810925   2.165261  332.384893  548331.396434  1.109951  UNKNOWN: UNC(LP)  False  False     True  False  False  False    n2_r2 n3_r2 n5_r1 n5_r2 n6_r2 n8_r2 n9_r2 nb_r2          161.0            -1.0   8949.0   1987.0
-254       154  2014-02-23 11:53:08.424898    0.000000  11.180359   0.000000   41.215171  150.0 -43.0    4.392500  22.660352       True    False  336.441218  -9.830148  272.842204    9.172847 -22.660349  212.836103  549118.825353  1.241076      GRB140223495   True  False    False  False  False  False                n5_r1 n6_r1 n7_r1 n8_r1 n9_r1 nb_r1          162.0           -42.0   3581.0    762.0
-276       176  2014-02-25 22:20:16.531929    0.000000  18.493528  11.764660   81.921588  212.0  15.0  281.953313  -2.305009       True    False  338.751312  -8.928910    1.824869   68.517575   2.305009  331.103477  548836.504269  1.109775  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n2_r2 n5_r1 n5_r2 n6_r1 n6_r2 n8_r1 n8_r2 n9_r...          203.0            14.0   7385.0   2029.0
-291       191  2014-02-27 23:25:46.852097   25.887002  17.883173   7.142265    8.192104   20.0  26.0  237.063546 -15.595272       True     True  340.680424  -8.161854  130.441797  -36.082263  15.595271  267.889712  540961.968979  1.372960  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n0_r2 n1_r0 n2_r0 n2_r1 n3_r0 n4_r0 n5_r...           52.0            14.0   7318.0   1540.0
-309        14  2010-11-22 13:23:34.901335    0.000000   7.448478   5.410064    8.192148  338.0  16.0   52.390482  -2.336619       True     True  237.794095 -20.143839   80.954144  -34.747090   2.336619  330.090133  557802.034619  1.109942  UNKNOWN: UNC(LP)  False  False     True  False  False  False                                  n5_r2 nb_r1 nb_r2          284.0            19.0  13620.0   2148.0
-341        46  2011-01-23 19:17:42.740417   22.832173  63.484383  12.194074  386.567061  251.0  29.0  320.348286 -16.106988       True    False  305.572709 -19.423733   49.818589   38.900636  16.106985   88.105190  554130.651584  1.025209      GRB110123804   True  False    False  False  False  False  n0_r0 n0_r1 n0_r2 n1_r0 n1_r1 n1_r2 n2_r1 n2_r...          251.0            29.0      4.0      5.0
-349        54  2011-02-04 23:07:13.313827  117.992487  13.336375   0.000000  102.401676    8.0 -31.0   24.950193  24.198120      False     True  318.085773 -16.150947  349.867201  -84.168415 -24.198116   83.368374  562551.091735  1.552910  UNKNOWN: UNC(LP)  False  False     True  False  False  False  n0_r0 n3_r0 n3_r1 n4_r0 n4_r1 n5_r0 n6_r0 n7_r...            8.0           -31.0     11.0     11.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face    diff_sun  diff_earth
-32          14.0     0.0     1.0     1.0      7.0     1.0     1.0     1.0     0.0     0.0     0.0     1.0     0.0     1.0     1.0     1.0     0.0           0.500000               0.666667  160.545029  116.898857
-61          21.0     1.0     1.0     0.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  182.741653   50.470089
-100         20.0     0.0     1.0     1.0     11.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     1.0     1.0     1.0           1.000000               0.833333  204.366058  187.494980
-128         13.0     0.0     1.0     1.0     10.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0           1.000000               0.666667   42.262917  135.904678
-129         23.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  187.276215  148.255386
-154         20.0     0.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  167.813232  156.298325
-161          6.0     1.0     1.0     0.0      3.0     0.0     0.0     0.0     1.0     1.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0           0.333333               0.166667   51.351158  115.755188
-162         18.0     1.0     1.0     1.0     11.0     1.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           0.833333               1.000000  205.947357  136.658493
-164         10.0     1.0     1.0     1.0      7.0     1.0     1.0     0.0     1.0     1.0     0.0     0.0     0.0     1.0     1.0     0.0     1.0           0.666667               0.500000   31.880857  101.950508
-167          3.0     0.0     1.0     1.0      2.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0           0.166667               0.166667  127.981155   47.107101
-171         22.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  221.756027  147.155640
-189          9.0     0.0     1.0     1.0      6.0     1.0     0.0     1.0     0.0     0.0     1.0     0.0     1.0     0.0     1.0     0.0     1.0           0.500000               0.500000  206.926117   71.642960
-193         25.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  191.148911  115.494049
-207         36.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  151.650436  177.849655
-233         23.0     0.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000  151.443832  154.643723
-236         19.0     1.0     1.0     1.0     10.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           0.666667               1.000000  162.239716   12.471681
-249          9.0     0.0     1.0     1.0      7.0     0.0     0.0     1.0     1.0     0.0     1.0     1.0     0.0     1.0     1.0     0.0     1.0           0.500000               0.666667  167.182144  194.332306
-254          7.0     0.0     1.0     0.0      6.0     0.0     0.0     0.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     0.0     1.0           0.166667               0.833333  206.728638  211.267853
-276         12.0     0.0     1.0     1.0      7.0     0.0     0.0     1.0     0.0     0.0     1.0     1.0     0.0     1.0     1.0     1.0     1.0           0.333333               0.833333  150.680222   87.258324
-291         12.0     1.0     1.0     1.0      9.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     1.0     1.0           1.000000               0.500000   73.481430  184.531723
-309          4.0     0.0     1.0     1.0      2.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     1.0           0.166667               0.166667  136.349747   92.727104
-341         23.0     1.0     1.0     1.0      9.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0           1.000000               0.500000  102.996445  114.455276
-349         10.0     1.0     1.0     0.0      7.0     1.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     0.0           0.666667               0.500000   64.763283   72.148315
------------------------------------------------------------------------------------------------------------
-Event:  GRB
-Total data
-[[206  13]
- [ 23 134]]
-              precision    recall  f1-score   support
-       False       0.90      0.94      0.92       219
-        True       0.91      0.85      0.88       157
-    accuracy                           0.90       376
-   macro avg       0.91      0.90      0.90       376
-weighted avg       0.90      0.90      0.90       376
-Test data
-[[41  4]
- [ 5 26]]
-              precision    recall  f1-score   support
-       False       0.89      0.91      0.90        45
-        True       0.87      0.84      0.85        31
-    accuracy                           0.88        76
-   macro avg       0.88      0.87      0.88        76
-weighted avg       0.88      0.88      0.88        76
-True in catalog, False with new rule
-     trig_ids                 start_times    sigma_r0    sigma_r1   sigma_r2    duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l     catalog_triggers   GRB     SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo   ra_std  dec_std
-4           4  2019-03-06 22:37:42.666260   15.701771   25.357157   0.000000  185.858967  224.0  -7.0  106.880450  21.806781       True     True  346.929288  -5.599552  348.666535   44.274149 -21.806778  142.973289  538326.665679  1.430797         GRB190306943  True  False    False  False  False  False  n0_r1 n1_r0 n1_r1 n6_r0 n6_r1 n7_r1 n8_r1 n9_r...          224.0            -8.0     28.0     34.0
-20         20  2019-03-27 02:39:13.535013    0.000000   14.904268   6.317393   45.567073  286.0  18.0  120.114669 -12.238875       True     True    5.396670   2.334611   50.352262    5.419282  12.238873   76.059730  538007.229274  1.011525         GRB190327111  True  False    False  False  False  False  n1_r1 n2_r1 n3_r1 n3_r2 n4_r1 n6_r1 n7_r1 n8_r...          273.0            20.0   3607.0    685.0
-21         21  2019-03-27 06:36:04.471973    0.000000    3.402300   0.000000    8.192140   95.0  44.0  296.192659  11.089536       True     True    5.546365   2.399093  170.204844   12.927001 -11.089535  192.746253  524447.001061  1.110750         UNKNOWN: GRB  True  False    False  False  False  False                                              n1_r1          130.0            24.0  10754.0   2422.0
-24         24  2019-04-04 12:24:17.917832    9.186097   11.916627   0.000000   49.152806   17.0  27.0  179.308220 -15.762192       True     True   13.055115   5.592368  127.861707  -36.128499  15.762190  340.648151  538185.156928  1.110218      UNKNOWN: SF/GRB  True   True    False  False  False  False          n0_r1 n1_r0 n1_r1 n2_r1 n3_r1 n5_r0 n5_r1           27.0            23.0   2557.0    665.0
-32         32  2019-04-11 09:45:46.549222    0.000000   13.392206  10.789603   22.016376  285.0 -58.0  251.514721  25.413580       True     True   19.365337   8.179685  338.451591  -23.843934 -25.413576   85.722138  543191.812079  1.605391         GRB190411407  True  False    False  False  False  False  n0_r1 n0_r2 n1_r1 n1_r2 n2_r1 n2_r2 n6_r1 n6_r...          279.0           -55.0   1312.0    145.0
-37         37  2019-04-20 22:32:56.636213   15.158135    8.400105   0.000000   16.384357  192.0  38.0  315.984285 -14.324151       True     True   28.187594  11.572339  124.942712   78.931624  14.324150  309.027264  532688.037743  1.260570         UNKNOWN: GRB  True  False    False  False  False  False          n6_r0 n6_r1 n7_r0 n7_r1 n8_r0 n9_r0 nb_r0          189.0            38.0    841.0    281.0
-72         72  2019-05-31 20:10:02.285366   46.892046  170.813706  33.604194  126.978552   51.0 -37.0  191.017362   2.753884       True     True   68.175355  21.921042  239.533205  -56.849688  -2.753883  179.336289  528374.674085  1.055610         GRB190531840  True  False    False  False  False  False  n0_r0 n0_r1 n0_r2 n1_r0 n1_r1 n1_r2 n2_r1 n2_r...           50.0           -37.0      4.0      1.0
-79         79  2019-06-08 00:12:20.699758    9.444632   30.293692   0.000000  106.752720  225.0 -27.0  340.212367 -10.927038       True     True   75.543140  22.771364  335.194317   27.499766  10.927038  261.007982  523434.792238  1.243712         GRB190608009  True  False    False  False  False  False    n6_r1 n7_r1 n8_r1 n9_r1 na_r0 na_r1 nb_r0 nb_r1          224.0           -26.0     85.0     48.0
-83         83  2019-06-09 07:33:36.586811   11.943976   46.238063  10.166832  138.242808  189.0 -39.0  261.764210  19.014824       True     True   76.893636  22.889871  299.243134   23.819767 -19.014823   70.773039  529320.974515  1.363315         GRB190609315  True  False    False  False  False  False  n3_r1 n3_r2 n4_r1 n5_r1 n6_r0 n6_r1 n6_r2 n7_r...          190.0           -40.0     76.0     37.0
-157        57  2014-01-12 13:59:58.163719   13.689871   18.261050   0.000000  102.402085  107.0  28.0  188.935655 -16.393033       True     True  293.859255 -21.626906  188.979729   15.903437  16.393032   46.907514  540422.985672  1.076060  UNKNOWN: GF/TGF/GRB  True  False    False   True   True  False  n6_r0 n6_r1 n7_r0 n7_r1 n8_r1 n9_r0 n9_r1 na_r...          113.0            27.0   1020.0    335.0
-160        60  2014-01-13 15:04:12.936260  109.823157   12.611962   0.000000   40.960821  301.0 -26.0   97.770404 -22.004163       True     True  294.987286 -21.451995   15.615798  -26.819264  22.004160  298.702425  550050.874376  1.522969         GRB140113624  True  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n3_r0 n3_r1 n4_r...          301.0           -26.0      4.0      5.0
-174        74  2014-01-22 14:19:45.862478    0.000000    3.353441   0.000000    9.728183  220.0 -24.0  223.874390  23.421007      False     True  304.546404 -19.650375  332.182894   32.918447 -23.421004   67.102356  548422.867846  1.509999         GRB140122597  True  False    False  False  False  False                                              n8_r1          213.0           -24.0   8295.0   1516.0
-226       126  2014-02-16 03:16:11.995485    0.000000   18.237330   9.678945   65.537163  181.0  79.0  346.724605  -3.112728       True    False  329.369561 -12.455513  125.862847   38.302710   3.112727  331.547604  540932.603340  1.107134     UNKNOWN: GRB/UNC  True  False    False  False  False   True  n1_r1 n2_r1 n3_r1 n3_r2 n4_r2 n5_r2 n6_r2 n9_r...          185.0            48.0   6468.0    932.0
-236       136  2014-02-18 10:08:43.209037   17.908970   30.865799  18.900968  449.544377  178.0  -3.0  166.844115  -4.315796      False     True  331.582598 -11.657121  275.748578   57.026278   4.315796   46.351845  538154.097352  1.039747         GRB140218427  True  False    False  False  False  False  n2_r2 n3_r0 n3_r1 n3_r2 n4_r0 n4_r1 n5_r0 n5_r...          177.0           -10.0   4324.0   1332.0
-238       138  2014-02-18 12:27:19.828205    0.000000    3.052173   0.000000    4.096074  160.0  -4.0  330.778305  -3.014472       True    False  331.675351 -11.623178  252.460397   45.262094   3.014471  175.572811  545051.031464  1.041876         UNKNOWN: GRB  True  False    False  False  False  False                                              nb_r1          174.0            -2.0   7447.0   1875.0
-283       183  2014-02-27 17:43:06.074442   16.734577    4.989915   0.000000   13.824162   28.0 -44.0   22.662668  24.370468       True    False  340.456469  -8.251543  270.905958  -69.622811 -24.370466  139.386868  550647.373511  1.529027         GRB140227738  True  False    False  False  False  False                      n0_r0 n3_r0 n4_r0 n5_r0 na_r1           34.0           -46.0   2272.0    395.0
-285       185  2014-02-27 19:58:42.910134   18.778246   28.961296   0.000000  204.802486  320.0 -76.0  171.961697 -25.006270       True     True  340.545147  -8.216048  316.717820  -34.948322  25.006266  254.678889  532929.099438  1.566450     UNKNOWN: GRB/TGF  True  False    False   True  False  False  n1_r0 n2_r0 n2_r1 n4_r1 n7_r1 n8_r1 n9_r0 n9_r...          297.0           -57.0   5034.0   1215.0
-293       193  2014-02-28 20:25:58.401796    0.000000    3.681449   0.000000    4.096052  295.0 -65.0  305.607903  16.580724       True    False  341.502920  -7.831080  331.152181  -29.660047 -16.580722   20.557588  553598.301561  1.371611         UNKNOWN: GRB  True  False    False  False  False  False                                              n0_r1          261.0           -38.0  12210.0   2110.0
-308        13  2010-11-17 11:54:42.683482   13.427539   26.913489   4.036039  108.544005   56.0 -23.0  318.741699 -19.451366       True     True  232.516558 -18.983546  217.295178  -51.433683  19.451365  263.570986  548454.639463  1.450876         GRB101117496  True  False    False  False  False  False  n6_r1 n7_r0 n7_r1 n8_r0 n8_r1 n8_r2 na_r1 nb_r...           58.0           -23.0    233.0     94.0
-314        19  2010-12-01 10:01:49.228151   23.005752   41.608898   4.872910  108.034118    3.0 -12.0  220.979377 -18.198468       True     True  247.232929 -21.788843   89.560038  -71.758873  18.198466  180.243282  545159.538612  1.131997         GRB101201418  True  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n2_r2 n4_r...            3.0           -11.0      9.0     19.0
-321        26  2010-12-20 13:50:02.228876   15.926179   31.109794   0.000000  106.497718  257.0  18.0   84.483497 -15.801296       True     True  268.265422 -23.428118   39.002236   30.284962  15.801295  327.850482  543346.718826  1.154371         GRB101220576  True  False    False  False  False  False  n0_r0 n0_r1 n1_r0 n1_r1 n2_r1 n3_r0 n3_r1 n4_r...          257.0            20.0     41.0     33.0
-334        39  2011-01-07 21:15:03.925786   19.493823   20.086030   0.000000  146.434313  302.0  28.0   28.146736 -25.010353       True     True  288.499205 -22.348452   66.454763   -2.909121  25.010353  142.060627  548059.209887  1.128022         GRB110107886  True  False    False  False  False  False    n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n5_r0 n5_r1          298.0            31.0    809.0    246.0
-337        42  2011-01-19 22:20:59.655731   10.936924   24.590621   0.000000  214.532148  347.0  -6.0  195.877801   3.674336       True     True  301.486851 -20.288969   68.403463  -57.653782  -3.674336  281.545802  540537.887131  1.156800         GRB110119931  True  False    False  False  False  False  n0_r1 n1_r1 n2_r1 n3_r0 n3_r1 n4_r0 n4_r1 n5_r...          346.0            -7.0     94.0    102.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face    diff_sun  diff_earth
-4           14.0     1.0     1.0     0.0      8.0     1.0     1.0     0.0     0.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0           0.333333               1.000000  124.329735  145.926331
-20          11.0     0.0     1.0     1.0      9.0     0.0     1.0     1.0     1.0     1.0     0.0     1.0     1.0     1.0     1.0     1.0     0.0           0.666667               0.833333   95.062057  196.124207
-21           2.0     0.0     1.0     0.0      1.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000  131.054550  191.717804
-24           8.0     1.0     1.0     0.0      5.0     1.0     1.0     1.0     1.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0           0.833333               0.000000   25.352516  205.070404
-32          14.0     0.0     1.0     1.0      7.0     1.0     1.0     1.0     0.0     0.0     0.0     1.0     0.0     1.0     1.0     1.0     0.0           0.500000               0.666667  160.545029  116.898857
-37           8.0     1.0     1.0     0.0      5.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     1.0     1.0     1.0     0.0     1.0           0.000000               0.833333  190.240067  176.308441
-72          32.0     1.0     1.0     1.0     12.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           1.000000               1.000000   76.096397  179.771240
-79           9.0     1.0     1.0     0.0      6.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0           0.000000               1.000000  199.228226  131.285324
-83          20.0     1.0     1.0     1.0      9.0     0.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           0.500000               1.000000  173.996231  130.779037
-157         12.0     1.0     1.0     0.0      6.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0           0.000000               1.000000  222.767654  126.328690
-160         12.0     1.0     1.0     0.0      7.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     0.0     0.0           1.000000               0.166667   10.560719  160.766235
-174          2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0           0.000000               0.166667   88.896027   51.295399
-226         11.0     0.0     1.0     1.0      8.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     1.0     0.0           0.833333               0.500000  236.914047  247.837326
-236         19.0     1.0     1.0     1.0     10.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0           0.666667               1.000000  162.239716   12.471681
-238          2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0           0.000000               0.166667  179.298523  171.763840
-283          6.0     1.0     1.0     0.0      5.0     1.0     0.0     0.0     1.0     1.0     1.0     0.0     0.0     0.0     0.0     1.0     0.0           0.666667               0.166667   83.291992   73.707802
-285         13.0     1.0     1.0     0.0      8.0     0.0     1.0     1.0     0.0     1.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0           0.500000               0.833333   88.329102  199.032028
-293          2.0     0.0     1.0     0.0      1.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000  103.671837   92.188629
-308         10.0     1.0     1.0     1.0      5.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     1.0     1.0     0.0     1.0     1.0           0.000000               0.833333  180.533005  100.806938
-314         17.0     1.0     1.0     1.0     10.0     1.0     1.0     1.0     0.0     1.0     1.0     0.0     1.0     1.0     1.0     1.0     1.0           0.833333               0.833333  125.555916  148.219086
-321         11.0     1.0     1.0     0.0      6.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0           1.000000               0.000000   52.693539  206.317795
-334          9.0     1.0     1.0     0.0      4.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0           0.666667               0.000000   63.849247  139.157089
-337         13.0     1.0     1.0     0.0      9.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0     0.0           1.000000               0.500000   59.802120  160.796539
-False in catalog, True with new rule
-     trig_ids                 start_times   sigma_r0   sigma_r1  sigma_r2    duration     ra   dec    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l      catalog_triggers    GRB     SF  UNC(LP)    TGF     GF    UNC                                          trig_dets  ra_montecarlo  dec_montecarlo   ra_std  dec_std
-0           0  2019-03-01 09:28:28.581015   0.000000   3.634195       0.0    8.192132   30.0 -64.0  135.197405  19.401955       True     True  341.753547  -7.729691  291.247446  -51.468080 -19.401956   14.193478  530138.069453  1.449617      UNKNOWN: UNC(LP)  False  False     True  False  False  False                                              n6_r1           42.0           -55.0   4036.0   1204.0
-51         51  2019-05-07 17:15:13.232585   0.000000   4.848612       0.0    7.420368  267.0 -17.0  243.250517 -24.605999      False     True   44.134055  16.796904   10.549636    5.767983  24.605996  299.185932  531088.159708  1.593973          UNKNOWN: TGF  False  False    False   True  False  False                                              na_r1          255.0           -22.0   3872.0    595.0
-58         58  2019-05-14 07:38:41.874086   0.000000   3.085967       0.0    8.192131  298.0  46.0  321.467357   7.755058      False     True   50.580860  18.515084   80.297864    9.517466   0.096319   78.367572  538267.399448  1.015683          UNKNOWN: TGF  False  False    False   True  False  False                                              na_r1          293.0            25.0   5675.0   1742.0
-142        42  2014-01-08 19:27:13.630308   0.000000   4.668879       0.0   16.384266  248.0  -8.0  212.265737 -17.152976      False     True  289.761519 -22.194748    7.488550   26.401234  17.152974  352.210202  534236.165320  1.098569          UNKNOWN: TGF  False  False    False   True  False  False                                              n4_r1          221.0             1.0  10080.0   1925.0
-227       127  2014-02-16 03:28:45.672471   5.487795   8.093015       0.0   40.960682  276.0 -52.0   30.818035  16.277555       True    False  329.378080 -12.452482  342.451282  -17.134016 -16.277553   12.474989  538028.663040  1.371025      UNKNOWN: UNC(LP)  False  False     True  False  False  False                                  n0_r0 n1_r1 n7_r1          261.0           -34.0   5296.0   1073.0
-245       145  2014-02-19 23:49:23.039056  12.576197   9.124411       0.0   90.113521   57.0 -26.0   56.837459  25.526968      False     True  333.093599 -11.099494  221.993512  -50.724846 -25.526966   89.648971  540500.496780  1.613258  UNKNOWN: UNC(LP)/TGF  False  False     True   True  False  False                                        n4_r0 n4_r1           82.0           -25.0  10008.0   1555.0
-251       151  2014-02-21 22:39:25.128977   0.000000   3.282756       0.0    4.096078  117.0  56.0  218.705717 -25.421916       True     True  334.962550 -10.396402  161.296335   29.889716  25.421913  267.102237  543975.067469  1.673110      UNKNOWN: UNC(LP)  False  False     True  False  False  False                                              n9_r1          122.0            42.0   4764.0    657.0
-301         6  2010-11-11 13:04:23.505145   4.286564   5.813135       0.0   32.768534  279.0 -39.0   86.322434 -18.750037       True     True  226.422742 -17.435373  356.163343  -13.962862  18.750035   19.640591  553309.991900  1.092258        UNKNOWN: SF/GF  False   True    False  False   True  False                                        n2_r0 n2_r1          269.0           -27.0   5104.0   1741.0
-307        12  2010-11-14 17:53:19.875419  23.524750  27.840022       0.0  229.380051   41.0 -25.0  165.201116  21.535340       True     True  229.685835 -18.291746  215.011499  -65.093688 -21.535337   22.701843  548310.445677  1.504889        TRANSNT1011147  False  False    False  False  False   True  n2_r0 n4_r0 n5_r0 n5_r1 n6_r0 n6_r1 n7_r0 n9_r...           50.0           -23.0   3129.0    907.0
-329        34  2010-12-28 18:22:27.167159   0.000000   8.076185       0.0  106.497756  139.0  12.0  221.768941  19.839825       True     True  277.349382 -23.265919  218.365060   37.509022 -19.839823   28.686543  563072.960388  1.446409      UNKNOWN: UNC(LP)  False  False     True  False  False  False                                              na_r1          168.0             5.0   7047.0   1994.0
-339        44  2011-01-20 16:33:32.460728   8.521304  16.662483       0.0   53.248948   61.0  18.0  350.560369 -12.633301       True    False  302.290676 -20.126874  174.564529  -25.513132  12.633299  162.470057  557727.609741  1.055269           UNKNOWN: FP  False  False    False  False  False  False  n3_r1 n4_r0 n5_r0 n5_r1 n6_r1 n7_r0 n7_r1 n8_r...           66.0            20.0   1764.0    517.0
-340        45  2011-01-20 18:09:21.594319   6.863428   6.850322       0.0   16.384286  252.0 -36.0  351.369813 -12.123310       True    False  302.361121 -20.112478  347.370526    5.501417  12.123308  139.259195  557720.784653  1.021059           UNKNOWN: FP  False  False    False  False  False  False                            n2_r0 n5_r0 n7_r1 n9_r1          218.0           -24.0   9346.0   1966.0
-353        58  2011-02-08 10:22:34.626164   0.000000   3.270030       0.0    4.096072  201.0 -40.0  113.835677 -17.695011       True     True  321.564395 -15.082377  309.565597   22.285973  17.695009  113.018801  556233.489878  1.038323           UNKNOWN: FP  False  False    False  False  False  False                                              nb_r1          192.0           -38.0   3365.0    619.0
-     num_det_rng  num_r0  num_r1  num_r2  num_det  num_n0  num_n1  num_n2  num_n3  num_n4  num_n5  num_n6  num_n7  num_n8  num_n9  num_na  num_nb  mean_det_sol_face  mean_det_not_sol_face    diff_sun  diff_earth
-0            2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0           0.000000               0.166667  104.516762  188.599365
-51           2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0           0.000000               0.166667  170.930954   31.355482
-58           2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0           0.000000               0.166667  140.065781   61.712299
-142          2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000   55.956264   44.887241
-227          4.0     1.0     1.0     0.0      3.0     1.0     1.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0           0.333333               0.166667   92.925598  183.095596
-245          3.0     1.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000   98.806908   51.689510
-251          2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0     0.0           0.000000               0.166667  208.433853  183.127640
-301          3.0     1.0     1.0     0.0      1.0     0.0     0.0     1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0           0.166667               0.000000   74.141884  187.572403
-307         14.0     1.0     1.0     0.0      8.0     0.0     0.0     1.0     0.0     1.0     1.0     1.0     1.0     0.0     1.0     1.0     1.0           0.500000               0.833333  178.022415  170.736450
-329          2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0     0.0           0.000000               0.166667  173.615295   90.608765
-339         10.0     1.0     1.0     0.0      7.0     0.0     0.0     0.0     1.0     1.0     1.0     1.0     1.0     1.0     0.0     0.0     1.0           0.500000               0.666667  156.836197  101.072929
-340          5.0     1.0     1.0     0.0      4.0     0.0     0.0     1.0     0.0     0.0     1.0     0.0     1.0     0.0     1.0     0.0     0.0           0.333333               0.333333   66.248642  123.246506
-353          2.0     0.0     1.0     0.0      1.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0     1.0           0.000000               0.166667  145.482025  109.469315
------------------------------------------------------------------------------------------------------------
+[[146   5   1   2]
+ [  0  56   2   2]
+ [  3   2  97   0]
+ [  0   1   1  50]]
+0.9484760337701514
+Backend TkAgg is interactive backend. Turning interactive mode on.
+df_catalog.loc[293]
+PyDev console: starting.
+trig_ids                                     193
+start_index                               876761
+start_met                            4.15312e+08
+start_times           2014-02-28 20:25:58.401796
+start_times_offset    2014-02-28 20:25:29.729411
+end_index                                 876762
+end_met                              4.15312e+08
+end_times             2014-02-28 20:26:02.497848
+trig_dets                                  n0_r1
+sigma_r0                                       0
+sigma_r1                                 3.68145
+sigma_r2                                       0
+duration                                 4.09605
+qtl_cut_r0                                     0
+qtl_cut_r1                                     0
+qtl_cut_r2                                     0
+ra                                           295
+dec                                          -65
+ra_montecarlo                                261
+dec_montecarlo                               -38
+ra_std                                     12210
+dec_std                                     2110
+met_localisation                     4.15312e+08
+ra_earth                                 305.608
+dec_earth                                16.5807
+earth_vis                                   True
+sun_vis                                    False
+ra_sun                                   341.503
+dec_sun                                 -7.83108
+l_galactic                               331.152
+b_galactic                                -29.66
+lat_fermi                               -16.5807
+lon_fermi                                20.5576
+alt_fermi                                 553598
+l                                        1.37161
+fe_wam1                                0.0185316
+fe_wen1                                 0.201608
+fe_wstd1                                0.200754
+fe_wam2                                0.0483553
+fe_wen2                                 0.235664
+fe_wstd2                                 0.23065
+fe_wam3                                0.0867621
+fe_wen3                                 0.227178
+fe_wstd3                                0.209958
+fe_wam4                                   0.1342
+fe_wen4                                 0.273261
+fe_wstd4                                0.238038
+fe_wam5                                 0.201849
+fe_wen5                                 0.326996
+fe_wstd5                                0.257261
+fe_wam6                                 0.306965
+fe_wen6                                 0.417858
+fe_wstd6                                0.283509
+fe_wam7                                 0.452254
+fe_wen7                                 0.552545
+fe_wstd7                                0.317447
+fe_wam8                                 0.620172
+fe_wen8                                 0.710866
+fe_wstd8                                0.347443
+fe_wam9                                 0.789289
+fe_wen9                                  0.87097
+fe_wstd9                                0.368255
+fe_wet                                   2.04126
+fe_np                                          1
+fe_pp                                    29.8983
+fe_kur                                   1.12623
+fe_skw                                  0.575332
+fe_max                                   34.5046
+fe_min                                    4.6063
+fe_med                                   17.3044
+fe_mea                                   16.6212
+fe_std                                   5.73702
+fe_ff                                          0
+fe_bkg_np                                      0
+fe_bkg_pp                                12.0303
+fe_bkg_kur                              -1.22596
+fe_bkg_skw                             0.0100833
+fe_bkg_max                               324.699
+fe_bkg_min                               312.669
+fe_bkg_med                               318.635
+fe_bkg_mea                               318.667
+fe_bkg_std                               3.61006
+fe_bkg_step_max                          0.41861
+fe_bkg_step_min                          0.32478
+fe_bkg_step_med                          0.36325
+datetime                     2014-02-28 20:25:58
+catalog_triggers                    UNKNOWN: GRB
+GRB                                         True
+SF                                         False
+UNC(LP)                                    False
+TGF                                        False
+GF                                         False
+UNC                                        False
+FP                                         False
+Name: 293, dtype: object
+df_catalog.loc[[6,7]]
+   trig_ids  start_index     start_met                 start_times          start_times_offset  end_index       end_met                   end_times                                          trig_dets   sigma_r0   sigma_r1  sigma_r2    duration  qtl_cut_r0  qtl_cut_r1  qtl_cut_r2     ra   dec  ra_montecarlo  dec_montecarlo  ra_std  dec_std  met_localisation    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun   dec_sun  l_galactic  b_galactic  lat_fermi  lon_fermi      alt_fermi         l   fe_wam1   fe_wen1  fe_wstd1   fe_wam2   fe_wen2  fe_wstd2   fe_wam3   fe_wen3  fe_wstd3   fe_wam4   fe_wen4  fe_wstd4   fe_wam5   fe_wen5  fe_wstd5   fe_wam6   fe_wen6  fe_wstd6   fe_wam7   fe_wen7  fe_wstd7   fe_wam8   fe_wen8  fe_wstd8   fe_wam9   fe_wen9  fe_wstd9    fe_wet  fe_np       fe_pp     fe_kur    fe_skw     fe_max    fe_min    fe_med    fe_mea     fe_std  fe_ff  fe_bkg_np  fe_bkg_pp  fe_bkg_kur  fe_bkg_skw  fe_bkg_max  fe_bkg_min  fe_bkg_med  fe_bkg_mea  fe_bkg_std  fe_bkg_step_max  \
+6         6       172757  5.739032e+08  2019-03-10 09:32:35.130661  2019-03-10 09:32:28.986560     172794  5.739033e+08  2019-03-10 09:35:07.195688  n0_r0 n0_r1 n1_r0 n1_r1 n2_r0 n2_r1 n3_r0 n3_r  50.402503  70.877812       0.0  152.065027        0.95        0.95         0.0  351.0   6.0          351.0             7.0     4.0      3.0      5.739032e+08  202.879356   1.963818       True     True  350.124851 -4.252237   88.071404  -50.596864  -1.963817  71.750004  523497.240653  1.038143  0.000509  0.130916  0.130915  0.001385  0.202277  0.202272  0.002368  0.229161  0.229149  0.003420  0.235649  0.235624  0.004714  0.235058  0.235011  0.006401  0.236457  0.236370  0.008671  0.239919  0.239762  0.011646  0.243582  0.243303  0.015872  0.246593  0.246082  2.138373    3.0  351.820393  29.479255  5.372280  344.44352 -7.376874  0.932206  11.34636  50.596588    0.0        0.0  23.280211   -1.205143    0.406603  361.430439  338.150228  346.012488  347.720079    7.265677        -0.091338   
+7         7       194351  5.740070e+08  2019-03-11 14:23:37.089200  2019-03-11 14:23:31.457100     194353  5.740070e+08  2019-03-11 14:23:46.817372                                              n8_r1   0.000000   3.363020       0.0    9.728172        0.00        0.00         0.0  164.0  29.0          164.0            19.0  4257.0   1076.0      5.740070e+08  262.364218 -23.223180       True     True  351.231806 -3.781031  201.621348   64.557287  23.223178  57.522881  522588.444563  1.137732  0.008536  0.183162  0.182963  0.028012  0.323556  0.322341  0.059614  0.384566  0.379918  0.099068  0.375282  0.361970  0.143780  0.342012  0.310321  0.209731  0.360955  0.293771  0.305674  0.442615  0.320112  0.422974  0.552490  0.355441  0.546373  0.666203  0.381186  2.123351    1.0   54.623840   1.836240  1.422479   51.04013 -3.583710  8.765950  12.55309  12.215617    0.0        0.0   5.579930   -1.166331    0.042686  418.371980  412.792050  415.534060  415.423715    1.657180         2.086310   
+   fe_bkg_step_min  fe_bkg_step_med             datetime catalog_triggers   GRB     SF  UNC(LP)    TGF     GF    UNC     FP  
+6        -0.767096        -0.347353  2019-03-10 09:32:35     GRB190310398  True  False    False  False  False  False  False  
+7        -0.358630        -0.149355  2019-03-11 14:23:37     GRB190311600  True  False    False  False  False  False  False  
+df_catalog.loc[[301, 302]]
+     trig_ids  start_index     start_met                 start_times          start_times_offset  end_index       end_met                   end_times                trig_dets   sigma_r0  sigma_r1  sigma_r2   duration  qtl_cut_r0  qtl_cut_r1  qtl_cut_r2     ra   dec  ra_montecarlo  dec_montecarlo  ra_std  dec_std  met_localisation    ra_earth  dec_earth  earth_vis  sun_vis      ra_sun    dec_sun  l_galactic  b_galactic  lat_fermi   lon_fermi      alt_fermi         l   fe_wam1   fe_wen1  fe_wstd1   fe_wam2   fe_wen2  fe_wstd2   fe_wam3   fe_wen3  fe_wstd3   fe_wam4   fe_wen4  fe_wstd4   fe_wam5   fe_wen5  fe_wstd5   fe_wam6   fe_wen6  fe_wstd6   fe_wam7   fe_wen7  fe_wstd7   fe_wam8   fe_wen8  fe_wstd8   fe_wam9   fe_wen9  fe_wstd9    fe_wet  fe_np      fe_pp    fe_kur    fe_skw      fe_max    fe_min    fe_med     fe_mea     fe_std  fe_ff  fe_bkg_np  fe_bkg_pp  fe_bkg_kur  fe_bkg_skw  fe_bkg_max  fe_bkg_min  fe_bkg_med  fe_bkg_mea  fe_bkg_std  fe_bkg_step_max  fe_bkg_step_min  \
+301         6       192944  3.111735e+08  2010-11-11 13:04:23.505145  2010-11-11 13:04:15.313016     192952  3.111735e+08  2010-11-11 13:04:56.273679              n2_r0 n2_r1   4.286564  5.813135       0.0  32.768534        0.25        0.25         0.0  279.0 -39.0          269.0           -27.0  5104.0   1741.0      3.111735e+08   86.322434 -18.750037       True     True  226.422742 -17.435373  356.163343  -13.962862  18.750035   19.640591  553309.991900  1.092258  0.014036  0.139759  0.139052  0.034130  0.188673  0.185561  0.057048  0.304576  0.299186  0.088050  0.422221  0.412938  0.129833  0.511763  0.495020  0.192169  0.592152  0.560103  0.285104  0.683092   0.62075  0.411427  0.787190  0.671116  0.561388  0.900625  0.704251  2.065387    1.0   41.83178 -0.474468  0.688367   34.958700 -6.873080  7.213875   9.470849  10.324169    0.0        0.0   1.046560   -1.341010    0.411017  266.744100   265.69754  266.018620  266.134602    0.341601         0.258330         -0.05180   
+302         7       198128  3.111947e+08  2010-11-11 18:58:17.533173  2010-11-11 18:58:13.437115     198132  3.111947e+08  2010-11-11 18:58:33.917409  n2_r0 n4_r0 n5_r0 n5_r1  18.043122  4.573585       0.0  16.384236        0.05        0.05         0.0  231.0 -23.0          232.0           -24.0    71.0     68.0      3.111947e+08  333.845502 -11.075558       True     True  226.671902 -17.502959  343.046487   27.428773  11.075557  178.463416  554645.908017  1.069195  0.001229  0.149509  0.149504  0.008459  0.338975  0.338870  0.018539  0.436640  0.436246  0.028031  0.459459  0.458603  0.039778  0.446617  0.444842  0.062512  0.438521  0.434042  0.103877  0.445821   0.43355  0.161775  0.462214  0.432979  0.228204  0.482461  0.425079  2.139392    1.0  126.41018  6.001947  2.640897  124.135105 -2.275075  5.758183  16.009627  28.347297    0.0        0.0   4.264155   -0.970227    0.274240  246.088725   241.82457  243.599785  243.741147    1.201833         0.225438          0.07803   
+     fe_bkg_step_med             datetime catalog_triggers    GRB    SF  UNC(LP)    TGF     GF    UNC     FP  
+301        -0.031550  2010-11-11 13:04:23   UNKNOWN: SF/GF  False  True    False  False   True  False  False  
+302         0.108238  2010-11-11 18:58:17      UNKNOWN: SF  False  True    False  False  False  False  False  
+pred1vsall[[301, 302]]
+301    1
+302    1
+dtype: int64
