@@ -343,6 +343,8 @@ pred1vsall = pred1vsall.replace({'SF': 3, 'UNC(LP)': 2, 'GRB': 1, 'FP': 4})
 # print(balanced_accuracy_score(y_tmp_test[y_tmp_test != 0], pred1vsall[y_tmp_test.values != 0]))
 print(confusion_matrix(y_tmp_test[y_tmp_test != 0], pred1vsall[X_test.index][y_tmp_test.values != 0], normalize=None))
 print(balanced_accuracy_score(y_tmp_test[y_tmp_test != 0], pred1vsall[X_test.index][y_tmp_test.values != 0]))
+print(confusion_matrix(y_tmp_train[y_tmp_train != 0], pred1vsall[X_train.index][y_tmp_train.values != 0], normalize=None))
+print(balanced_accuracy_score(y_tmp_train[y_tmp_train != 0], pred1vsall[X_train.index][y_tmp_train.values != 0]))
 print(confusion_matrix(y_tmp[y_tmp != 0], pred1vsall[y_tmp.values != 0], normalize=None))
 print(balanced_accuracy_score(y_tmp[y_tmp != 0], pred1vsall[y_tmp.values != 0]))
 
