@@ -543,12 +543,12 @@ class ModelNN:
             plt.ylabel('Predicted signal')
         plt.legend(self.col_range)
 
-    def explain_global(self, n_sample=10000, det_rng=None, n_importance=20):
+    def explain_global(self, n_sample=100000, det_rng='nb_r2', n_importance=20):
         # Define dataset of background and explanation
         from interpret.blackbox import MorrisSensitivity
         X_back = self.df_data.loc[:, self.col_selected].astype('float32').sample(n_sample)
         X_back_std = pd.DataFrame(self.scaler.transform(X_back), columns=self.col_selected)
-        idx_det_rng = np.where(self.col_range == det_rng)
+        idx_det_rng = np.where(np.array(self.col_range) == det_rng)[0]
         def bb(X):
             return self.nn_r.predict(X)[:, idx_det_rng]
         msa = MorrisSensitivity(bb, X_back_std)
@@ -558,7 +558,7 @@ class ModelNN:
         plt.barh(fi.head(n_importance).index[::-1], fi.head(n_importance).values[::-1],
                  xerr=fi_err[fi.head(n_importance).index[::-1]].values)
         plt.xlabel("Feature importance")
-        plt.title("Morris Sensitivity Analysis " + str(idx_det_rng))
+        plt.title("Morris Sensitivity Analysis " + det_rng)
 
     def explain(self, time_r=range(0, 10), det_rng=None):
         """
