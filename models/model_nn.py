@@ -523,7 +523,7 @@ class ModelNN:
             axs[1].set_xlabel('time (YYYY-MM-DD hh:mm:ss)')
             xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S')
             axs[1].xaxis.set_major_formatter(xfmt)
-            plt.xticks(rotation=0)
+            plt.xticks(rotation=45)
             axs[1].set_ylabel('Residuals')
             # fig.subplots_adjust(top=0.88)
 
@@ -543,22 +543,58 @@ class ModelNN:
             plt.ylabel('Predicted signal')
         plt.legend(self.col_range)
 
-    def explain_global(self, n_sample=100000, det_rng='nb_r2', n_importance=20):
+    def explain_global(self, n_sample=100000, det_rng='nb_r1', n_importance=20):
         # Define dataset of background and explanation
         from interpret.blackbox import MorrisSensitivity
-        X_back = self.df_data.loc[:, self.col_selected].astype('float32').sample(n_sample)
+        n_sample = 100000
+        X_back = self.df_data.loc[:, self.col_selected].astype('float32').sample(n_sample, random_state=0)
         X_back_std = pd.DataFrame(self.scaler.transform(X_back), columns=self.col_selected)
-        idx_det_rng = np.where(np.array(self.col_range) == det_rng)[0]
-        def bb(X):
-            return self.nn_r.predict(X)[:, idx_det_rng]
-        msa = MorrisSensitivity(bb, X_back_std)
-        fi = pd.Series(dict(zip(self.col_selected, msa.mu_star_.data))).sort_values(ascending=False)
-        fi_err = pd.Series(dict(zip(self.col_selected, msa.mu_star_conf_.data)))
-        plt.figure()
-        plt.barh(fi.head(n_importance).index[::-1], fi.head(n_importance).values[::-1],
-                 xerr=fi_err[fi.head(n_importance).index[::-1]].values)
-        plt.xlabel("Feature importance")
-        plt.title("Morris Sensitivity Analysis " + det_rng)
+        weight_fi = {}
+        for det_rng in self.col_range:
+            idx_det_rng = np.where(np.array(self.col_range) == det_rng)[0]
+            def bb(X):
+                return self.nn_r.predict(X)[:, idx_det_rng]
+            msa = MorrisSensitivity(bb, X_back_std)
+            weight_fi[det_rng] = msa.mu_star_.data
+            # fi = pd.Series(dict(zip(self.col_selected, msa.mu_star_.data))).sort_values(ascending=False)
+            # fi_err = pd.Series(dict(zip(self.col_selected, msa.mu_star_conf_.data)))
+            # plt.figure()
+            # plt.barh(fi.head(n_importance).index[::-1], fi.head(n_importance).values[::-1],
+            #          # xerr=fi_err[fi.head(n_importance).index[::-1]].values
+            #          )
+            # plt.xlabel("Feature importance")
+            # plt.title("Morris Sensitivity Analysis " + det_rng)
+
+        # Stacked bar plot, reindex for most important feature
+        df_weight_fi = pd.DataFrame(weight_fi)
+        idx_most_fi = df_weight_fi.mean(axis=1).sort_values(ascending=True).index
+        weight_fi2 = {}
+        for det_rng in self.col_range:
+            weight_fi2[det_rng] = weight_fi[det_rng][idx_most_fi]
+        feature_list = tuple(np.array(self.col_selected)[idx_most_fi])
+        width = 0.5
+
+        fig, ax = plt.subplots(figsize=(15, 15))
+        left = np.zeros(len(feature_list))
+
+        for boolean, weight_count in weight_fi2.items():
+            p = ax.barh(feature_list, weight_count, width, label=boolean, left=left)
+            left += weight_count
+        ax.set_xlabel("Feature importance")
+        ax.set_title("Morris Sensitivity Analysis")
+        ax.legend(loc="lower right")
+
+        plt.show()
+
+        # # Alibi
+        # from alibi.explainers import IntegratedGradients
+        # ig = IntegratedGradients(model=self.nn_r)
+        # idx_det_rng_int = int(idx_det_rng[0])
+        # explanation = ig.explain(X_back_std.values, target=idx_det_rng_int)
+        # s_fi = pd.Series(dict(zip(self.col_selected, explanation.attributions[0].mean(axis=0))))
+        # df_fi = pd.DataFrame(s_fi)
+        # df_fi['fi_abs'] = abs(df_fi)
+        # print(df_fi.sort_values(by='fi_abs', ascending=False)[0])
 
     def explain(self, time_r=range(0, 10), det_rng=None):
         """
@@ -569,17 +605,87 @@ class ModelNN:
             Plot summary_plot more than one instances.
             Plot waterfall is one instance.
         """
+        idx_det_rng = np.where(np.array(self.col_range) == det_rng)[0][0]
+        if isinstance(time_r, str):
+            from gbm.time import Met
+            # time_met = Met(0).from_iso("2019-03-07T03:37:19").met
+            # time_met = Met(0).from_iso("2019-04-22T18:58:31").met
+            time_met = Met(0).from_iso("2019-03-01T00:55:56").met
+            # time_met = Met(0).from_iso("2014-01-02T22:09:29").met
+            # time_met = Met(0).from_iso("2014-01-09T00:03:42").met
+            # time_met = 410918500  # 2014
+            time_r = np.where((self.df_data['met'] > time_met - 500) & (self.df_data['met'] < time_met + 500))[0]
+        else:
+            pass
         # Define dataset of background and explanation
-        X_back = shap.sample(self.df_data.loc[:, self.col_selected].astype('float32'), nsamples=42, random_state=42)
-        X_back_std =  pd.DataFrame(self.scaler.transform(X_back),  columns=self.col_selected)
+        X_back = self.df_data.loc[time_r, self.col_selected].astype('float32')
+        X_back_std = pd.DataFrame(self.scaler.transform(X_back), columns=self.col_selected)
         X_expl = self.df_data.loc[time_r, self.col_selected].astype('float32')
         X_expl_std = pd.DataFrame(self.scaler.transform(X_expl), columns=self.col_selected)
+        pred_expl = self.nn_r.predict(X_expl_std)
+        pred_tmp = self.nn_r.predict(X_expl_std)
+        # plt.plot(self.df_data.loc[time_r, 'met'], pred_expl[:, -3], 'x-')
+        # plt.plot(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n2_r2'], 'x-')
+        for idx_det_rng in range(0, 36):
+            plt.figure()
+            plt.plot(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, self.col_range[idx_det_rng]], 'k-.')
+            plt.plot(self.df_data.loc[time_r, 'met'], pred_expl[:, idx_det_rng], 'r-')
+            plt.plot(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n6_vis']*10+300, 'bx-')
+            plt.plot(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n0_vis']*10+300, 'gx-')
+            plt.plot(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n1_vis']*10+300, 'yx-')
+            plt.title(self.col_range[idx_det_rng])
+
+        fig, axs = plt.subplots(2, 1, sharex=True, figsize=(12, 8), gridspec_kw={'height_ratios': [2, 1]})  # , tight_layout=True)
+        # Remove horizontal space between axes
+        fig.subplots_adjust(hspace=0)
+        # Plot each graph, and manually set the y tick values
+        axs[0].plot(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, self.col_range[idx_det_rng]], 'k-.',
+                    label='observed data')
+        axs[0].plot(self.df_data.loc[time_r, 'met'], pred_expl[:, idx_det_rng], 'r-', label='background')
+        axs[0].set_title(det_rng)
+        axs[0].set_ylabel('Count Rate')
+        axs[0].legend()
+
+        axs[1].step(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'lon'], 'gx', label='lon')
+        axs[1].set_ylabel('Value')
+        axs[1].legend()
+        axs[1].set_xlabel('MET')
+
+        axs[1].step(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n0_vis'], 'g', label='n0_vis')
+        axs[1].set_ylabel('Value')
+        axs[1].legend()
+        axs[2].step(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n1_vis'], 'y', label='n1_vis')
+        axs[2].set_ylabel('Value')
+        axs[2].legend()
+        axs[3].step(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n7_vis'], 'b', label='n7_vis')
+        axs[3].set_ylabel('Value')
+        axs[3].legend()
+        axs[4].step(self.df_data.loc[time_r, 'met'], self.df_data.loc[time_r, 'n8_vis'], 'k', label='n8_vis')
+        axs[4].set_ylabel('Value')
+        axs[4].legend()
+        axs[4].set_xlabel('MET')
+
+
+
         # Explainer shap
-        e = shap.KernelExplainer(self.nn_r, X_back_std)
-        shap_values = e.shap_values(X_expl_std, n_sample=20)
+        idx_tmp_expl = 22 # 3 # 790
+        e = shap.KernelExplainer(self.nn_r, X_back_std.iloc[range(idx_tmp_expl - 15, idx_tmp_expl + 15)])
+        shap_values = e.shap_values(X_expl_std[idx_tmp_expl:idx_tmp_expl + 1], n_sample=20)
+        plt.figure()
+        shap.plots._waterfall.waterfall_legacy(e.expected_value[idx_det_rng], shap_values[idx_det_rng][0],
+                                               feature_names=self.col_selected)
+
+        plt.plot(pred_tmp[:, 1], '-x')
+        shap_values_mat = np.array([shap_values[i][0] for i in range(0, len(shap_values))])
+        shap_values_mat[1, :]
+        shap_values_mat.mean(axis=1)
         # Gradient based
+        # idx_tmp_expl = 790
         # e = shap.GradientExplainer(self.nn_r, X_back_std)
-        # shap_values = e.shap_values(X_expl_std.values)
+        # shap_values = e.shap_values(X_expl_std[idx_tmp_expl:idx_tmp_expl+2].values)
+        # # DeepLift
+        # e = shap.DeepExplainer(self.nn_r, X_back_std)
+        # shap_values = e.shap_values(X_expl_std[idx_tmp_expl:idx_tmp_expl + 2].values)
         if len(time_r) > 1:
             plt.figure()
             shap.summary_plot(shap_values, X_expl_std)

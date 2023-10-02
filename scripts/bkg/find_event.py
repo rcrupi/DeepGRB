@@ -9,12 +9,12 @@ from gbm.finder import ContinuousFtp
 # frg = pd.read_csv('/beegfs/rcrupi/pred/frg_09-2009_12-2009.csv')
 # bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_01-2015_03-2015.csv')
 # frg = pd.read_csv('/beegfs/rcrupi/pred/frg_01-2015_03-2015.csv')
-# bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_01-2019_07-2019_current.csv')
-# frg = pd.read_csv('/beegfs/rcrupi/pred/frg_01-2019_07-2019_current.csv')
+bkg = pd.read_csv('/beegfs/rcrupi/pred/bkg_01-2019_07-2019_current.csv')
+frg = pd.read_csv('/beegfs/rcrupi/pred/frg_01-2019_07-2019_current.csv')
 
-bkg = pd.read_csv('/home/rcrupi/Desktop/rcrupi/pred/bkg_03-2019_07-2019_current.csv')
-frg = pd.read_csv('/home/rcrupi/Desktop/rcrupi/pred/frg_03-2019_07-2019_current.csv')
-
+# bkg = pd.read_csv('/home/rcrupi/Desktop/rcrupi/pred/bkg_03-2019_07-2019_current.csv')
+# frg = pd.read_csv('/home/rcrupi/Desktop/rcrupi/pred/frg_03-2019_07-2019_current.csv')
+# bkg['met'] = frg['met']
 # # Compute the MAE for the timestep outside the events
 # ev_tab = pd.read_csv("/home/rcrupi/Desktop/rcrupi/results/frg_03-2019_07-2019/events_table.csv")
 # si = ev_tab.start_index[4]-10
@@ -44,8 +44,9 @@ frg = pd.read_csv('/home/rcrupi/Desktop/rcrupi/pred/frg_03-2019_07-2019_current.
 # end_time = pd.to_datetime('2015-01-26 23:59:59')
 # start_time = pd.to_datetime('2019-02-08 21:34:00')
 # end_time = pd.to_datetime('2019-02-08 21:54:00')
-start_time = pd.to_datetime('2019-02-15 06:37:58')
-end_time = pd.to_datetime('2019-02-15 7:00:00')
+start_time = pd.to_datetime('2019-02-15 06:35:58') # '2019-02-15 06:37:58'
+end_time = pd.to_datetime('2019-02-15 07:01:00')
+
 # Filter event time
 bkg_e = bkg.loc[
     (pd.to_datetime(frg['timestamp']) >= start_time) &
@@ -72,6 +73,7 @@ for col in ['n4_r1', #'n6_r0', 'n8_r0',
     axs[0].set_title('foreground and background')
     axs[0].set_xlabel('met')
     axs[0].set_ylabel('Count Rate')
+    axs[0].set_ylim(320, None)
 
     axs[1].plot(bkg_e['met'], frg_e[col]-bkg_e[col], 'kx')
     axs[1].plot(bkg_e['met'].fillna(method='ffill'), bkg_e['met'].fillna(0)*0, 'k-')
@@ -79,6 +81,7 @@ for col in ['n4_r1', #'n6_r0', 'n8_r0',
     # axs[1].set_ylim(0, 1)
     axs[1].set_xlabel('met')
     axs[1].set_ylabel('Residuals')
+    axs[1].set_ylim(-20, None)
 
     axs[2].plot(bkg_e['met'], (frg_e[col] - bkg_e[col])/bkg_e[col]*100, 'kx')
     axs[2].plot(bkg_e['met'].fillna(method='ffill'), bkg_e['met'].fillna(0) * 0, 'k-')
@@ -86,6 +89,7 @@ for col in ['n4_r1', #'n6_r0', 'n8_r0',
     # axs[1].set_ylim(0, 1)
     axs[2].set_xlabel('met')
     axs[2].set_ylabel('Residuals %')
+    axs[2].set_ylim(-10, None)
 plt.savefig("/home/rcrupi/Downloads/saa_passage.png")
 
 met_event = int(bkg_e['met'].mean())
