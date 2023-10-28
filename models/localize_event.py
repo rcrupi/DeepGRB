@@ -226,6 +226,7 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
 
             # initialize plot
             skyplot = SkyPlot()
+            skyplot.fontsize = 16
             # Plot the orientation of the detectors and Earth blockage at our time of interest
             # Use the time where the event is localized (met_event_loc) to diplay the detectors on the map
             skyplot.add_poshist(poshist, trigtime=met_event_loc)
@@ -237,7 +238,7 @@ def localize(start_month, end_month, pre_delay=8, bln_only_trig_det=False, bln_f
             plt.show()
             # Save localization sky plot
             if trig_id is None:
-                plt.savefig(folder_result + "plots/loc/out" + str(row['trig_ids']) + '_loc.png')
+                plt.savefig(folder_result + "plots/loc/out" + str(row['trig_ids']) + '_loc.png', dpi=300)
                 plt.close('all')
             # Save Fermi loc Earth plot
             earthplot = EarthPlot()
